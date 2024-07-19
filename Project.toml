@@ -1,4 +1,5 @@
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+GibbsSeaWater = "9a22fb26-0b63-4589-b28e-8f9d0b5c3d05"
 NCDatasets = "85f8d34a-cbdd-5861-8df4-14fed0d494ab"
 StaircaseShenanigans = "c2bb06a8-94f3-4279-b990-30bf3ab8ba6f"
