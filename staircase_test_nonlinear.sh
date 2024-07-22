@@ -18,4 +18,4 @@ export JULIA_NUM_THREADS=auto
 module load julia
 
 # Run the experiment
-julia --project staircase_test.jl > $PBS_JOBID.log
+julia --project staircase_test_nonlinear.jl > $PBS_JOBID.log
