@@ -11,8 +11,8 @@ model = DNSModel(architecture, domain_extent, resolution, diffusivities)
 ## Initial conditions
 number_of_steps = 4
 depth_of_steps = [-0.2, -0.4, -0.6, -0.8]
-salinity = [34.58, 34.6, 34.62, 34.64, 34.66]
-temperature = [-1.5, -1.0, -0.5, 0.0, 0.5]
+salinity = [34.57, 34.6, 34.63, 34.66, 34.69]
+temperature = [-1.5, -1.45, -1.4, -1.35, -1.3]
 
 step_ics = StepInitialConditions(number_of_steps, depth_of_steps, salinity, temperature)
 
@@ -24,6 +24,6 @@ set_staircase_initial_conditions!(sdns)
 stop_time = 5 * 60 * 60 # seconds
 save_schedule = 60  # seconds
 output_path = joinpath(@__DIR__, "outputs_test/")
-simulation = SDNS_simulation_setup(sdns, Δt, stop_time, save_schedule; output_path)
+simulation = SDNS_simulation_setup(sdns, Δt, stop_time, save_schedule, save_computed_output!; output_path)
 
 run!(simulation)
