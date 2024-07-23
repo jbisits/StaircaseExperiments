@@ -20,16 +20,4 @@ sdns = StaircaseDNS(model, step_ics)
 
 set_staircase_initial_conditions!(sdns)
 
-z = znodes(sdns.model.grid, Center())
-S = interior(sdns.model.tracers.S, 5, 5, :)
-T = interior(sdns.model.tracers.T, 5, 5, :)
-
-fig = Figure(size = (1000, 500))
-axS = Axis(fig[1, 1], title = "Initial salinity", xlabel = "Absolute salinity (gkg⁻¹)", ylabel = "z (m)")
-lines!(axS, S, z)
-
-axT = Axis(fig[1, 2], title = "Initial temperature", xlabel = "Conservative temperature (°C)", ylabel = "z (m)")
-lines!(axT, T, z, color = :red)
-hideydecorations!(axT, grid = false)
-
-fig
+StaircaseShenanigans.visualise_initial_conditions(sdns, 5, 5)
