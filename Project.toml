@@ -5,4 +5,4 @@ NCDatasets = "85f8d34a-cbdd-5861-8df4-14fed0d494ab"
 StaircaseShenanigans = "c2bb06a8-94f3-4279-b990-30bf3ab8ba6f"
 
 [compat]
-StaircaseShenanigans = "0.1"
+StaircaseShenanigans = "0.2"
