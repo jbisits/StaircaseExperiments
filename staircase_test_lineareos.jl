@@ -6,14 +6,14 @@ domain_extent = (Lx = 0.1, Ly = 0.1, Lz = -1.0)
 resolution = (Nx = 100, Ny = 100, Nz = 1000)
 
 ## Setup the model
-eos = RoquetEquationOfState(:Linear)
+eos = CustomLinearEquationOfState(-0.5, 34.63)
 model = DNSModel(architecture, domain_extent, resolution, diffusivities, eos)
 
 ## Initial conditions
 number_of_steps = 4
 depth_of_steps = [-0.2, -0.4, -0.6, -0.8]
 salinity = [34.57, 34.60, 34.63, 34.66, 34.69]
-temperature = [-1.5, -0.99, -0.48, 0.03, 0.54]
+temperature = [-1.5, -1.115, -0.73, -0.345, 0.04]
 
 step_ics = StepInitialConditions(model, number_of_steps, depth_of_steps, salinity, temperature)
 
