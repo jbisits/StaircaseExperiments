@@ -34,7 +34,7 @@ set_staircase_initial_conditions!(sdns)
 
 ## Setup the simulation
 Δt = 1e-2
-stop_time = 7 * 60 * 60 # seconds
+stop_time = 6 * 60 * 60 # seconds
 save_schedule = 60  # seconds
 output_path = joinpath(@__DIR__, "stability_test/")
 simulation = SDNS_simulation_setup(sdns, Δt, stop_time, save_schedule, save_computed_output!; output_path)
