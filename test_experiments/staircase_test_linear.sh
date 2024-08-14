@@ -1,4 +1,3 @@
-#!/bin/bash
 #PBS -q gpuvolta
 #PBS -P e14
 #PBS -l ncpus=12
@@ -17,5 +16,6 @@ export JULIA_DEPOT_PATH="/g/data/e14/jb2381/.julia"
 export JULIA_NUM_THREADS=auto
 module load julia
 
+cd test_experiments
 # Run the experiment
-julia --project staircase_test_nonlineareos.jl > $PBS_JOBID.log
+julia --project staircase_test_lineareos.jl > $PBS_JOBID.log
