@@ -18,4 +18,4 @@ module load julia
 
 cd stability_experiments
 # Run the experiment
-julia --project stablestaircase_test_lineareos.jl > $PBS_JOBID.log
+julia --project stablestaircase_test_nleos.jl > $PBS_JOBID.log

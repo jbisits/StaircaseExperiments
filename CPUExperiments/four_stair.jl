@@ -16,7 +16,7 @@ T_target = OuterStairTargets(-0.15, -1.5, -0.85, -0.1)
 T_relaxation = Relaxation(; rate, mask, target = T_target)
 relaxation = (S = S_relaxation, T = T_relaxation)
 
-model = DNSModel(architecture, domain_extent, resolution, diffusivities, eos)
+model = DNSModel(architecture, domain_extent, resolution, diffusivities)
 
 noise = 1e-6 * randn(size(model.velocities.w))
 set!(model, w = noise)
@@ -30,11 +30,16 @@ temperature = [-1.5, -1.0, -0.576, -0.204, 0.133]
 ## Custom linear eos
 salinity = [34.57, 34.60, 34.63, 34.66, 34.69]
 temperature = [-1.5, -1.15, -0.8, -0.45, -0.1]
-## stability with three
+## stability with three, linear
 number_of_steps = 3
 depth_of_steps = [-0.4, -0.6]
 salinity = [34.57, 34.63, 34.69]
 temperature = [-1.5, -0.8, -0.1]
+## stability with three, nonlinear
+number_of_steps = 3
+depth_of_steps = [-0.4, -0.6]
+salinity = [34.57, 34.63, 34.69]
+temperature = [-1.5, -0.576, 0.133]
 
 step_ics = StepInitialConditions(model, number_of_steps, depth_of_steps, salinity, temperature)
 
