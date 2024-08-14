@@ -16,5 +16,6 @@ export JULIA_DEPOT_PATH="/g/data/e14/jb2381/.julia"
 export JULIA_NUM_THREADS=auto
 module load julia
 
+cd stability_experiments
 # Run the experiment
 julia --project staircase_test_lineareos.jl > $PBS_JOBID.log
