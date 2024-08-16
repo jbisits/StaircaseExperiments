@@ -8,12 +8,11 @@ resolution = (Nx = 80, Ny = 80, Nz = 2000)
 ## Initial conditions
 number_of_steps = 3
 depth_of_steps = [-0.95, -1.05]
-salinity = [34.51, 34.63, 34.75]
+salinity = [34.495, 34.63, 34.765]
 temperature = [-1.5, -0.5, 0.5]
 
 ## Setup the model and initial conditions
 eos = CustomLinearEquationOfState(0.0, 34.6)
-
 model = DNSModel(architecture, domain_extent, resolution, diffusivities, eos)
 
 step_ics = StepInitialConditions(model, number_of_steps, depth_of_steps, salinity, temperature)

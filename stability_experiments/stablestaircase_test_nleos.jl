@@ -8,7 +8,7 @@ resolution = (Nx = 80, Ny = 80, Nz = 2000)
 ## Initial conditions
 number_of_steps = 3
 depth_of_steps = [-0.95, -1.05]
-salinity = [34.54, 34.63, 34.7525]
+salinity = [34.53, 34.63, 34.7665]
 temperature = [-1.5, -0.5, 0.5]
 
 ## Setup the model and initial conditions
@@ -22,7 +22,7 @@ set_staircase_initial_conditions!(sdns)
 
 ## Setup the simulation
 Δt = 1e-2
-stop_time = 8 * 60 * 60 # seconds
+stop_time = 1 * 60 * 60 # seconds
 save_schedule = 60  # seconds
 output_path = joinpath(@__DIR__, "stability_test/")
 simulation = SDNS_simulation_setup(sdns, Δt, stop_time, save_schedule, save_computed_output!; output_path)
