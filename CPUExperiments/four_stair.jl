@@ -2,11 +2,11 @@ using StaircaseShenanigans, CairoMakie
 
 architecture = CPU() # or GPU()
 diffusivities = (ν = 1e-4, κ = (S = 1e-7, T = 1e-5))
-domain_extent = (Lx = 0.1, Ly = 0.1, Lz = -1.0)
-resolution = (Nx = 10, Ny = 10, Nz = 100)
+domain_extent = (Lx = 0.08, Ly = 0.08, Lz = -2.0)
+resolution = (Nx = 8, Ny = 8, Nz = 200)
 
 ## Setup the model
-eos = CustomLinearEquationOfState(0.0, 34.5)
+eos = CustomLinearEquationOfState(0.0, 34.6)
 
 rate = 1/(5 * 60)
 mask = OuterStairMask(-0.15, -0.85)
@@ -29,17 +29,17 @@ salinity = [34.57, 34.60, 34.63, 34.66, 34.69]
 temperature = [-1.5, -1.0, -0.576, -0.204, 0.133]
 ## Custom linear eos
 salinity = [34.57, 34.60, 34.63, 34.66, 34.69]
-temperature = [-1.5, -1.15, -0.8, -0.45, -0.1]
+temperature = [-1.5, -1.0, -0.5, 0.0, 0.5]
 ## stability with three, linear
 number_of_steps = 3
-depth_of_steps = [-0.4, -0.6]
-salinity = [34.57, 34.63, 34.69]
-temperature = [-1.5, -0.8, -0.1]
+depth_of_steps = [-0.95, -1.05]
+salinity = [34.51, 34.63, 34.75]
+temperature = [-1.5, -0.5, 0.5]
 ## stability with three, nonlinear
 number_of_steps = 3
-depth_of_steps = [-0.4, -0.6]
-salinity = [34.57, 34.63, 34.69]
-temperature = [-1.5, -0.576, 0.133]
+depth_of_steps = [-0.95, -1.05]
+salinity = [34.54, 34.63, 34.7525]
+temperature = [-1.5, -0.5, 0.5]
 
 step_ics = StepInitialConditions(model, number_of_steps, depth_of_steps, salinity, temperature)
 
