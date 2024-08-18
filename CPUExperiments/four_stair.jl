@@ -18,9 +18,6 @@ relaxation = (S = S_relaxation, T = T_relaxation)
 
 model = DNSModel(architecture, domain_extent, resolution, diffusivities, eos)
 
-noise = 1e-6 * randn(size(model.velocities.w))
-set!(model, w = noise)
-
 ## Initial conditions
 number_of_steps = 4
 depth_of_steps = [-0.2, -0.4, -0.6, -0.8]
@@ -40,6 +37,16 @@ number_of_steps = 3
 depth_of_steps = [-0.95, -1.05]
 salinity = [34.53, 34.63, 34.7665]
 temperature = [-1.5, -0.5, 0.5]
+## stability with three, different R_ρ
+number_of_steps = 3
+depth_of_steps = [-0.95, -1.05]
+salinity = [34.495, 34.545, 34.765]
+temperature = [-1.5, -1.0, 0.5]
+## stability with three, nonlinear, R_ρ = 2.07
+number_of_steps = 3
+depth_of_steps = [-0.95, -1.05]
+salinity = [34.53, 34.57, 34.7665]
+temperature = [-1.5, -1.0, 0.5]
 
 step_ics = StepInitialConditions(model, number_of_steps, depth_of_steps, salinity, temperature)
 
