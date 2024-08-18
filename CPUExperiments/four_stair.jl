@@ -18,7 +18,7 @@ relaxation = (S = S_relaxation, T = T_relaxation)
 
 model = DNSModel(architecture, domain_extent, resolution, diffusivities, eos)
 
-## Initial conditions
+## Initial conditions, I have been using
 number_of_steps = 4
 depth_of_steps = [-0.2, -0.4, -0.6, -0.8]
 ## Nonlinear eos
