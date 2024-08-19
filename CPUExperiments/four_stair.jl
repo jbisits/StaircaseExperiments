@@ -18,15 +18,19 @@ relaxation = (S = S_relaxation, T = T_relaxation)
 
 model = DNSModel(architecture, domain_extent, resolution, diffusivities, eos)
 
-## Initial conditions, I have been using
+## Initial conditions
+
+#### Four stairs
 number_of_steps = 4
-depth_of_steps = [-0.2, -0.4, -0.6, -0.8]
+depth_of_steps = [-0.95, -1.05, -1.15]
 ## Nonlinear eos
-salinity = [34.57, 34.60, 34.63, 34.66, 34.69]
-temperature = [-1.5, -1.0, -0.576, -0.204, 0.133]
-## Custom linear eos
-salinity = [34.57, 34.60, 34.63, 34.66, 34.69]
-temperature = [-1.5, -1.0, -0.5, 0.0, 0.5]
+salinity = [34.5585, 34.6, 34.65, 34.7083]
+temperature = [-1.5, -1.0, -0.5, 0.0]
+## Custom linear eos, R_ρ = 1.52
+salinity = [34.54, 34.60, 34.66, 34.72]
+temperature = [-1.5, -1.0, -0.5, 0.0]
+
+#### Three stairs
 ## stability with three, linear, R_ρ = 2.06
 number_of_steps = 3
 depth_of_steps = [-0.95, -1.05]
