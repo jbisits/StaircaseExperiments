@@ -6,10 +6,10 @@ domain_extent = (Lx = 0.08, Ly = 0.08, Lz = -2.0)
 resolution = (Nx = 80, Ny = 80, Nz = 2000)
 
 ## Initial conditions
-number_of_steps = 4
-depth_of_steps = [-0.95, -1.05, -1.15]
-salinity = [34.54, 34.60, 34.66, 34.72]
-temperature = [-1.5, -1.0, -0.5, 0.0]
+number_of_steps = 5
+depth_of_steps = [-0.8, -0.9, -1.0, -1.1]
+salinity = [34.54, 34.60, 34.66, 34.72, 34.78]
+temperature = [-1.5, -1.0, -0.5, 0.0, 0.5]
 
 ## Setup the model and initial conditions
 eos = CustomLinearEquationOfState(0.0, 34.6)

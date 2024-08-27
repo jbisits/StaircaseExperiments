@@ -52,6 +52,16 @@ depth_of_steps = [-0.95, -1.05]
 salinity = [34.53, 34.57, 34.7665]
 temperature = [-1.5, -1.0, 0.5]
 
+#### Five stairs
+number_of_steps = 5
+depth_of_steps = [-0.8, -0.9, -1.0, -1.1]
+## Nonlinear eos
+salinity = [34.5585, 34.6, 34.65, 34.7083, 34.775]
+temperature = [-1.5, -1.0, -0.5, 0.0, 0.5]
+## Custom linear eos, R_ρ = 1.52
+salinity = [34.54, 34.60, 34.66, 34.72, 34.78]
+temperature = [-1.5, -1.0, -0.5, 0.0, 0.5]
+
 step_ics = StepInitialConditions(model, number_of_steps, depth_of_steps, salinity, temperature)
 
 sdns = StaircaseDNS(model, step_ics)

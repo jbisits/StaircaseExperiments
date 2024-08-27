@@ -6,10 +6,10 @@ domain_extent = (Lx = 0.08, Ly = 0.08, Lz = -2.0)
 resolution = (Nx = 80, Ny = 80, Nz = 2000)
 
 ## Initial conditions
-number_of_steps = 4
-depth_of_steps = [-0.95, -1.05, -1.15]
-salinity = [34.5585, 34.6, 34.65, 34.7083]
-temperature = [-1.5, -1.0, -0.5, 0.0]
+number_of_steps = 5
+depth_of_steps = [-0.8, -0.9, -1.0, -1.1]
+salinity = [34.5585, 34.6, 34.65, 34.7083, 34.775]
+temperature = [-1.5, -1.0, -0.5, 0.0, 0.5]
 
 ## Setup the model and initial conditions
 model = DNSModel(architecture, domain_extent, resolution, diffusivities)
