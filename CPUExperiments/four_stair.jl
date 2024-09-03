@@ -2,11 +2,11 @@ using StaircaseShenanigans, CairoMakie
 
 architecture = CPU() # or GPU()
 diffusivities = (ν = 1e-4, κ = (S = 1e-7, T = 1e-5))
-domain_extent = (Lx = 0.08, Ly = 0.08, Lz = -2.0)
+domain_extent = (Lx = 0.08, Ly = 0.08, Lz = -1.0)
 resolution = (Nx = 8, Ny = 8, Nz = 200)
 
 ## Setup the model
-eos = CustomLinearEquationOfState(0.0, 34.6)
+eos = CustomLinearEquationOfState(2.0, 34.7)
 
 rate = 1/(5 * 60)
 mask = OuterStairMask(-0.15, -0.85)
@@ -65,8 +65,8 @@ temperature = [-1.5, -1.0, -0.5, 0.0, 0.5]
 ## Salt fingering
 number_of_steps = 1
 depth_of_steps = [-0.5]
-salinity = [34.8, 34.7]
-temperature = [1.5, 0.5]
+salinity = [34.9, 34.7]
+temperature = [2.8, 0.5]
 
 step_ics = StepInitialConditions(model, number_of_steps, depth_of_steps, salinity, temperature)
 
