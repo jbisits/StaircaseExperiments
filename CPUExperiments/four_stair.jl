@@ -16,7 +16,7 @@ T_target = OuterStairTargets(-0.15, -1.5, -0.85, -0.1)
 T_relaxation = Relaxation(; rate, mask, target = T_target)
 relaxation = (S = S_relaxation, T = T_relaxation)
 
-model = DNSModel(architecture, domain_extent, resolution, diffusivities)
+model = DNSModel(architecture, domain_extent, resolution, diffusivities, eos)
 
 ## Initial conditions
 
