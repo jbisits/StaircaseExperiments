@@ -65,8 +65,8 @@ temperature = [-1.5, -1.0, -0.5, 0.0, 0.5]
 ## Salt fingering
 number_of_steps = 1
 depth_of_steps = [-0.5]
-salinity = [34.9, 34.7]
-temperature = [2.8, 0.5]
+salinity = [34.98, 34.7]
+temperature = [3.5, 0.5]
 
 step_ics = StepInitialConditions(model, number_of_steps, depth_of_steps, salinity, temperature)
 
