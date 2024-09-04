@@ -6,13 +6,12 @@ domain_extent = (Lx = 0.1, Ly = 0.1, Lz = -1.0)
 resolution = (Nx = 100, Ny = 100, Nz = 1000)
 
 ## Setup the model
-eos = CustomLinearEquationOfState(2.0, 34.7)
-model = DNSModel(architecture, domain_extent, resolution, diffusivities, eos)
+model = DNSModel(architecture, domain_extent, resolution, diffusivities)
 
 ## Initial conditions
 number_of_steps = 1
 depth_of_steps = [-0.5]
-salinity = [34.98, 34.7]
+salinity = [34.9, 34.7]
 temperature = [3.5, 0.5]
 
 step_ics = StepInitialConditions(model, number_of_steps, depth_of_steps, salinity, temperature)

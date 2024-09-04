@@ -16,7 +16,7 @@ T_target = OuterStairTargets(-0.15, -1.5, -0.85, -0.1)
 T_relaxation = Relaxation(; rate, mask, target = T_target)
 relaxation = (S = S_relaxation, T = T_relaxation)
 
-model = DNSModel(architecture, domain_extent, resolution, diffusivities, eos)
+model = DNSModel(architecture, domain_extent, resolution, diffusivities)
 
 ## Initial conditions
 
@@ -65,7 +65,7 @@ temperature = [-1.5, -1.0, -0.5, 0.0, 0.5]
 ## Salt fingering
 number_of_steps = 1
 depth_of_steps = [-0.5]
-salinity = [34.98, 34.7]
+salinity = [34.9, 34.7]
 temperature = [3.5, 0.5]
 
 step_ics = StepInitialConditions(model, number_of_steps, depth_of_steps, salinity, temperature)
