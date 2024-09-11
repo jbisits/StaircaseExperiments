@@ -54,7 +54,7 @@ Calculate the horizontally averaged flux and effective diffusivity.
 """
 function ha_flux_effective_κ(φ, Δz, Δt)
 
-    ha_φ = mean(φ, dims = (1, 2))
+    ha_φ = [reshape(mean(φ[:, :, :, 1], dims = (1, 2)), :) reshape(mean(φ[:, :, :, 2], dims = (1, 2)), :)]
     sort!(ha_φ, dims = 1)
     ∫ha_φ = cumsum(ha_φ .* Δz, dims = 1)
     ha_φ_flux = vec(diff(∫ha_φ  .* Δz, dims = 2) ./ Δt)
