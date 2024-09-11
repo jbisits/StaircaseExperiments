@@ -97,7 +97,7 @@ let
 	S_upper = upper_layer == "Stable" ? S_stable : S_cab
 	ΔS = upper_layer == "Stable" ? ΔSₛ : ΔS_c
 	
-	z = range(-1, 0, length = 800)
+	z = range(-1, 0, length = 1400)
     interface_location = -0.5
 	S = erf_tracer_solution.(z, S_star, ΔS, κₛ, time, interface_location)
 	T = erf_tracer_solution.(z, Θ_star, ΔΘ, κₜ, time, interface_location)
@@ -152,6 +152,7 @@ let
 
 	ρ_min = gsw_rho(S[min_idx], T[min_idx], 0)
 	ρ_max = gsw_rho(S[max_idx], T[max_idx], 0)
+	ρ_diff = abs(z[max_idx] - z[min_idx])
 	contour!(ax2, S_range, Θ_range, ρ'; levels = [ρ_min, ρ_upper, ρ_star, ρ_max], colormap = :dense, label = "Isopycnals")
 
 	scatter!(ax[2], σ₀_min, z[min_idx], label = "Minimum density", color = :orange)
@@ -166,37 +167,31 @@ let
 	ΔT_minmax = diff(T_minmax)[1]
 	slope = ΔT_minmax / ΔS_minmax
 
-	S̄ᵤ, S̄ₗ = mean(S[1:200]), mean(S[601:800])
+	quarter_domain = round(Int, length(z) / 4)
+	S̄ᵤ, S̄ₗ = mean(S[1:quarter_domain]), mean(S[3*quarter_domain:end])
 	ΔS_interface = abs(S̄ᵤ - S̄ₗ)
 	find_S_interface = findall(median(S)-ΔS_interface/8 .< S .< median(S) + ΔS_interface/8)
 	S_mat = [ones(length(find_S_interface)) z[find_S_interface]]
 	S_linfit = S_mat \ S[find_S_interface]
 	hₛ = abs(ΔS_interface / S_linfit[2])
 
-	T̄ᵤ, T̄ₗ = mean(T[1:200]), mean(T[601:800])
+	T̄ᵤ, T̄ₗ = mean(T[1:quarter_domain]), mean(T[3*quarter_domain:end])
 	ΔΘ_interface = abs(T̄ᵤ - T̄ₗ)
-	find_Θ_interface = findall(median(T)-ΔΘ_interface/8 .< T .< median(T) + ΔΘ_interface/8)
+	find_Θ_interface = findall(median(T)-ΔΘ_interface/8 .< T .< median(T)+ΔΘ_interface/8)
 	Θ_mat = [ones(length(find_Θ_interface)) z[find_Θ_interface]]
 	Θ_linfit = Θ_mat \ T[find_Θ_interface]
 	hₜ = abs(ΔΘ_interface / Θ_linfit[2])
 
-	# scatter!(ax[1], median(S)-ΔS_interface/8, z[find_S_interface][end], color = :blue)
-	# scatter!(ax[1], median(S)+ΔS_interface/8, z[find_S_interface][1], color = :blue)
-	# scatter!(axT, median(T)-ΔΘ_interface/8, z[find_Θ_interface][end], color = :red)
-	# scatter!(axT, median(T)+ΔΘ_interface/8, z[find_Θ_interface][1], color = :red)
-
-	find_S_min = findall(S_minmax[1] .== S)
-	find_S_max = findall(S_minmax[2] .== S)
-	scatter!(ax[1], S_minmax[1], z[find_S_min][1], color = :blue)
-	scatter!(ax[1], S_minmax[2], z[find_S_max][1], color = :blue)
-	
-	find_T_min = findall(T_minmax[1] .== T)
-	find_T_max = findall(T_minmax[2] .== T)
-	scatter!(axT, T_minmax[1], z[find_T_min][1], color = :red)
-	scatter!(axT, T_minmax[2], z[find_T_max][1], color = :red)
+	scatter!(ax[1], median(S)-ΔS_interface/8, z[find_S_interface][end], color = :blue)
+	scatter!(ax[1], median(S)+ΔS_interface/8, z[find_S_interface][1], color = :blue)
+	scatter!(axT, median(T)-ΔΘ_interface/8, z[find_Θ_interface][end], color = :red)
+	scatter!(axT, median(T)+ΔΘ_interface/8, z[find_Θ_interface][1], color = :red)
 	
 	r = hₜ / hₛ
-
+	Fₜ = κₜ * (ΔΘ_interface) / hₜ
+	Fₛ = κₛ * (ΔS_interface) / hₛ
+	F_ratio = Fₛ / Fₜ
+	
 	Δρ = gsw_rho(S_upper, Θ_upper, 0) - gsw_rho(S_star, Θ_star, 0)
 	md"""
 	$(fig)
@@ -207,9 +202,20 @@ let
 	The interface thickness can be estimated as ``h_{s} = `` $(round(hₛ, digits = 3)) and ``h_{t} = `` $(round(hₜ, digits = 3)) which then give the interface thickness ratio ``r = h_{t} / h_{s} = `` $(round(r, digits = 3)) where .
 	[Carpenter (2012)](https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/abs/simulations-of-a-doublediffusive-interface-in-the-diffusive-convection-regime/63D2ECE2AA41439E01A01F9A0D76F2E2) set an initial interface thickness so I am not quite sure how I can compare these numbers to their work plus this has non-linear equation of state.
 
-	**Currently I am unsure about the ``h_{s}`` and ``h_{t}`` calculations.**
-	"""
+	**Currently I am still a little unsure about the ``h_{s}`` and ``h_{t}`` calculations.**
 
+	## Molecular flux
+
+	Carpenter (2012) also defin the *molecular flux*, in equation (5.3), as
+	```math
+	F_{φ} = κ_{φ}\frac{Δφ}{h_{φ}}.
+	```
+	This assumes a purely molecular flux through the interface.
+	Computing these ``F_{Θ} = `` $(Fₜ) and ``F_{S} = `` $(Fₛ).
+	The ratio of these fluxes is then ``R_{F} = F_{S} / F_{Θ} = `` $(F_ratio).
+
+	At this stage might be good to run some of these calculations for the non-linear eos run I have and see what I can find.
+	"""
 end
 
 # ╔═╡ 7c657d45-cd7a-4106-b23b-77dccf5c982f
