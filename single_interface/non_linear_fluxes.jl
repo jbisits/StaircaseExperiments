@@ -56,10 +56,10 @@ function ha_flux_effective_κ(φ, Δz, Δt)
 
     ha_φ = mean(φ, dims = (1, 2))
     sort!(ha_φ, dims = 1)
-    ∫ha_φ = cumsum(ha_φ * Δz, dims = 1)
-    ha_φ_flux = vec(diff(∫ha_φ  * Δz, dims = 2) ./ Δt)
+    ∫ha_φ = cumsum(ha_φ .* Δz, dims = 1)
+    ha_φ_flux = vec(diff(∫ha_φ  .* Δz, dims = 2) ./ Δt)
     ∂φ_∂z = vec(diff(ha_φ, dims = 1) ./ Δz)
-    ha_κ = 0.5 * (ha_φ_flux[1:end-1] .+ ha_φ_flux[2:end]) ./ ∂φ_∂z
+    ha_κ = 0.5 * (ha_φ_flux[1:end-1] .+ ha_φ_flux[2:end]) ./ ∂φ_∂z[:, 2]
 
     return ha_φ_flux, ha_κ
 end
@@ -80,8 +80,8 @@ for i ∈ eachindex(t)
     S = ds[:S][:, :, :, i]
     hₛ = mean_interface_thickness(S, z)
     if i >= 2
-        S = S[:, :, :, i-1:i]
-        F, κ = ha_flux_effective_κ(S, Δz, Δt)
+        S_ = S[:, :, :, i-1:i]
+        F, κ = ha_flux_effective_κ(S_, Δz, Δt[i-1])
         ha_Fₛ[:, i-1] = F
         ha_κₛ[:, i-1] = κ
     end
@@ -96,8 +96,8 @@ for i ∈ eachindex(t)
     T = T[:, :, :, i]
     hₜ = mean_interface_thickness(T, z)
     if i >= 2
-        T = T[:, :, :, i-1:i]
-        F, κ = ha_flux_effective_κ(T, Δz, Δt[i-1])
+        T_ = T[:, :, :, i-1:i]
+        F, κ = ha_flux_effective_κ(T_, Δz, Δt[i-1])
         ha_Fₜ[:, i-1] = F
         ha_κₜ[:, i-1] = κ
     end
