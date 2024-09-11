@@ -58,7 +58,7 @@ function ha_flux_effective_κ(φ, Δz, Δt)
     sort!(ha_φ, dims = 1)
     ∫ha_φ = cumsum(ha_φ .* Δz, dims = 1)
     ha_φ_flux = vec(diff(∫ha_φ  .* Δz, dims = 2) ./ Δt)
-    ∂φ_∂z = vec(diff(ha_φ, dims = 1) ./ Δz)
+    ∂φ_∂z = diff(ha_φ, dims = 1) ./ Δz
     ha_κ = 0.5 * (ha_φ_flux[1:end-1] .+ ha_φ_flux[2:end]) ./ ∂φ_∂z[:, 2]
 
     return ha_φ_flux, ha_κ
