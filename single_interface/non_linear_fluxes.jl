@@ -78,7 +78,7 @@ ha_κₛ = Array{Float64}(undef, length(z)-1, length(t)-1)
 for i ∈ eachindex(t)
 
     S = ds[:S][:, :, :, i]
-    hₛ = mean_interface_thickness(S, z)
+    hₛ[i] = mean_interface_thickness(S, z)
     if i >= 2
         S_ = ds[:S][:, :, :, i-1:i]
         F, κ = ha_flux_effective_κ(S_, Δz, Δt[i-1])
@@ -94,7 +94,7 @@ ha_κₜ = Array{Float64}(undef, length(z)-1, length(t)-1)
 for i ∈ eachindex(t)
 
     T = T[:, :, :, i]
-    hₜ = mean_interface_thickness(T, z)
+    hₜ[i] = mean_interface_thickness(T, z)
     if i >= 2
         T_ = ds[:T][:, :, :, i-1:i]
         F, κ = ha_flux_effective_κ(T_, Δz, Δt[i-1])
