@@ -73,8 +73,8 @@ z = ds[:zC][:]
 
 ## Salinity
 hₛ = similar(t)
-ha_Fₛ = Vector{Float64}(undef, length(z), length(t)-1)
-ha_κₛ = Vector{Float64}(undef, length(z)-1, length(t)-1)
+ha_Fₛ = Array{Float64}(undef, length(z), length(t)-1)
+ha_κₛ = Array{Float64}(undef, length(z)-1, length(t)-1)
 for i ∈ eachindex(t)
 
     S = ds[:S][:, :, :, i]
@@ -89,8 +89,8 @@ end
 
 ## Temperature
 hₜ = similar(t)
-ha_Fₜ = Vector{Float64}(undef, length(z), length(t)-1)
-ha_κₜ = Vector{Float64}(undef, length(z)-1, length(t)-1)
+ha_Fₜ = Array{Float64}(undef, length(z), length(t)-1)
+ha_κₜ = Array{Float64}(undef, length(z)-1, length(t)-1)
 for i ∈ eachindex(t)
 
     T = T[:, :, :, i]
