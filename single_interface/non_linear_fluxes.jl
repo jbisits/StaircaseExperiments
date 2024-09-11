@@ -27,9 +27,9 @@ function mean_interface_thickness(φ, z)
 
         for j ∈ 1:Ly
 
-            φ_profile = φ[i, j, :]
+            φ_profile = vec(φ[i, j, :])
             find_interface = (median(φ_profile)) - Δφ / 8 .<  φ_profile .< (median(φ_profile) + Δφ / 8)
-            linfit = [ones(length(find_interface)) z[find_interface]] \ φ[i, j, find_interface]
+            linfit = [ones(length(find_interface)) z[find_interface]] \ φ_profile[find_interface]
             h_φ[i, j] = abs(Δφ / linfit[2])
 
         end
