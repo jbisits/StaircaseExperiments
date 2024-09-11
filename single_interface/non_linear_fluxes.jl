@@ -93,7 +93,7 @@ ha_Fₜ = Array{Float64}(undef, length(z), length(t)-1)
 ha_κₜ = Array{Float64}(undef, length(z)-1, length(t)-1)
 for i ∈ eachindex(t)
 
-    T = T[:, :, :, i]
+    T = ds[:T][:, :, :, i]
     hₜ[i] = mean_interface_thickness(T, z)
     if i >= 2
         T_ = ds[:T][:, :, :, i-1:i]
