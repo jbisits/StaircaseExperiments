@@ -110,7 +110,7 @@ jldopen(fluxes_file, "w") do file
     file["hₜ"] = hₜ
     file["ha_Fₜ"] = ha_Fₜ
     file["ha_κₜ"] = ha_κₜ
-    file["hₛ"] = hₜ
+    file["hₛ"] = hₛ
     file["ha_Fₛ"] = ha_Fₛ
     file["ha_κₛ"] = ha_κₛ
 end

@@ -18,7 +18,7 @@ end
 begin
 	using Pkg
 	Pkg.activate("..")
-	using CairoMakie, GibbsSeaWater, PlutoUI, Statistics
+	using CairoMakie, GibbsSeaWater, PlutoUI, Statistics, JLD2
 	using SpecialFunctions: erf
 	using StaircaseShenanigans: ρ, RoquetEquationOfState, CustomLinearEquationOfState
 end
@@ -62,7 +62,7 @@ In particular when relating to a linear equation of state how do the fluxes, det
 
 # ╔═╡ a92c3315-ae34-447a-bc3e-7960bf2694d1
 begin
-	time = @bind time PlutoUI.Slider(0.00001:10000:500000.00001)
+	time = @bind time PlutoUI.Slider(0.00001:10000:500000.00001, default = 10000.00001)
 	κₛ_var = @bind κₛ PlutoUI.Slider([1e-7, 1e-8, 1e-9], show_value = true, default = 1e-9)
 	κₜ_var = @bind κₜ PlutoUI.Slider([1e-7, 1e-8, 1e-9], show_value = true, default = 1e-7)
 
@@ -218,6 +218,152 @@ let
 	"""
 end
 
+# ╔═╡ feb1de5f-8dfd-478d-89d9-ff668c55b892
+begin
+	animation_path = "../../CabbelingExperiments/data/animations/Double diffusion/Cabbeling_DD_600min_densityratio100"
+	tracers = joinpath(animation_path, "tracers.mp4")
+	LocalResource(tracers)
+end
+
+# ╔═╡ 056df154-3413-4459-85c2-a1aeaeed9bdb
+begin
+	density = joinpath(animation_path, "density.mp4")
+	LocalResource(density)
+end
+
+# ╔═╡ 28033f6f-2107-4b8d-a2fe-78e4eacd8d14
+md"""
+## Model output
+
+I have a simulation with ``τ = 0.01`` that I ran as part of my cabbeling work.
+I have attempted to compute the interface thickness using the methods above and the horizontally averaged flux and diffusivity of both temperature and salinity.
+This was a first pass and the averaging was because Gadi was going to be offline for a few days so I wanted to get something done.
+
+The tracers and density evolution for this simulation are also shown.
+
+### Interface thickness
+"""
+
+# ╔═╡ 78a2038d-2da0-43e9-9839-cdce03002927
+begin
+	computed_output = "single_interface_fluxes.jld2"
+	co = load(computed_output)
+	replace!(co["ha_κₜ"], Inf => 0)
+	replace!(co["ha_κₜ"], -Inf => 0)
+	replace!(co["ha_κₛ"], Inf => 0)
+	replace!(co["ha_κₛ"], -Inf => 0)
+	reverse!(co["ha_κₛ"], dims = 1)
+	reverse!(co["ha_κₜ"], dims = 1)
+	reverse!(co["ha_Fₛ"], dims = 1)
+	reverse!(co["ha_Fₜ"], dims = 1)
+	replace!(co["hₜ"], Inf => 0)
+	replace!(co["hₛ"], Inf => 0)
+	nothing
+end
+
+# ╔═╡ 120a212f-f5c1-4520-802d-28ad737ebdee
+@bind interface_plot_window PlutoUI.Slider(3:length(co["hₜ"]), default = length(co["hₜ"]))
+
+# ╔═╡ 106ec4cd-a244-4457-b6b9-3b70a4b6db3e
+let
+	fig = Figure(size = (500, 500))
+	ax = Axis(fig[1, 1], xlabel = "time (s)", ylabel = "Interface thickness (m, log10)", title = "Interface thickness")
+	lines!(ax, log10.(co["hₜ"][2:interface_plot_window]), label = "hₜ")
+	# hlines!(ax, log10.(10), label = "thickness = 10cm", linestyle = :dash, color = :black)
+	axislegend(ax, position = :lt)
+	fig
+end
+
+# ╔═╡ f2a9ff46-033c-4d12-94f8-3f12b4894a11
+md"""
+Clearly there are some issues here; mainly that these numbers look much too large.
+As the simulation goes on the criteria of searching over ``\text{median}(φ) - Δφ/8 < φ < \text{median}(φ) + Δφ/8`` might need to be made more narrow.
+There are also large fluctuations due to the turbulence that would likely not be present in lower density ratio flows so I also wonder if horizontal averaging first might be better.
+This was done quite quickly by me so it could be that it just needs to be properly debugged and then will get more accurate results.
+
+I also ended up only saving the temperature interface thickness so cannot get the thickness ratio unfortunately.
+
+### Horizontally averaged fluxes
+"""
+
+# ╔═╡ 054c0968-fbc4-4ec2-b9a1-fd7c005f49cc
+begin
+	zoom_var = @bind zoom Select(["false", "true"])
+	md"""
+	Zoom on middle of domain $(zoom_var)
+	"""
+end
+
+# ╔═╡ 214a62b5-d46f-4636-bc26-3d5a4372d0d9
+begin
+	z = range(-1, 0, length = 1399)
+	zrange = zoom == "false" ? eachindex(z) : 680:800
+	nothing
+end
+
+# ╔═╡ f2163623-d32f-4203-b1ce-9f87478fc9b3
+let
+	fig = Figure(size = (800, 500))
+	axS = Axis(fig[1, 1], ylabel = "z (m)", title = "Horizontally averaged salinity flux")
+	hidexdecorations!(axS)
+	hmS = heatmap!(axS, 1:660, z[zrange], co["ha_Fₛ"][zrange, :]', colormap = :haline)
+	Colorbar(fig[1, 2], hmS, label = "Fₛ")
+	axT = Axis(fig[2, 1], xlabel = "time (min)", ylabel = "z (m)", title = "Horizontally averaged temperature flux")
+	hmT = heatmap!(axT, 1:660, z[zrange], co["ha_Fₜ"][zrange, :]', colormap = :thermal)
+	Colorbar(fig[2, 2], hmT, label = "Fₜ")
+	fig
+end
+
+# ╔═╡ 3face522-479b-4f87-a332-b858877094bc
+md"""
+A figure like this for the horizontally averaged temperature and salinity might also be useful.
+"""
+
+# ╔═╡ e5079cbd-7878-4e71-96e1-71f7ceccfb29
+md"""
+### Horizontally averaged effective diffusivity
+
+I think these might be out by a factor of 100 (i.e. need to multiply by surface area) but will check.
+
+From the figures below it looks like the effective diffusivity could be used as an alternate measure for interface thickness.
+Need to get the Carpenter (2012) method working first so can compare but in the hovmoller figure below there is a clear region (around the blue line) where there is lower, approximately molecular diffusivity values which appear to wider (especially in the temperature) as time rolls on.
+"""
+
+# ╔═╡ c521d03e-929c-493e-ba8b-db51983a2c2a
+let
+	fig = Figure(size = (800, 500))
+	axS = Axis(fig[1, 1], ylabel = "z (m)", title = "Horizontally averaged effective diffusivity", subtitle = "salinity")
+	hidexdecorations!(axS)
+	z = range(-1, 0, length = 1399)
+	hmS = heatmap!(axS, 1:660, z[zrange], log10.(abs.(co["ha_κₛ"][zrange, :]')), colormap = :haline)
+	Colorbar(fig[1, 2], hmS, label = "κₛ")
+	axT = Axis(fig[2, 1], xlabel = "time (min)", ylabel = "z (m)", title = "Horizontally averaged effective diffusivity", subtitle = "temperature")
+	hmT = heatmap!(axT, 1:660, z[zrange], log10.(abs.(co["ha_κₜ"][zrange, :]')), colormap = :thermal)
+	hlines!(axS, -0.4685)
+	hlines!(axT, -0.4685)
+	Colorbar(fig[2, 2], hmT, label = "κₜ")
+	fig
+end
+
+# ╔═╡ d7aa3853-6c71-46da-983a-2c1eb0c817a7
+let
+	find = findfirst(z .< -0.4685)
+	Θinterface = log10.(abs.(co["ha_κₜ"][find, :]))
+	Θinterface_mean = mean(Θinterface[.!isnan.(Θinterface)])
+	replace!(Θinterface, -Inf => NaN)
+	Θinterface_mean = mean(Θinterface[.!isnan.(Θinterface)])
+	Sinterface = log10.(abs.(co["ha_κₛ"][find, :]))
+	replace!(Sinterface, -Inf => NaN)
+	Sinterface_mean = mean(Sinterface[.!isnan.(Sinterface)])
+	fig, ax = lines(Θinterface, label = "κₜ, time mean = $(round(Θinterface_mean, digits = 2))")
+	ax.xlabel = "time (min)"
+	ax.ylabel = "Effective diffusivity (log10)"
+	ax.title = "Effective diffusivity at (or close to) interface"
+	lines!(ax, Sinterface, label = "κₛ, time mean = $(round(Sinterface_mean, digits = 2))")
+	axislegend(ax)
+	fig
+end
+
 # ╔═╡ 7c657d45-cd7a-4106-b23b-77dccf5c982f
 md"""
 # Linear equation of state
@@ -322,6 +468,20 @@ TableOfContents()
 # ╟─22c3e8cc-2d34-4fa4-9c2d-c807c6f53998
 # ╟─a92c3315-ae34-447a-bc3e-7960bf2694d1
 # ╟─8b0cb0d8-ad5b-46f8-8990-9438589976d8
+# ╟─feb1de5f-8dfd-478d-89d9-ff668c55b892
+# ╟─056df154-3413-4459-85c2-a1aeaeed9bdb
+# ╟─28033f6f-2107-4b8d-a2fe-78e4eacd8d14
+# ╟─78a2038d-2da0-43e9-9839-cdce03002927
+# ╟─120a212f-f5c1-4520-802d-28ad737ebdee
+# ╟─106ec4cd-a244-4457-b6b9-3b70a4b6db3e
+# ╟─f2a9ff46-033c-4d12-94f8-3f12b4894a11
+# ╟─054c0968-fbc4-4ec2-b9a1-fd7c005f49cc
+# ╟─214a62b5-d46f-4636-bc26-3d5a4372d0d9
+# ╟─f2163623-d32f-4203-b1ce-9f87478fc9b3
+# ╟─3face522-479b-4f87-a332-b858877094bc
+# ╟─e5079cbd-7878-4e71-96e1-71f7ceccfb29
+# ╟─c521d03e-929c-493e-ba8b-db51983a2c2a
+# ╟─d7aa3853-6c71-46da-983a-2c1eb0c817a7
 # ╟─7c657d45-cd7a-4106-b23b-77dccf5c982f
 # ╟─308bc1ca-673d-48a9-8938-58c64c3d66a1
 # ╟─ac2e0369-626f-40f4-a405-6941ff60f6d2
