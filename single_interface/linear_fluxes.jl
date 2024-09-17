@@ -1,8 +1,8 @@
 include("single_interface_diagnostics.jl")
 
-data_path = "/g/data/e14/jb2381/CabbelingExperiments/outputs_doublediffusion/cabbeling_stepchange_nothing_600min"
+data_path = "/g/data/e14/jb2381/StaircaseExperiments/single_interface/linear_simulation/lineareos_step_change_660min/tracers.nc"
 tracers = joinpath(data_path, "tracers.nc")
-fluxes_file = joinpath(@__DIR__, "single_interface_fluxes_nonlinear.jld2")
+fluxes_file = joinpath(@__DIR__, "single_interface_fluxes_linear.jld2")
 
 ds = NCDataset(tracers)
 

@@ -246,7 +246,7 @@ The tracers and density evolution for this simulation are also shown.
 
 # ╔═╡ 78a2038d-2da0-43e9-9839-cdce03002927
 begin
-	computed_output = "single_interface_fluxes.jld2"
+	computed_output = "single_interface_fluxes_nonlinear.jld2"
 	co = load(computed_output)
 	replace!(co["ha_κₜ"], Inf => 0)
 	replace!(co["ha_κₜ"], -Inf => 0)
@@ -254,6 +254,8 @@ begin
 	replace!(co["ha_κₛ"], -Inf => 0)
 	reverse!(co["ha_κₛ"], dims = 1)
 	reverse!(co["ha_κₜ"], dims = 1)
+	co["ha_κₜ"] *= 100 # 100 = 1 / area where area = horizontal area 0.1^2
+	co["ha_κₛ"] *= 100
 	reverse!(co["ha_Fₛ"], dims = 1)
 	reverse!(co["ha_Fₜ"], dims = 1)
 	replace!(co["hₜ"], Inf => 0)
@@ -363,6 +365,12 @@ let
 	axislegend(ax)
 	fig
 end
+
+# ╔═╡ 246df0b8-cf7f-43f7-832b-0b015ccce2df
+findall(co["ha_κₜ"] .≈ 1e-7)
+
+# ╔═╡ 2d0f2ab0-3b42-4851-89d1-cb79978a43ce
+co["ha_κₜ"] .≈ 1e-7
 
 # ╔═╡ 7c657d45-cd7a-4106-b23b-77dccf5c982f
 md"""
@@ -480,8 +488,10 @@ TableOfContents()
 # ╟─f2163623-d32f-4203-b1ce-9f87478fc9b3
 # ╟─3face522-479b-4f87-a332-b858877094bc
 # ╟─e5079cbd-7878-4e71-96e1-71f7ceccfb29
-# ╟─c521d03e-929c-493e-ba8b-db51983a2c2a
+# ╠═c521d03e-929c-493e-ba8b-db51983a2c2a
 # ╟─d7aa3853-6c71-46da-983a-2c1eb0c817a7
+# ╠═246df0b8-cf7f-43f7-832b-0b015ccce2df
+# ╠═2d0f2ab0-3b42-4851-89d1-cb79978a43ce
 # ╟─7c657d45-cd7a-4106-b23b-77dccf5c982f
 # ╟─308bc1ca-673d-48a9-8938-58c64c3d66a1
 # ╟─ac2e0369-626f-40f4-a405-6941ff60f6d2
