@@ -341,8 +341,8 @@ let
 	Colorbar(fig[1, 2], hmS, label = "κₛ")
 	axT = Axis(fig[2, 1], xlabel = "time (min)", ylabel = "z (m)", title = "Horizontally averaged effective diffusivity", subtitle = "temperature")
 	hmT = heatmap!(axT, 1:660, z[zrange], log10.(abs.(co["ha_κₜ"][zrange, :]')), colormap = :thermal)
-	hlines!(axS, -0.4685)
-	hlines!(axT, -0.4685)
+	hlines!(axS, -0.4685, linestyle = :dot, color = :yellow)
+	hlines!(axT, -0.4685, linestyle = :dot, color = :yellow)
 	Colorbar(fig[2, 2], hmT, label = "κₜ")
 	fig
 end
@@ -366,11 +366,21 @@ let
 	fig
 end
 
-# ╔═╡ 246df0b8-cf7f-43f7-832b-0b015ccce2df
-findall(co["ha_κₜ"] .≈ 1e-7)
+# ╔═╡ 7f417e03-72ef-47f5-923a-b932de687a37
+@bind eff_diff_time_window PlutoUI.Slider(eachindex(co["ha_κₛ"][1, :]))
 
-# ╔═╡ 2d0f2ab0-3b42-4851-89d1-cb79978a43ce
-co["ha_κₜ"] .≈ 1e-7
+# ╔═╡ 7b798e2e-4370-43fc-a3d7-26587aeec349
+let
+	fig, ax = lines(vec(log10.(abs.(mean(co["ha_κₜ"][:, eff_diff_time_window:end], dims = 2)))), z, label = "temperature")
+	lines!(ax, vec(log10.(abs.(mean(co["ha_κₛ"][:, eff_diff_time_window:end], dims = 2)))), z, label = "salinity")
+	hlines!(ax, -0.4685, linestyle = :dot, color = :black)
+	ax.title = "Time mean effective diffusivity at each depth level"
+	ax.subtitle = "window = $(eff_diff_time_window) - 600min"
+	ax.xlabel = "Effective diffusivity (log10)"
+	ax.ylabel = "z (m)"
+	axislegend(ax, position = :rc)
+	fig
+end
 
 # ╔═╡ 7c657d45-cd7a-4106-b23b-77dccf5c982f
 md"""
@@ -467,6 +477,14 @@ let
 	"""
 end
 
+# ╔═╡ b1a1dd8b-756a-4eff-9607-5408c65dae4e
+md"""
+## Model output
+$(LocalResource("../single_interface/density.mp4"))
+
+$(LocalResource("../single_interface/tracers.mp4"))
+"""
+
 # ╔═╡ 7ad7693e-6f18-474a-89e8-b2d433aea261
 TableOfContents()
 
@@ -488,11 +506,12 @@ TableOfContents()
 # ╟─f2163623-d32f-4203-b1ce-9f87478fc9b3
 # ╟─3face522-479b-4f87-a332-b858877094bc
 # ╟─e5079cbd-7878-4e71-96e1-71f7ceccfb29
-# ╠═c521d03e-929c-493e-ba8b-db51983a2c2a
+# ╟─c521d03e-929c-493e-ba8b-db51983a2c2a
 # ╟─d7aa3853-6c71-46da-983a-2c1eb0c817a7
-# ╠═246df0b8-cf7f-43f7-832b-0b015ccce2df
-# ╠═2d0f2ab0-3b42-4851-89d1-cb79978a43ce
+# ╟─7f417e03-72ef-47f5-923a-b932de687a37
+# ╟─7b798e2e-4370-43fc-a3d7-26587aeec349
 # ╟─7c657d45-cd7a-4106-b23b-77dccf5c982f
 # ╟─308bc1ca-673d-48a9-8938-58c64c3d66a1
 # ╟─ac2e0369-626f-40f4-a405-6941ff60f6d2
+# ╟─b1a1dd8b-756a-4eff-9607-5408c65dae4e
 # ╟─7ad7693e-6f18-474a-89e8-b2d433aea261
