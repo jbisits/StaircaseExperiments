@@ -1,9 +1,8 @@
 #!/bin/bash
-#PBS -q gpuvolta
+#PBS -q normalbw
 #PBS -P e14
 #PBS -l ncpus=12
-#PBS -l ngpus=1
-#PBS -l mem=96GB
+#PBS -l mem=192GB
 #PBS -l jobfs=1GB
 #PBS -l walltime=48:00:00
 #PBS -l storage=gdata/e14+scratch/e14

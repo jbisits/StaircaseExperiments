@@ -1,6 +1,6 @@
 using StaircaseShenanigans
 
-architecture = GPU()
+architecture = CPU() # GPU()
 diffusivities = (ν = 1e-6, κ = (S = 1e-9, T = 1e-7))
 domain_extent = (Lx = 0.1, Ly = 0.1, Lz = -1.0)
 resolution = (Nx = 100, Ny = 100, Nz = 1400)
