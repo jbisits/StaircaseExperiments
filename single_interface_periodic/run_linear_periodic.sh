@@ -18,4 +18,4 @@ export JULIA_NUM_THREADS=auto
 module load julia
 
 # Run the experiment
-julia --project linear_model.jl > $PBS_JOBID.log
+julia --project linear_periodic.jl > $PBS_JOBID.log
