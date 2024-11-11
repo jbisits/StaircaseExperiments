@@ -15,7 +15,6 @@ cd /g/data/e14/jb2381/StaircaseExperiments/single_interface_restoring
 # Julia
 export JULIA_DEPOT_PATH="/g/data/e14/jb2381/.julia"
 export JULIA_NUM_THREADS=auto
-module load julia
 
 # Run the experiment
 julia --project linear_reentrant.jl > $PBS_JOBID.log
