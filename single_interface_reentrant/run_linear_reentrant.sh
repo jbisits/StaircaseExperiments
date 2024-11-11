@@ -10,7 +10,7 @@
 #PBS -l wd
 #PBS -M z5131023@unsw.edu.au
 
-cd /g/data/e14/jb2381/StaircaseExperiments/single_interface_restoring
+cd /g/data/e14/jb2381/StaircaseExperiments/single_interface_reentrant
 
 # Julia
 export JULIA_DEPOT_PATH="/g/data/e14/jb2381/.julia"
