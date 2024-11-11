@@ -21,7 +21,7 @@ sdns = StaircaseDNS(model_setup, interface_ics, nothing)
 Δt = 1e-1
 stop_time = 2 * 60 * 60 # seconds
 save_schedule = 10  # seconds
-joinpath(@__DIR__, "no_perurbations")
+output_path = joinpath(@__DIR__, "no_perurbations")
 simulation = SDNS_simulation_setup(sdns, Δt, stop_time, save_schedule, save_computed_output!,
                                     save_vertical_velocities!;
                                     output_path, max_Δt = 5)
