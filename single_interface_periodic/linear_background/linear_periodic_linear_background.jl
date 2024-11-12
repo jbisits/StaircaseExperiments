@@ -11,7 +11,7 @@ model_setup = (;architecture, diffusivities, domain_extent, resolution, eos)
 depth_of_interface = -0.5
 salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
-interface_ics = PeriodoicSingleInterfaceICs(eos, depth_of_interface, salinity, temperature, linear_background)
+interface_ics = PeriodoicSingleInterfaceICs(eos, depth_of_interface, salinity, temperature, StaircaseShenanigans.linear_background)
 tracer_noise = TracerNoise(1e-7, 1e-7)
 
 ## setup model
