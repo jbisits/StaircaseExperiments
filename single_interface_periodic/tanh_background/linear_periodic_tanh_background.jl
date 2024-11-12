@@ -11,20 +11,19 @@ model_setup = (;architecture, diffusivities, domain_extent, resolution, eos)
 depth_of_interface = -0.5
 salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
-interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature, maintain_interface = true)
-# velocity_noise = VelocityNoise(0.0, 0.0, 1e-7)
+interface_ics = PeriodoicSingleInterfaceICs(eos, depth_of_interface, salinity, temperature, tanh_background)
 salinity_noise = TracerNoise(1e-7, 0.0)
 
 ## setup model
-sdns = StaircaseDNS(model_setup, interface_ics, salinity_noise)
+sdns = StaircaseDNS(model_setup, interface_ics, salnity_noise)
 
 ## Build simulation
 Δt = 1e-1
 stop_time = 2 * 60 * 60 # seconds
 save_schedule = 10  # seconds
-output_path = joinpath(@__DIR__, "salinity_perturbation")
+output_path = joinpath(@__DIR__, "salinity_noise")
 simulation = SDNS_simulation_setup(sdns, Δt, stop_time, save_schedule, save_computed_output!,
-                                    save_vertical_velocities!;
+                                    StaircaseShenanigans.save_vertical_velocities!;
                                     output_path, max_Δt = 5)
 ## Run
 run!(simulation)

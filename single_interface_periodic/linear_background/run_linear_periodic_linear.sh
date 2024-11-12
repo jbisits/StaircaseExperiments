@@ -10,11 +10,11 @@
 #PBS -l wd
 #PBS -M z5131023@unsw.edu.au
 
-cd /g/data/e14/jb2381/StaircaseExperiments/single_interface_periodic
+cd /g/data/e14/jb2381/StaircaseExperiments/single_interface_periodic/linear_background
 
 # Julia
 export JULIA_DEPOT_PATH="/g/data/e14/jb2381/.julia"
 export JULIA_NUM_THREADS=auto
 
 # Run the experiment
-julia --project linear_periodic.jl > $PBS_JOBID.log
+julia --project linear_periodic_linear_background.jl > $PBS_JOBID.log
