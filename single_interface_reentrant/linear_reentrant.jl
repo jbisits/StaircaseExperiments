@@ -21,7 +21,7 @@ sdns = StaircaseDNS(model_setup, interface_ics, velocity_noise)
 Δt = 1e-3
 stop_time = 2 * 60 * 60 # seconds
 save_schedule = 10  # seconds
-output_path = joinpath(@__DIR__, "salinity_perturbation")
+output_path = joinpath(@__DIR__, "velocity_noise")
 simulation = SDNS_simulation_setup(sdns, Δt, stop_time, save_schedule, save_computed_output!,
                                     save_vertical_velocities!;
                                     output_path, max_Δt = 1e-1, max_change = 0.5)
