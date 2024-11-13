@@ -15,7 +15,7 @@ interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperatur
 velocity_noise = VelocityNoise(1e-9, 1e-9, 1e-9)
 
 ## setup model
-sdns = StaircaseDNS(model_setup, interface_ics, salinity_noise)
+sdns = StaircaseDNS(model_setup, interface_ics, velocity_noise)
 
 ## Build simulation
 Δt = 1e-3
