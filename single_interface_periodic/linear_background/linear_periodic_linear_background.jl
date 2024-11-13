@@ -36,5 +36,5 @@ compute_R_ρ!(simulation.output_writers[:computed_output].filepath,
 cd(output_path)
 @info "Producing animations"
 using CairoMakie
-animate_density(simulation.output_writers[:computed_output].filepath)
+animate_density(simulation.output_writers[:computed_output].filepath, "σ")
 animate_tracers(simulation.output_writers[:tracers].filepath)
