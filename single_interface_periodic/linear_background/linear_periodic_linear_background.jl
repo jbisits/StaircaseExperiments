@@ -11,7 +11,7 @@ model_setup = (;architecture, diffusivities, domain_extent, resolution, eos)
 depth_of_interface = -0.5
 salinity = [34.56, 34.70]
 temperature = [-1.5, 0.5]
-interface_ics = PeriodoicSingleInterfaceICs(eos, depth_of_interface, salinity, temperature, StaircaseShenanigans.linear_background)
+interface_ics = PeriodoicSingleInterfaceICs(eos, depth_of_interface, salinity, temperature, BackgroundLinear())
 tracer_noise = TracerNoise(1e-5, 1e-5)
 
 ## setup model
@@ -19,7 +19,7 @@ sdns = StaircaseDNS(model_setup, interface_ics, tracer_noise)
 
 ## Build simulation
 Δt = 1e-3
-stop_time = 2 * 60 * 60 # seconds
+stop_time = 3 * 60 * 60 # seconds
 save_schedule = 10  # seconds
 output_path = joinpath(@__DIR__, "tracer_noise")
 simulation = SDNS_simulation_setup(sdns, Δt, stop_time, save_schedule, save_computed_output!,
@@ -36,5 +36,5 @@ compute_R_ρ!(simulation.output_writers[:computed_output].filepath,
 cd(output_path)
 @info "Producing animations"
 using CairoMakie
-animate_density(simulation.output_writers[:computed_output].filepath, "σ")
-animate_tracers(simulation.output_writers[:tracers].filepath)
+animate_density_anomaly(simulation.output_writers[:computed_output].filepath, "σ")
+animate_tracers_anomal(simulation.output_writers[:tracers].filepath)
