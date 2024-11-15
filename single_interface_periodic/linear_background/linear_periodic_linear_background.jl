@@ -34,4 +34,6 @@ cd(output_path)
 @info "Producing animations"
 using CairoMakie
 animate_density_anomaly(simulation.output_writers[:computed_output].filepath, "σ")
-animate_tracers_anomal(simulation.output_writers[:tracers].filepath)
+animate_tracers_anomaly(simulation.output_writers[:tracers].filepath)
+animate_density(simulation.output_writers[:computed_output].filepath, "σ")
+animate_tracers(simulation.output_writers[:tracers].filepath)
