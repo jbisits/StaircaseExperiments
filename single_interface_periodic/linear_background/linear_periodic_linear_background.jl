@@ -30,7 +30,9 @@ compute_R_ρ!(simulation.output_writers[:computed_output].filepath,
              simulation.output_writers[:tracers].filepath, eos)
 
 ## Produce animations
-cd(output_path)
+reduced_path = findlast('/', simulation.output_writers[:computed_output])
+animation_path = simulation.output_writers[:computed_output][1:(reduced_path-1)]
+cd(animation_path)
 @info "Producing animations"
 using CairoMakie
 animate_density_anomaly(simulation.output_writers[:computed_output].filepath, "σ")

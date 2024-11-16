@@ -23,9 +23,6 @@ begin
 	using StaircaseShenanigans, CairoMakie, NCDatasets, PlutoUI, Statistics, GibbsSeaWater
 end
 
-# ╔═╡ 21b56e8c-d764-4a37-b770-93263e17a7e5
-using Printf
-
 # ╔═╡ a902348d-5912-49b8-b784-4d065b0640ff
 md"""
 # Experiments run locally to test package functionality
@@ -73,9 +70,12 @@ md"""
 ## Triple periodic with background state
 """
 
+# ╔═╡ f8cd18d6-8ab1-490d-9b60-97a383ed8980
+@bind background_state Select(["tanh", "linear"])
+
 # ╔═╡ ac36c5a3-63bb-4a55-a356-c3732e15d071
 begin
-	periodic_output = "../../StaircaseShenanigans/examples/output/lineareos_single_interface_200min"
+	periodic_output = "../../StaircaseShenanigans/examples/output_$(background_state)_background/lineareos_single_interface_240min"
 	tracers_periodic = joinpath(periodic_output, "tracers.nc")
 	velocities_periodic = joinpath(periodic_output, "velocities.nc")
 	co_periodic = joinpath(periodic_output, "computed_output.nc")
@@ -273,11 +273,10 @@ time_slider
 
 # ╔═╡ a48ec43b-395d-47d0-8e06-dbcceb77bf0b
 let
-	S_params = (ΔC = 0.12000000000000455, Cᵤ = 34.58, Cₗ = 34.7, Lz = 1.0, z_interface = -0.5, D = 100)
-	_tanh_background(z, ΔC, Cᵤ, Cₗ, Lz, z_interface, D) = Cₗ - 0.5 * ΔC * (1  + tanh(D * (z - z_interface) / Lz))
-	S_background = _tanh_background.(z_periodic, S_params...)
-	T_params = (ΔC = 2.0, Cᵤ = -1.5, Cₗ = 0.5, Lz = 1.0, z_interface = -0.5, D = 100)
-	T_background = _tanh_background.(z_periodic, T_params...)
+	S_params = (ΔC = 0.14, Cₗ = 34.7, Lz = 1.0, z_interface = -0.5, D = 100)
+	S_background = tanh_background.(z_periodic, S_params...)
+	T_params = (ΔC = 2.0, Cₗ = 0.5, Lz = 1.0, z_interface = -0.5, D = 100)
+	T_background = tanh_background.(z_periodic, T_params...)
 	
 	T_z_mean = mean(T_periodic[:, :, :, slider_periodic] .- T′_periodic[:, :, :, slider_periodic], dims = (1, 2)) |> vec
 	S_z_mean = mean(S_periodic[:, :, :, slider_periodic] .- S′_periodic[:, :, :, slider_periodic], dims = (1, 2)) |> vec
@@ -302,11 +301,10 @@ end
 
 # ╔═╡ 136e28d9-9c60-4b8a-8db7-646eb01e1827
 let
-	S_params = (ΔC = 0.12000000000000455, Cᵤ = 34.58, Cₗ = 34.7, Lz = 1.0, z_interface = -0.5, D = 100)
-	_tanh_background(z, ΔC, Cᵤ, Cₗ, Lz, z_interface, D) = Cₗ - 0.5 * ΔC * (1  + tanh(D * (z - z_interface) / Lz))
-	S_background = _tanh_background.(z_periodic, S_params...)
-	T_params = (ΔC = 2.0, Cᵤ = -1.5, Cₗ = 0.5, Lz = 1.0, z_interface = -0.5, D = 100)
-	T_background = _tanh_background.(z_periodic, T_params...)
+	S_params = (ΔC = 0.14, Cₗ = 34.7, Lz = 1.0, z_interface = -0.5, D = 100)
+	S_background = tanh_background.(z_periodic, S_params...)
+	T_params = (ΔC = 2.0, Cₗ = 0.5, Lz = 1.0, z_interface = -0.5, D = 100)
+	T_background = tanh_background.(z_periodic, T_params...)
 	
 	T_z_mean = mean(T_periodic[:, :, :, slider_periodic], dims = (1, 2)) |> vec 
 	T_z_mean .-= T_background
@@ -352,139 +350,13 @@ md"""
 # Check the animations
 """
 
-# ╔═╡ 2b05755e-a29c-4e0f-b873-6c73e7ea79c9
-function animate_density_anomaly(computed_output::AbstractString, variable::AbstractString;
-                               xslice = 3, yslice = 3)
-
-    NCDataset(computed_output) do ds
-
-        x = ds["xC"][:]
-        z = ds["zC"][:]
-        t = ds["time"][:]
-
-        n = Observable(1)
-        σ_backgroud = ds[variable*"_background"][:, yslice, :]
-        σ = @lift ds[variable][:, yslice, :, $n] .- σ_backgroud
-        σ_backgroud_profile =  ds[variable*"_background"][xslice, yslice, :]
-        σ_profile = @lift ds[variable][xslice, yslice, :, $n] .- σ_backgroud_profile
-        time_title = @lift @sprintf("t=%1.2f minutes", t[$n] / 60)
-
-        fig = Figure(size = (1000, 500))
-        ax = [Axis(fig[1, i], title = i == 1 ? time_title : "") for i ∈ 1:2]
-
-        colorrange = extrema(ds[variable][:, :, :, end] .- ds[variable*"_background"][:, :, :])
-
-        lines!(ax[1], σ_profile, z)
-        ax[1].xlabel = "σ₀′ kgm⁻³"
-        ax[1].ylabel = "z"
-        ax[1].xaxisposition = :top
-        ax[1].xticklabelrotation = π / 4
-        xlims!(ax[1], colorrange)
-
-        colormap = cgrad(:dense)[2:end-1]
-        lowclip = cgrad(:dense)[1]
-        highclip = cgrad(:dense)[end]
-        hm = heatmap!(ax[2], x, z, σ; colorrange, colormap, lowclip, highclip)
-
-        ax[2].xlabel = "x (m)"
-        ax[2].ylabel = "z (m)"
-        Colorbar(fig[1, 3], hm, label = "σ₀′ kgm⁻³")
-
-        linkyaxes!(ax[1], ax[2])
-        hideydecorations!(ax[2], ticks = false)
-
-        frames = eachindex(t)
-        record(fig, joinpath(pwd(), "density.mp4"),
-            frames, framerate=8) do i
-            msg = string("Plotting frame ", i, " of ", frames[end])
-            print(msg * " \r")
-            n[] = i
-        end
-
-    end
-
-    return nothing
-end
-
 # ╔═╡ fb32d6b1-a6dd-4dc7-89e7-98c4db31e1a8
-animate_density_anomaly(co_periodic, "σ", xslice = 2, yslice = 2)
-
-# ╔═╡ 26be505b-2297-4215-81ad-0605513d4f67
-function animate_tracers_anomaly(tracers::AbstractString; xslice = 3, yslice = 3)
-
-    NCDataset(tracers) do ds
-
-        x = ds["xC"][:]
-        z = ds["zC"][:]
-        t = ds["time"][:]
-
-        n = Observable(1)
-        S = @lift ds[:S′][:, yslice, :, $n]
-        S_profile = @lift ds[:S′][xslice, yslice, :, $n]
-        Θ = @lift ds[:T′][:, yslice, :, $n]
-        Θ_profile = @lift ds[:T′][xslice, yslice, :, $n]
-        time_title = @lift @sprintf("t=%1.2f minutes", t[$n] / 60)
-
-        fig = Figure(size = (1000, 1000))
-        ax = [Axis(fig[j, i], title = (i == 1 && j == 1) ? time_title : "") for i ∈ 1:2, j ∈ 1:2]
-
-        # Salinity
-        Srange = extrema(ds[:S′][:, :, :, end])
-        lines!(ax[1], S_profile, z)
-        ax[1].xlabel = "S′ gkg⁻¹"
-        ax[1].ylabel = "z (m)"
-        ax[1].xaxisposition = :top
-        xlims!(ax[1], Srange)
-
-        Scmap = cgrad(:haline)[2:end-1]
-        Slow = cgrad(:haline)[1]
-        Shigh = cgrad(:haline)[end]
-        hmS = heatmap!(ax[2], x, z, S, colorrange = Srange, colormap = Scmap,
-                        lowclip = Slow, highclip = Shigh)
-
-        ax[2].xlabel = "x (m)"
-        ax[2].ylabel = "z (m)"
-        Colorbar(fig[1, 3], hmS, label = "S′ gkg⁻¹")
-
-        linkyaxes!(ax[1], ax[2])
-        hideydecorations!(ax[2], ticks = false)
-
-        # Temperature
-        Θrange = extrema(ds[:T′][:, :, :, end])
-        lines!(ax[3], Θ_profile, z)
-        ax[3].xlabel = "Θ°C"
-        ax[3].ylabel = "z (m)"
-        ax[3].xaxisposition = :top
-        xlims!(ax[3], Θrange)
-
-        Θcmap = cgrad(:thermal)[2:end-1]
-        Θlow = cgrad(:thermal)[1]
-        Θhigh = cgrad(:thermal)[end]
-        hmΘ = heatmap!(ax[4], x, z, Θ, colorrange = Θrange, colormap = Θcmap,
-                        lowclip = Θlow, highclip = Θhigh)
-
-        ax[4].xlabel = "x (m)"
-        ax[4].ylabel = "z (m)"
-        Colorbar(fig[2, 3], hmΘ, label = "Θ°C")
-
-        linkyaxes!(ax[3], ax[4])
-        hideydecorations!(ax[4], ticks = false)
-
-        frames = eachindex(t)
-        record(fig, joinpath(pwd(), "tracers.mp4"),
-            frames, framerate=8) do i
-            msg = string("Plotting frame ", i, " of ", frames[end])
-            print(msg * " \r")
-            n[] = i
-        end
-
-    end
-
-    return nothing
+begin
+	animate_density_anomaly(co_periodic, "σ", xslice = 2, yslice = 2)
+	animate_density(co_periodic, "σ", xslice = 2, yslice = 2)
+	animate_tracers_anomaly(tracers_periodic, xslice = 2, yslice = 2)
+	animate_tracers(tracers_periodic, xslice = 2, yslice = 2)
 end
-
-# ╔═╡ b5108b49-199d-49f2-b2bf-fb6761f823d6
-animate_tracers_anomaly(tracers_periodic)
 
 # ╔═╡ Cell order:
 # ╟─13d8331a-5396-11ef-24d4-6f8f7f57b6aa
@@ -498,6 +370,7 @@ animate_tracers_anomaly(tracers_periodic)
 # ╟─729bc65c-75e6-417e-b8fc-9e724d2acbdf
 # ╟─39e8244d-c819-4717-aadc-3067748d1901
 # ╟─c4559d79-f5bb-44a5-969e-36e379d62772
+# ╟─f8cd18d6-8ab1-490d-9b60-97a383ed8980
 # ╟─ac36c5a3-63bb-4a55-a356-c3732e15d071
 # ╟─da8feb0b-901c-4a8b-ba4b-df926a05d458
 # ╟─8d998667-1dfb-4ea9-8273-b385ada56744
@@ -519,8 +392,4 @@ animate_tracers_anomaly(tracers_periodic)
 # ╟─efc56079-3d72-4eae-a6db-1ea74c74639b
 # ╟─2ce3fdf4-9788-455b-afe5-da1e13a70690
 # ╟─f46c4a18-e3c2-4313-b9c7-cebeff9baef3
-# ╠═21b56e8c-d764-4a37-b770-93263e17a7e5
-# ╠═2b05755e-a29c-4e0f-b873-6c73e7ea79c9
 # ╠═fb32d6b1-a6dd-4dc7-89e7-98c4db31e1a8
-# ╠═26be505b-2297-4215-81ad-0605513d4f67
-# ╠═b5108b49-199d-49f2-b2bf-fb6761f823d6
