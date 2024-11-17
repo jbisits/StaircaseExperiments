@@ -12,7 +12,7 @@ depth_of_interface = -0.5
 salinity = [34.56, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = PeriodoicSingleInterfaceICs(eos, depth_of_interface, salinity, temperature, BackgroundLinear())
-tracer_noise = TracerNoise(1e-8, 1e-8)
+tracer_noise = TracerNoise(1e-10, 1e-10)
 
 ## setup model
 sdns = StaircaseDNS(model_setup, interface_ics, tracer_noise)
@@ -30,8 +30,8 @@ compute_R_ρ!(simulation.output_writers[:computed_output].filepath,
              simulation.output_writers[:tracers].filepath, eos)
 
 ## Produce animations
-reduced_path = findlast('/', simulation.output_writers[:computed_output])
-animation_path = simulation.output_writers[:computed_output][1:(reduced_path-1)]
+reduced_path = findlast('/', simulation.output_writers[:computed_output].filepath)
+animation_path = simulation.output_writers[:computed_output].filepath[1:(reduced_path-1)]
 cd(animation_path)
 @info "Producing animations"
 using CairoMakie
