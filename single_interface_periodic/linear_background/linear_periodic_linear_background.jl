@@ -11,15 +11,16 @@ model_setup = (;architecture, diffusivities, domain_extent, resolution, eos)
 depth_of_interface = -0.5
 salinity = [34.56, 34.70]
 temperature = [-1.5, 0.5]
-interface_ics = PeriodoicSingleInterfaceICs(eos, depth_of_interface, salinity, temperature, BackgroundLinear())
-tracer_noise = TracerNoise(1e-10, 1e-10)
+interface_ics = PeriodoicSingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
+                                            background_state = BackgroundLinear())
+noise = (VelocityNoise(1e-7), TracerNoise(1e-6, 1e-6))
 
 ## setup model
-sdns = StaircaseDNS(model_setup, interface_ics, tracer_noise)
+sdns = StaircaseDNS(model_setup, interface_ics, noise)
 
 ## Build simulation
 stop_time = 3 * 60 * 60 # seconds
-output_path = joinpath(@__DIR__, "tracer_noise")
+output_path = joinpath(@__DIR__, "tracer_and_velocity_noise")
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    save_vertical_velocities!; output_path)
 ## Run

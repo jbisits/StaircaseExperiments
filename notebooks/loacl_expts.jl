@@ -354,20 +354,270 @@ TableOfContents()
 
 # ╔═╡ f46c4a18-e3c2-4313-b9c7-cebeff9baef3
 md"""
-# Check the animations
+## Noise perturbations
+
+### No background state
 """
 
-# ╔═╡ fb32d6b1-a6dd-4dc7-89e7-98c4db31e1a8
-# ╠═╡ disabled = true
-# ╠═╡ skip_as_script = true
-#=╠═╡
+# ╔═╡ 02390963-b04e-4f77-9606-36278068fc8e
 begin
-	animate_density_anomaly(co_with_background, "σ", xslice = 2, yslice = 2)
-	animate_density(co_with_background, "σ", xslice = 2, yslice = 2)
-	animate_tracers_anomaly(tracers_with_background, xslice = 2, yslice = 2)
-	animate_tracers(tracers_with_background, xslice = 2, yslice = 2)
+	with_noise = "../../StaircaseShenanigans/validation/periodic_tanh_interface_with_noise/lineareos_single_interface_240min"
+	tracers_with_noise = joinpath(with_noise, "tracers.nc")
+	velocities_with_noise = joinpath(with_noise, "velocities.nc")
+	co_with_noise = joinpath(with_noise, "computed_output.nc")
+	ds_with_noise = NCDataset(tracers_with_noise)
+	t_with_noise = ds_with_noise[:time][:]
+	x_with_noise = ds_with_noise[:xC][:]
+	z_with_noise = ds_with_noise[:zC][:]
+	S_with_noise = ds_with_noise[:S][:, :, :, :]
+	T_with_noise = ds_with_noise[:T][:, :, :, :]
+	close(ds_with_noise)
+	ds_with_noise = NCDataset(velocities_with_noise)
+	w_with_noise = ds_with_noise[:w][:, :, :, :]
+	close(ds_with_noise)
+	ds_with_noise = NCDataset(co_with_noise)
+	σ_with_noise = ds_with_noise[:σ][:, :, :, :]
+	R_ρ_with_noise = ds_with_noise[:R_ρ][:]
+	close(ds_with_noise)
 end
-  ╠═╡ =#
+
+# ╔═╡ 7986cf97-b2d3-40ec-bcba-33458f3a9e2f
+time_slider
+
+# ╔═╡ deee1224-2c84-418d-99a8-0189981eafa7
+let
+	T_z_mean = mean(T_with_noise[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	S_z_mean = mean(S_with_noise[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	fig, ax = lines(T_z_mean, z_with_noise)
+	ax.title = "t = $(t_with_noise[slider_with_background] / 60)min"
+	ax.xlabel = "Θ (°C)"
+	ax.ylabel = "z (m)"
+	# xlims!(-1.9, 0.7)
+	ax2 = Axis(fig[1, 2], xlabel = "S (gkg⁻¹)")
+	lines!(S_z_mean, z_with_noise)
+	fig
+end
+
+# ╔═╡ 32864e32-74d0-4c02-83a3-f74b5476ba6b
+let
+	σ_z_mean = mean(σ_with_noise[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	fig, ax = lines(σ_z_mean, z_with_noise)
+	ax.title = "t = $(t_with_noise[slider_with_background] / 60)min"
+	ax.xlabel = "σ₀ (kgm⁻³)"
+	ax.ylabel = "z (m)"
+	fig
+end
+
+# ╔═╡ 8e40ecd6-bda4-4c1c-89c5-a2cbb1d6c47a
+let
+	w_z_mean = mean(w_with_noise[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	w_plot = w_with_noise[2, 3, :, slider_with_background]
+	fig, ax = lines(w_plot, z_with_noise)
+	ax.title = "t = $(t_with_noise[slider_with_background] / 60)min"
+	ax.xlabel = "w (ms⁻¹)"
+	ax.ylabel = "z (m)"
+	# xlims!(-1.9, 0.7)
+	# ax2 = Axis(fig[1, 2], xlabel = "S (gkg⁻¹)")
+	# lines!(S_z_mean, z_with_background)
+	fig
+end
+
+# ╔═╡ d4125da3-03e4-4fd2-b850-03afcc8dfbc1
+let
+	fig, ax = lines(t_with_noise ./ 60, R_ρ_with_noise)
+	ax.xlabel = "time (min)"
+	ax.ylabel = "R_ρ"
+	ax.title = "Density ratio between upper and lower quarter of domain"
+	fig
+end
+
+# ╔═╡ 67693fe0-3b75-43f4-b4f9-6e479aa5ca08
+md"""
+### Background state
+
+Though not sure if this is a good idea
+"""
+
+# ╔═╡ 26d17de3-43de-41df-85aa-b1039bf053d0
+begin
+	with_noise_b = "../../StaircaseShenanigans/validation/periodic_tanh_interface_tanh_background_with_noise/lineareos_single_interface_240min"
+	tracers_with_noise_b = joinpath(with_noise_b, "tracers.nc")
+	velocities_with_noise_b = joinpath(with_noise_b, "velocities.nc")
+	co_with_noise_b = joinpath(with_noise_b, "computed_output.nc")
+	ds_with_noise_b = NCDataset(tracers_with_noise_b)
+	t_with_noise_b = ds_with_noise_b[:time][:]
+	x_with_noise_b = ds_with_noise_b[:xC][:]
+	z_with_noise_b = ds_with_noise_b[:zC][:]
+	S_with_noise_b = ds_with_noise_b[:S][:, :, :, :]
+	T_with_noise_b = ds_with_noise_b[:T][:, :, :, :]
+	S′_with_noise_b = ds_with_noise_b[:S′][:, :, :, :]
+	T′_with_noise_b= ds_with_noise_b[:T′][:, :, :, :]
+	Sb_with_noise_b = ds_with_noise_b[:S_background][:, :, :]
+	Tb_with_noise_b = ds_with_noise_b[:T_background][:, :, :]
+	close(ds_with_noise_b)
+	ds_with_noise_b = NCDataset(velocities_with_noise_b)
+	w_with_noise_b = ds_with_noise_b[:w][:, :, :, :]
+	close(ds_with_noise_b)
+	ds_with_noise_b = NCDataset(co_with_noise_b)
+	σ_with_noise_b = ds_with_noise_b[:σ][:, :, :, :]
+	R_ρ_with_noise_b = ds_with_noise_b[:R_ρ][:]
+	close(ds_with_noise_b)
+end
+
+# ╔═╡ 28f1d9ee-7df2-4577-9043-22ca04e69104
+time_slider
+
+# ╔═╡ bfa428e5-bc3b-4bec-b5d1-65d98a35c12b
+let
+	T_z_mean = mean(T_with_noise_b[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	S_z_mean = mean(S_with_noise_b[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	fig, ax = lines(T_z_mean, z_with_noise_b)
+	ax.title = "t = $(t_with_noise_b[slider_with_background] / 60)min"
+	ax.xlabel = "Θ (°C)"
+	ax.ylabel = "z (m)"
+	# xlims!(-1.9, 0.7)
+	ax2 = Axis(fig[1, 2], xlabel = "S (gkg⁻¹)")
+	lines!(S_z_mean, z_with_background)
+	fig
+end
+
+# ╔═╡ 79fe5488-b67b-4ef2-b69a-680d1704db1c
+let
+	T_z_mean = mean(T′_with_noise_b[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	S_z_mean = mean(S′_with_noise_b[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	fig, ax = lines(T_z_mean, z_with_noise_b)
+	ax.title = "Saved anomaly t = $(t_with_noise_b[slider_with_background] / 60)min"
+	ax.xlabel = "Θ′ (°C)"
+	ax.ylabel = "z (m)"
+	# xlims!(-1.9, 0.7)
+	ax2 = Axis(fig[1, 2], xlabel = "S′ (gkg⁻¹)")
+	lines!(S_z_mean, z_with_background)
+	fig
+end
+
+# ╔═╡ 18894f45-62a4-486e-9777-b00dea4cad03
+let
+	w_z_mean = mean(w_with_noise_b[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	w_plot = w_with_noise_b[2, 3, :, slider_with_background]
+	fig, ax = lines(w_plot, z_with_noise_b)
+	ax.title = "t = $(t_with_noise_b[slider_with_background] / 60)min"
+	ax.xlabel = "w (ms⁻¹)"
+	ax.ylabel = "z (m)"
+	# xlims!(-1.9, 0.7)
+	# ax2 = Axis(fig[1, 2], xlabel = "S (gkg⁻¹)")
+	# lines!(S_z_mean, z_with_background)
+	fig
+end
+
+# ╔═╡ b31d319d-fa2b-426a-92a1-00eb4ec2dc20
+let
+	T_z_mean = mean(T_with_noise_b[:, :, :, slider_with_background] .- T′_with_noise_b[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	S_z_mean = mean(S_with_noise_b[:, :, :, slider_with_background] .- S′_with_noise_b[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	fig, ax = lines(T_z_mean, z_with_noise_b)
+	ax.title = "Full - anomaly i.e. background t = $(t_with_noise_b[slider_with_background] / 60)min"
+	ax.xlabel = "Θ (°C)"
+	ax.ylabel = "z (m)"
+	# xlims!(-1.9, 0.7)
+	ax2 = Axis(fig[1, 2], xlabel = "S (gkg⁻¹)")
+	lines!(S_z_mean, z_with_noise_b)
+	fig
+end
+
+# ╔═╡ dd6c6fd0-c9f6-45e1-955f-977d92f1fe36
+let
+	fig, ax = lines(t_with_noise_b ./ 60, R_ρ_with_noise_b)
+	ax.xlabel = "time (min)"
+	ax.ylabel = "R_ρ"
+	ax.title = "Density ratio between upper and lower quarter of domain"
+	fig
+end
+
+# ╔═╡ 9e36d306-418d-4a80-ab01-defa91e967d6
+md"""
+# Background field and velocity only
+
+Just trying to figure out what is going on.
+"""
+
+# ╔═╡ 92a1efc2-0fec-4d95-b38a-d8d3611aacd6
+begin
+	only_b = "../../StaircaseShenanigans/validation/periodic_background_only_velocity_noise/lineareos_single_interface_240min"
+	tracers_only_b = joinpath(only_b, "tracers.nc")
+	velocities_only_b = joinpath(only_b, "velocities.nc")
+	co_only_b = joinpath(only_b, "computed_output.nc")
+	ds_only_b = NCDataset(tracers_only_b)
+	t_only_b = ds_only_b[:time][:]
+	x_only_b = ds_only_b[:xC][:]
+	z_only_b = ds_only_b[:zC][:]
+	S_only_b = ds_only_b[:S][:, :, :, :]
+	T_only_b = ds_only_b[:T][:, :, :, :]
+	S′_only_b = ds_only_b[:S′][:, :, :, :]
+	T′_only_b = ds_only_b[:T′][:, :, :, :]
+	Sb_only_b = ds_only_b[:S_background][:, :, :]
+	Tb_only_b = ds_only_b[:T_background][:, :, :]
+	close(ds_only_b)
+	ds_only_b = NCDataset(velocities_only_b)
+	w_only_b = ds_only_b[:w][:, :, :, :]
+	close(ds_only_b)
+	ds_only_b = NCDataset(co_only_b)
+	σ_only_b = ds_only_b[:σ][:, :, :, :]
+	R_ρ_only_b = ds_only_b[:R_ρ][:]
+	close(ds_only_b)
+end
+
+# ╔═╡ f969f0d3-34ad-41af-84f7-19c527b88191
+time_slider
+
+# ╔═╡ 29430d60-7370-4cfa-9a4b-6e86037abe25
+let
+	T_z_mean = mean(T_only_b[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	S_z_mean = mean(S_only_b[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	fig, ax = lines(T_z_mean, z_with_noise)
+	ax.title = "t = $(t_with_noise[slider_with_background] / 60)min"
+	ax.xlabel = "Θ (°C)"
+	ax.ylabel = "z (m)"
+	# xlims!(-1.9, 0.7)
+	ax2 = Axis(fig[1, 2], xlabel = "S (gkg⁻¹)")
+	lines!(S_z_mean, z_with_noise)
+	fig
+end
+
+# ╔═╡ b8c7560a-11e4-4d67-bb97-6982adb9316f
+let
+	T_z_mean = mean(T′_only_b[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	S_z_mean = mean(S′_only_b[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	fig, ax = lines(T_z_mean, z_with_noise_b)
+	ax.title = "Saved anomaly t = $(t_with_noise_b[slider_with_background] / 60)min"
+	ax.xlabel = "Θ′ (°C)"
+	ax.ylabel = "z (m)"
+	# xlims!(-1.9, 0.7)
+	ax2 = Axis(fig[1, 2], xlabel = "S′ (gkg⁻¹)")
+	lines!(S_z_mean, z_with_background)
+	fig
+end
+
+# ╔═╡ 4f5723e1-08a5-4e42-9794-fb9b8d3a61a4
+let
+	w_z_mean = mean(w_only_b[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	w_plot = w_with_noise_b[2, 3, :, slider_with_background]
+	fig, ax = lines(w_plot, z_with_noise_b)
+	ax.title = "t = $(t_with_noise_b[slider_with_background] / 60)min"
+	ax.xlabel = "w (ms⁻¹)"
+	ax.ylabel = "z (m)"
+	# xlims!(-1.9, 0.7)
+	# ax2 = Axis(fig[1, 2], xlabel = "S (gkg⁻¹)")
+	# lines!(S_z_mean, z_with_background)
+	fig
+end
+
+# ╔═╡ 3f5d4743-f7fb-4640-9c9b-03eb7a444586
+let
+	fig, ax = lines(t_only_b ./ 60, R_ρ_with_noise_b)
+	ax.xlabel = "time (min)"
+	ax.ylabel = "R_ρ"
+	ax.title = "Density ratio between upper and lower quarter of domain"
+	fig
+end
 
 # ╔═╡ Cell order:
 # ╟─13d8331a-5396-11ef-24d4-6f8f7f57b6aa
@@ -404,4 +654,24 @@ end
 # ╟─2ce3fdf4-9788-455b-afe5-da1e13a70690
 # ╠═344cec98-8c7f-49ed-9b2c-920527794000
 # ╟─f46c4a18-e3c2-4313-b9c7-cebeff9baef3
-# ╠═fb32d6b1-a6dd-4dc7-89e7-98c4db31e1a8
+# ╟─02390963-b04e-4f77-9606-36278068fc8e
+# ╟─7986cf97-b2d3-40ec-bcba-33458f3a9e2f
+# ╟─deee1224-2c84-418d-99a8-0189981eafa7
+# ╟─32864e32-74d0-4c02-83a3-f74b5476ba6b
+# ╟─8e40ecd6-bda4-4c1c-89c5-a2cbb1d6c47a
+# ╟─d4125da3-03e4-4fd2-b850-03afcc8dfbc1
+# ╟─67693fe0-3b75-43f4-b4f9-6e479aa5ca08
+# ╟─26d17de3-43de-41df-85aa-b1039bf053d0
+# ╟─28f1d9ee-7df2-4577-9043-22ca04e69104
+# ╟─bfa428e5-bc3b-4bec-b5d1-65d98a35c12b
+# ╟─79fe5488-b67b-4ef2-b69a-680d1704db1c
+# ╟─18894f45-62a4-486e-9777-b00dea4cad03
+# ╟─b31d319d-fa2b-426a-92a1-00eb4ec2dc20
+# ╟─dd6c6fd0-c9f6-45e1-955f-977d92f1fe36
+# ╟─9e36d306-418d-4a80-ab01-defa91e967d6
+# ╟─92a1efc2-0fec-4d95-b38a-d8d3611aacd6
+# ╟─f969f0d3-34ad-41af-84f7-19c527b88191
+# ╟─29430d60-7370-4cfa-9a4b-6e86037abe25
+# ╟─b8c7560a-11e4-4d67-bb97-6982adb9316f
+# ╟─4f5723e1-08a5-4e42-9794-fb9b8d3a61a4
+# ╟─3f5d4743-f7fb-4640-9c9b-03eb7a444586

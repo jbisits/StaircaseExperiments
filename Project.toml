@@ -9,4 +9,4 @@ StaircaseShenanigans = "c2bb06a8-94f3-4279-b990-30bf3ab8ba6f"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
-StaircaseShenanigans = "0.4"
+StaircaseShenanigans = "0.5"
