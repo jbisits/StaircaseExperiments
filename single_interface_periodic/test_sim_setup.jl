@@ -17,7 +17,7 @@ interface_ics = PeriodoicSingleInterfaceICs(eos, depth_of_interface, salinity, t
 noise = (tracers = TracerNoise(1e-5, 1e-5), velocities = VelocityNoise())
 
 ## setup model
-sdns = StaircaseDNS(model_setup, interface_ics, tracer_noise)
+sdns = StaircaseDNS(model_setup, interface_ics, noise)
 
 ## Build simulation
 Δt = 1e-3
