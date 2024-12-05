@@ -12,8 +12,7 @@ depth_of_interface = -0.5
 salinity = [34.56, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = PeriodoicSingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
-                                            interface_smoothing = Tanh,
-                                            background_state = BackgroundTanh(500))
+                                            background_state = BackgroundStep())
 noise = (velocities = VelocityNoise(1e-7), tracers = TracerNoise(1e-6, 1e-6))
 
 ## setup model
@@ -21,7 +20,7 @@ sdns = StaircaseDNS(model_setup, interface_ics, noise)
 
 ## Build simulation
 stop_time = 3 * 60 * 60 # seconds
-output_path = joinpath(@__DIR__, "tanh_anomaly_tracer_and_velocity_noise")
+output_path = joinpath(@__DIR__, "step_anomaly_tracer_and_velocity_noise")
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                     save_vertical_velocities!; output_path)
 ## Run

@@ -460,6 +460,7 @@ begin
 	close(ds_with_noise_b)
 	ds_with_noise_b = NCDataset(co_with_noise_b)
 	σ_with_noise_b = ds_with_noise_b[:σ][:, :, :, :]
+	# σ_with_noise_b = ds_with_noise_b[:σ][:, :, :, :]
 	R_ρ_with_noise_b = ds_with_noise_b[:R_ρ][:]
 	close(ds_with_noise_b)
 end
@@ -596,6 +597,16 @@ let
 	fig
 end
 
+# ╔═╡ 471668ac-e987-4a00-af93-3d5aa56505d9
+let
+	σ_z_mean = mean(σ_only_b[:, :, :, slider_with_background], dims = (1, 2)) |> vec
+	fig, ax = lines(σ_z_mean, z_with_noise_b)
+	ax.title = "t = $(t_with_noise_b[slider_with_background] / 60)min"
+	ax.xlabel = "σ₀ (kgm⁻³)"
+	ax.ylabel = "z (m)"
+	fig
+end
+
 # ╔═╡ 4f5723e1-08a5-4e42-9794-fb9b8d3a61a4
 let
 	w_z_mean = mean(w_only_b[:, :, :, slider_with_background], dims = (1, 2)) |> vec
@@ -661,7 +672,7 @@ end
 # ╟─8e40ecd6-bda4-4c1c-89c5-a2cbb1d6c47a
 # ╟─d4125da3-03e4-4fd2-b850-03afcc8dfbc1
 # ╟─67693fe0-3b75-43f4-b4f9-6e479aa5ca08
-# ╟─26d17de3-43de-41df-85aa-b1039bf053d0
+# ╠═26d17de3-43de-41df-85aa-b1039bf053d0
 # ╟─28f1d9ee-7df2-4577-9043-22ca04e69104
 # ╟─bfa428e5-bc3b-4bec-b5d1-65d98a35c12b
 # ╟─79fe5488-b67b-4ef2-b69a-680d1704db1c
@@ -673,5 +684,6 @@ end
 # ╟─f969f0d3-34ad-41af-84f7-19c527b88191
 # ╟─29430d60-7370-4cfa-9a4b-6e86037abe25
 # ╟─b8c7560a-11e4-4d67-bb97-6982adb9316f
+# ╟─471668ac-e987-4a00-af93-3d5aa56505d9
 # ╟─4f5723e1-08a5-4e42-9794-fb9b8d3a61a4
 # ╟─3f5d4743-f7fb-4640-9c9b-03eb7a444586
