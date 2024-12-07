@@ -3,7 +3,7 @@ using StaircaseShenanigans: animate_density, animate_density_anomaly,
                             animate_tracers, animate_tracers_anomaly
 
 ##
-output_path = joinpath(@__DIR__, "lineareos_single_interface_240min_non_periodic/")
+output_path = joinpath(@__DIR__, "output_periodic/lineareos_single_interface_240min/")
 cd(output_path)
 tracers = "tracers.nc"
 co = "computed_output.nc"

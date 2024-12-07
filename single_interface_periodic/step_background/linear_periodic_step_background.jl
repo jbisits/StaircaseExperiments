@@ -20,10 +20,12 @@ noise = VelocityNoise(1e-2)
 sdns = StaircaseDNS(model_setup, interface_ics, noise)
 
 ## Build simulation
-stop_time = 3 * 60 * 60 # seconds
-output_path = joinpath(@__DIR__, "step_anomaly_velocity_noise")
+stop_time = 6 * 60 * 60 # seconds
+output_path = joinpath(@__DIR__, "step_background_velocity_noise")
+checkpointer_time_interval = 60 * 60 # seconds
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
-                                    save_vertical_velocities!; output_path)
+                                    save_vertical_velocities!;
+                                    output_path, checkpointer_time_interval)
 ## Run
 run!(simulation)
 
