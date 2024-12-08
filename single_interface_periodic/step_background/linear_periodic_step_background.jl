@@ -14,14 +14,14 @@ salinity = [34.56, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
                                     background_state = BackgroundStep())
-noise = VelocityNoise(1e-2)
+noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-6, 1e-6))
 
 ## setup model
 sdns = StaircaseDNS(model_setup, interface_ics, noise)
 
 ## Build simulation
 stop_time = 6 * 60 * 60 # seconds
-output_path = joinpath(@__DIR__, "step_background_velocity_noise")
+output_path = joinpath(@__DIR__, "step_background_tracer_velocity_noise")
 checkpointer_time_interval = 60 * 60 # seconds
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                     save_vertical_velocities!;

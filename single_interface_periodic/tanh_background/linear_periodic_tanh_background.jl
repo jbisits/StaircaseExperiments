@@ -1,5 +1,7 @@
 using StaircaseShenanigans
 
+restart = false
+
 architecture = GPU()
 diffusivities = (ν=1e-6, κ=(S=1e-9, T=1e-7))
 domain_extent = (Lx=0.1, Ly=0.1, Lz=-1.0)
@@ -25,9 +27,13 @@ output_path = joinpath(@__DIR__, "tanh_background_velocity_noise")
 checkpointer_time_interval = 60 * 60 # seconds
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                     save_vertical_velocities!;
-                                    output_path, checkpointer_time_interval)
+                                    output_path, checkpointer_time_interval,
+                                    overwrite_saved_output = restart)
 ## Run
-run!(simulation)
+simulation.stop_time = 5 * 60 * 60
+pickup = restart ? false : joinpath(@__DIR__,
+                                    "tanh_background_velocity_noise/lineareos_single_interface_180min/model_checkpoints/checkpoint_iteration327138.jld2")
+run!(simulation; pickup)
 
 ## Compute density ratio
 compute_R_ρ!(simulation.output_writers[:computed_output].filepath,
