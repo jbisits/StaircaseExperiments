@@ -17,4 +17,4 @@ export JULIA_DEPOT_PATH="/g/data/e14/jb2381/.julia"
 export JULIA_NUM_THREADS=auto
 
 # Run the experiment
-julia --project linear_periodic_tanh_background.jl > $PBS_JOBID.log
+julia --project linear_tanh_background.jl > $PBS_JOBID.log
