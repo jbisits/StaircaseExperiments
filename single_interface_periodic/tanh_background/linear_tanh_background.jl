@@ -4,9 +4,9 @@ restart = true
 
 architecture = GPU()
 diffusivities = (ν=1e-6, κ=(S=1e-9, T=1e-7))
-domain_extent = (Lx=0.1, Ly=0.1, Lz=-1.0)
+domain_extent = (Lx=0.07, Ly=0.07, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Periodic)
-resolution = (Nx=100, Ny=100, Nz=1000)
+resolution = (Nx=70, Ny=70, Nz=1000)
 eos = CustomLinearEquationOfState(-0.5, 34.6)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 
