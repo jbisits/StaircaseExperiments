@@ -1,4 +1,4 @@
-using StaircaseShenanigans
+using StaircaseShenanigans, GibbsSeaWater
 
 restart = true
 
