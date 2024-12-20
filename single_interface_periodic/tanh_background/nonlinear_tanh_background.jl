@@ -17,7 +17,7 @@ depth_of_interface = -0.5
 salinity = [34.58, 34.7]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
-                                    background_state = BackgroundTanh(5000))
+                                    background_state = BackgroundTanh(100))
 noise = VelocityNoise(1e-2)
 
 ## setup model
