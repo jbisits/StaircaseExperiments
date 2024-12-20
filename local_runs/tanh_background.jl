@@ -7,12 +7,14 @@ domain_topology = (x = Periodic, y = Periodic, z = Periodic)
 resolution = (Nx = 5, Ny = 5, Nz = 50)
 # eos = CustomLinearEquationOfState(-0.5, 34.6)
 ρ₀ = gsw_rho(34.56, -1.5, 0)
-eos = TEOS10EquationOfState(reference_density = ρ₀)
+# eos = TEOS10EquationOfState(reference_density = ρ₀)
+# eos = RoquetEquationOfState(:Cabbeling, reference_density = ρ₀)
+eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 
 ## Initial conditions
 depth_of_interface = -0.5
-salinity = [34.54, 34.70]
+salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
                                     background_state = BackgroundTanh(50))
