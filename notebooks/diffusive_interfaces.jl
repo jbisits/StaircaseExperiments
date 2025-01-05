@@ -1,17 +1,19 @@
 ### A Pluto.jl notebook ###
-# v0.19.46
+# v0.20.4
 
 using Markdown
 using InteractiveUtils
 
 # This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
 macro bind(def, element)
+    #! format: off
     quote
         local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
         local el = $(esc(element))
         global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
         el
     end
+    #! format: on
 end
 
 # ╔═╡ 7d191973-92d1-4ed7-bcee-650f2185e36f
@@ -316,6 +318,15 @@ let
 	fig
 end
 
+# ╔═╡ 88ad24ee-072c-4927-a21a-8159c80d75b0
+let
+	int_idx = findfirst(z .> -0.5)
+	fig, ax = lines(co["ha_Fₛ"][int_idx, :], label = "Salinity flux")
+	lines!(ax, co["ha_Fₜ"][int_idx, :], label = "Temperature flux")
+	axislegend(ax)
+	fig
+end
+
 # ╔═╡ 3face522-479b-4f87-a332-b858877094bc
 md"""
 A figure like this for the horizontally averaged temperature and salinity might also be useful.
@@ -504,6 +515,7 @@ TableOfContents()
 # ╟─054c0968-fbc4-4ec2-b9a1-fd7c005f49cc
 # ╟─214a62b5-d46f-4636-bc26-3d5a4372d0d9
 # ╟─f2163623-d32f-4203-b1ce-9f87478fc9b3
+# ╠═88ad24ee-072c-4927-a21a-8159c80d75b0
 # ╟─3face522-479b-4f87-a332-b858877094bc
 # ╟─e5079cbd-7878-4e71-96e1-71f7ceccfb29
 # ╟─c521d03e-929c-493e-ba8b-db51983a2c2a
