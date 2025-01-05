@@ -7,24 +7,26 @@ diffusivities = (ν=1e-6, κ=(S=1e-9, T=1e-7))
 domain_extent = (Lx=0.07, Ly=0.07, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Periodic)
 resolution = (Nx=70, Ny=70, Nz=1000)
-ρ₀ = gsw_rho(34.57, 0.5, 0)
+ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 # eos = RoquetEquationOfState(:Cabbeling, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 
 ## Initial conditions
 depth_of_interface = -0.5
-salinity = [34.58, 34.7]
+salinity = [34.56, 34.7]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
-                                    background_state = BackgroundTanh(100))
-noise = VelocityNoise(1e-2)
+                                    background_state = BackgroundTanh((S = 1000.0, T = 1000 / 1.3)))
+ΔS =  34.7 - 34.56
+ΔT = 0.5 - (-1.5)
+noise = TracerNoise(1e-2 * ΔS, 1e-2 * ΔT)
 
 ## setup model
 sdns = StaircaseDNS(model_setup, interface_ics, noise)
 
 ## Build simulation
-stop_time = 5 * 60 * 60 # seconds
+stop_time = 8 * 60 * 60 # seconds
 output_path = joinpath(@__DIR__, "tanh_background_velocity_noise_$(round(interface_ics.R_ρ, digits = 2))")
 checkpointer_time_interval = 60 * 60 # seconds
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
