@@ -1,6 +1,6 @@
 using StaircaseShenanigans, GibbsSeaWater
 
-restart = true
+restart = false
 
 architecture = GPU()
 diffusivities = (ν=1e-6, κ=(S=1e-9, T=1e-7))
@@ -31,9 +31,9 @@ simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                     output_path, checkpointer_time_interval,
                                     overwrite_saved_output = restart)
 ## Run
-# simulation.stop_time = _ * 60 * 60 # update to pickup from a checkpoint
+simulation.stop_time = 12 * 60 * 60 # update to pickup from a checkpoint
 pickup = restart ? false : joinpath(@__DIR__,
-                                    "string_to_chekcpoint")
+                                    "/g/data/e14/jb2381/StaircaseExperiments/single_interface_jump/Velocity_noise_1.23/nonlineareos_single_interface_360min/model_checkpoints/checkpoint_iteration475690.jld2")
 run!(simulation; pickup)
 
 ## Compute density ratio
@@ -46,7 +46,5 @@ animation_path = simulation.output_writers[:computed_output].filepath[1:(reduced
 cd(animation_path)
 @info "Producing animations"
 using CairoMakie
-animate_density_anomaly(simulation.output_writers[:computed_output].filepath, "σ")
-animate_tracers_anomaly(simulation.output_writers[:tracers].filepath)
 animate_density(simulation.output_writers[:computed_output].filepath, "σ")
 animate_tracers(simulation.output_writers[:tracers].filepath)
