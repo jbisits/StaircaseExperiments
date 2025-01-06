@@ -320,9 +320,11 @@ end
 
 # ╔═╡ 88ad24ee-072c-4927-a21a-8159c80d75b0
 let
-	int_idx = findfirst(z .> -0.5)
-	fig, ax = lines(co["ha_Fₛ"][int_idx, :], label = "Salinity flux")
-	lines!(ax, co["ha_Fₜ"][int_idx, :], label = "Temperature flux")
+	timestamps = 1:600
+	int_idx = findfirst(z .> -0.4685)
+	fig, ax = lines(timestamps[400:end], co["ha_Fₛ"][int_idx, 400:end], label = "Salinity flux")
+	lines!(ax, timestamps[400:end], co["ha_Fₜ"][int_idx, 400:end], label = "Temperature flux")
+	ax.xlabel = "time (mins)"
 	axislegend(ax)
 	fig
 end
@@ -519,7 +521,7 @@ TableOfContents()
 # ╟─3face522-479b-4f87-a332-b858877094bc
 # ╟─e5079cbd-7878-4e71-96e1-71f7ceccfb29
 # ╟─c521d03e-929c-493e-ba8b-db51983a2c2a
-# ╟─d7aa3853-6c71-46da-983a-2c1eb0c817a7
+# ╠═d7aa3853-6c71-46da-983a-2c1eb0c817a7
 # ╟─7f417e03-72ef-47f5-923a-b932de687a37
 # ╟─7b798e2e-4370-43fc-a3d7-26587aeec349
 # ╟─7c657d45-cd7a-4106-b23b-77dccf5c982f
