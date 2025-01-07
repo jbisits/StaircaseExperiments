@@ -1,6 +1,6 @@
 using StaircaseShenanigans, GibbsSeaWater
 
-restart = false
+restart = true
 
 architecture = GPU()
 diffusivities = (ν=1e-6, κ=(S=1e-9, T=1e-7))
@@ -15,7 +15,8 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 depth_of_interface = -0.5
 salinity = [34.56, 34.7]
 temperature = [-1.5, 0.5]
-interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
+interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
+                                    interface_smoothing = TanhInterfaceSteepness(100.0))
 noise = VelocityNoise(1e-2)
 
 ## setup model
@@ -30,9 +31,9 @@ simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                     output_path, checkpointer_time_interval,
                                     overwrite_saved_output = restart)
 ## Run
-simulation.stop_time = 12 * 60 * 60 # update to pickup from a checkpoint
-pickup = restart ? false : joinpath(@__DIR__,
-                                    "/g/data/e14/jb2381/StaircaseExperiments/single_interface_jump/Velocity_noise_1.23/lineareos_single_interface_360min/model_checkpoints/checkpoint_iteration426090.jld2") # need to edit this with the actual string
+# simulation.stop_time = 12 * 60 * 60 # update to pickup from a checkpoint
+# need to edit this with the string that points to pickup file
+pickup = restart ? false : "/g/data/e14/jb2381/StaircaseExperiments/single_interface_jump/Velocity_noise_1.23/lineareos_single_interface_360min/model_checkpoints/checkpoint_iteration426090.jld2"
 run!(simulation; pickup)
 
 ## Compute density ratio

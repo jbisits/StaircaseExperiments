@@ -6,6 +6,7 @@
 *.jld2
 *.nc
 *.mp4
+*.png
 *.vscode
 /Manifest.toml
 /deps/deps.jl
