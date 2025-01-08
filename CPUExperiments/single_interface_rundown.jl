@@ -3,9 +3,10 @@ using StaircaseShenanigans
 architecture = CPU() # or GPU()
 diffusivities = (ν = 1e-5, κ = (S = 1e-7, T = 1e-5))
 domain_extent = (Lx = 0.1, Ly = 0.1, Lz = -1.0)
+domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx = 5, Ny = 5, Nz = 50)
 eos = CustomLinearEquationOfState(-0.5, 34.6)
-model_setup = (;architecture, diffusivities, domain_extent, resolution, eos)
+model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 
 ## Initial conditions
 depth_of_interface = -0.5
@@ -22,8 +23,10 @@ sdns = StaircaseDNS(model_setup, interface_ics, velocity_noise)
 stop_time = 210 * 60 # seconds
 save_schedule = 10  # seconds
 output_path = joinpath(@__DIR__, "output")
+checkpointer_time_interval = 60 * 60 # seconds
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                     save_vertical_velocities!;
+                                    checkpointer_time_interval,
                                     output_path, max_Δt = 5, Δt, save_schedule)
 ## Run
 run!(simulation)
