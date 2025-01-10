@@ -5,8 +5,8 @@ diffusivities = (ν=1e-6, κ=(S=1e-9, T=1e-7))
 domain_extent = (Lx=0.07, Ly=0.07, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=70, Ny=70, Nz=1000)
-ρ₀ = gsw_rho(34.57, 0.5, 0)
-eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
+ρ₀ = gsw_rho(34.7, 0.5, 0)
+eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 
 ## Initial conditions
