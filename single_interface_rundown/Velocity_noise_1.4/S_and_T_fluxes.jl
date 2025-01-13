@@ -28,14 +28,14 @@ function φ_interface_flux!(flux_file::AbstractString, tracers::AbstractString, 
 
             φₜ = [reshape(φ[:, :, :, i], :) reshape(φ[:, :, :, i+1], :)]
             sort!(φₜ, dims = 1)
-            ∫φdz✶ = cumsum(φₜ * Δz✶, dims = 1)
+            ∫φdz✶ = cumsum(φₜ * Δz✶[i], dims = 1)
             dₜ∫φdz✶ = vec(diff(∫φdz✶, dims = 2) ./ Δt[i])
 
             φₜ_interp = vec(0.5 * sum(φₜ, dims = 2))
-            interface_idx[i] = findfirst(φₜ_interp .> Δφ₀) - 1
-            interface_idxs = [interface_idx[i]-1, interface_idx[i], interface_idx[i]+1]
+            interface_idx[i] = ii = findfirst(φₜ_interp .> Δφ₀) - 1
+            interface_idxs = [ii-1, ii, ii+1]
 
-            φ_interface_flux[:, i] = dₜ∫φdz✶[interface_idxs]
+            φ_interface_flux[:, i] .= dₜ∫φdz✶[interface_idxs]
 
         end
 
