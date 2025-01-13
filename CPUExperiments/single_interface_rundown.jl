@@ -7,6 +7,7 @@ domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx = 5, Ny = 5, Nz = 50)
 eos = CustomLinearEquationOfState(-0.5, 34.6)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
+dns_model = DNSModel(model_setup...)
 
 ## Initial conditions
 depth_of_interface = -0.5
@@ -16,7 +17,7 @@ interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperatur
 velocity_noise = VelocityNoise(0.0, 0.0, 1e-7)
 
 ## setup model
-sdns = StaircaseDNS(model_setup, interface_ics, velocity_noise)
+sdns = StaircaseDNS(dns_model, interface_ics, initial_noise = velocity_noise)
 
 ## Build simulation
 Δt = 1e-1
