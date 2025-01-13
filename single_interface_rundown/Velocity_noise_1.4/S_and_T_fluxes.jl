@@ -13,7 +13,7 @@ function φ_interface_flux!(flux_file::AbstractString, tracers::AbstractString, 
 
         φ = ds[tracer]
         Δφ₀ = φ[1, 1, 1, 1] - 0.5 * (φ[1, 1, 1, 1] - φ[1, 1, 1, end])
-        timestamps = ds[:time][:]
+        timestamps = ds[:time][1:300]
         Δt = diff(timestamps)
         ΔV = diff(ds[:xC][1:2])[1] * diff(ds[:yC][1:2])[1] * diff(ds[:zC][1:2])[1]
         V = (1:length(reshape(φ[:, :, :, 1], :))) * ΔV
