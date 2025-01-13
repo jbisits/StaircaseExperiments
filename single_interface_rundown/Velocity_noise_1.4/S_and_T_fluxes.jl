@@ -19,7 +19,7 @@ function φ_interface_flux!(flux_file::AbstractString, tracers::AbstractString, 
         V = (1:length(reshape(φ[:, :, :, 1], :))) * ΔV
         SA = 0.07^2
         z✶ = V / SA
-        Δz✶ = diff(z✶)
+        Δz✶ = diff(z✶)[1]
 
         φ_interface_flux = Array{Float64}(undef, 3, length(Δt))
         interface_idx = Array{Int64}(undef, length(Δt))
@@ -28,7 +28,7 @@ function φ_interface_flux!(flux_file::AbstractString, tracers::AbstractString, 
 
             φₜ = [reshape(φ[:, :, :, i], :) reshape(φ[:, :, :, i+1], :)]
             sort!(φₜ, dims = 1)
-            ∫φdz✶ = cumsum(φₜ * Δz✶[i], dims = 1)
+            ∫φdz✶ = cumsum(φₜ * Δz✶, dims = 1)
             dₜ∫φdz✶ = vec(diff(∫φdz✶, dims = 2) ./ Δt[i])
 
             φₜ_interp = vec(0.5 * sum(φₜ, dims = 2))
