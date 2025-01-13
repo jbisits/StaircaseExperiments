@@ -24,7 +24,7 @@ function φ_interface_flux!(flux_file::AbstractString, tracers::AbstractString, 
         φ_interface_flux = Array{Float64}(undef, 3, length(Δt))
         interface_idx = Array{Int64}(undef, length(Δt))
 
-        for (i, t) ∈ enumerate(timestamps)
+        for i ∈ eachindex(Δt)
 
             φₜ = [reshape(φ[:, :, :, i], :) reshape(φ[:, :, :, i+1], :)]
             sort!(φₜ, dims = 1)
