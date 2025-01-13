@@ -12,8 +12,8 @@ function φ_interface_flux!(flux_file::AbstractString, tracers::AbstractString, 
     NCDataset(tracers) do ds
 
         φ = ds[tracer]
-        Δφ₀ = φ[1, 1, 1, 1] - 0.5 * (φ[1, 1, 1, 1] - φ[1, 1, 1, end])
-        timestamps = ds[:time][1:300]
+        Δφ₀ = φ[1, 1, 1, 1] - 0.5 * (φ[1, 1, 1, 1] - φ[1, 1, end, 1])
+        timestamps = ds[:time][:]
         Δt = diff(timestamps)
         ΔV = diff(ds[:xC][1:2])[1] * diff(ds[:yC][1:2])[1] * diff(ds[:zC][1:2])[1]
         V = (1:length(reshape(φ[:, :, :, 1], :))) * ΔV
@@ -31,7 +31,7 @@ function φ_interface_flux!(flux_file::AbstractString, tracers::AbstractString, 
             ∫φdz✶ = cumsum(φₜ * Δz✶, dims = 1)
             dₜ∫φdz✶ = vec(diff(∫φdz✶, dims = 2) ./ Δt[i])
 
-            φₜ_interp = vec(0.5 * sum(φₜ, dims = 2))
+            φₜ_interp = 0.5 * vec(sum(φₜ, dims = 2))
             interface_idx[i] = ii = findfirst(φₜ_interp .> Δφ₀) - 1
             interface_idxs = [ii-1, ii, ii+1]
 
