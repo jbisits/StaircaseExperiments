@@ -26,10 +26,10 @@ function φ_interface_flux!(flux_file::AbstractString, tracers::AbstractString, 
 
         for (i, t) ∈ enumerate(timestamps)
 
-            φₜ = [reshape(φ[:, :, :, t], :) reshape(φ[:, :, :, t+1], :)]
+            φₜ = [reshape(φ[:, :, :, i], :) reshape(φ[:, :, :, i+1], :)]
             sort!(φₜ, dims = 1)
             ∫φdz✶ = cumsum(φₜ * Δz✶, dims = 1)
-            dₜ∫φdz✶ = vec(diff(∫φdz✶, dims = 2) ./ Δt[t])
+            dₜ∫φdz✶ = vec(diff(∫φdz✶, dims = 2) ./ Δt[i])
 
             φₜ_interp = vec(0.5 * sum(φₜ, dims = 2))
             interface_idx[i] = findfirst(φₜ_interp .> Δφ₀) - 1
