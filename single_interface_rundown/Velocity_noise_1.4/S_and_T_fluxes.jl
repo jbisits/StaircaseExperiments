@@ -21,8 +21,8 @@ function φ_interface_flux!(flux_file::AbstractString, tracers::AbstractString, 
         z✶ = V / SA
         Δz✶ = diff(z✶)
 
-        φ_interface_flux = Vector{Float64}(undef, 3, length(Δt))
-        interface_idx = Vector{Int64}(undef, length(Δt))
+        φ_interface_flux = Array{Float64}(undef, 3, length(Δt))
+        interface_idx = Array{Int64}(undef, length(Δt))
 
         for (i, t) ∈ enumerate(timestamps)
 
