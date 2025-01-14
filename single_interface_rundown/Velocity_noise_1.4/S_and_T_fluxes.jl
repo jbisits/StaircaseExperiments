@@ -92,10 +92,10 @@ function φ_molelcuar_flux!(flux_file::AbstractString, tracers::AbstractString, 
             φₜ = reshape(φ[:, :, :, i], :)
             sort!(φₜ)
 
-            interface_idx[i] = ii = findfirst(φₜ .> Δφ₀) - 1
+            ii = findfirst(φₜ .> Δφ₀) - 1
             interface_idxs = [ii-1, ii, ii+1]
             ∂_zφₜ = diff(φₜ[interface_idxs]) ./ Δz✶[interface_idxs]
-            interface_depth = z✶[interface_idxs]
+            interface_depth = z✶[ii]
 
             φ_molecular_flux[:, i] .= κ_φ * ∂_zφₜ
 
