@@ -93,11 +93,11 @@ function φ_molelcuar_flux!(flux_file::AbstractString, tracers::AbstractString, 
             sort!(φₜ)
 
             ii = findfirst(φₜ .> Δφ₀) - 1
-            interface_idxs = [ii-2, ii-1, ii, ii+1]
-            ∂_zφₜ = diff(φₜ[interface_idxs]) ./ Δz✶[interface_idxs]
+            interface_idxs = [ii-1, ii, ii+1]
+            ∂_zφₜ = diff(φₜ) ./ Δz✶
             interface_depth = z✶[ii]
 
-            φ_molecular_flux[:, i] .= κ_φ * ∂_zφₜ
+            φ_molecular_flux[:, i] .= κ_φ * ∂_zφₜ[interface_idxs]
 
         end
 
