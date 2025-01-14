@@ -27,12 +27,12 @@ function φ_interface_flux!(flux_file::AbstractString, tracers::AbstractString, 
         for i ∈ eachindex(Δt)
 
             φₜ = [reshape(φ[:, :, :, i], :) reshape(φ[:, :, :, i+1], :)]
-            sort!(φₜ, dims = 1)
+            sort!(φₜ, rev = true, dims = 1)
             ∫φdz✶ = cumsum(φₜ * Δz✶, dims = 1)
             dₜ∫φdz✶ = vec(diff(∫φdz✶, dims = 2) ./ Δt[i])
 
             φₜ_interp = 0.5 * vec(sum(φₜ, dims = 2))
-            interface_idx[i] = ii = findfirst(φₜ_interp .> Δφ₀) - 1
+            interface_idx[i] = ii = findfirst(φₜ_interp .< Δφ₀) - 1
             interface_idxs = [ii-1, ii, ii+1]
 
             φ_interface_flux[:, i] .= dₜ∫φdz✶[interface_idxs]
@@ -90,12 +90,12 @@ function φ_molelcuar_flux!(flux_file::AbstractString, tracers::AbstractString, 
         for i ∈ eachindex(timestamps)
 
             φₜ = reshape(φ[:, :, :, i], :)
-            sort!(φₜ)
+            sort!(φₜ, rev = true)
 
-            ii = findfirst(φₜ .> Δφ₀) - 1
+            ii = findfirst(φₜ .< Δφ₀) - 1
             interface_idxs = [ii-1, ii, ii+1]
             ∂_zφₜ = diff(φₜ) ./ Δz✶
-            interface_depth = z✶[ii]
+            interface_depth[i] = z✶[ii]
 
             φ_molecular_flux[:, i] .= κ_φ * ∂_zφₜ[interface_idxs]
 
@@ -111,12 +111,12 @@ function save_molecular_fluxes!(flux_file, φ_molecular_flux, interface_depth, t
 
     if isfile(flux_file)
         jldopen(flux_file, "a+") do file
-            file[string(tracer)*"molecular_flux"] = φ_molecular_flux
+            file[string(tracer)*"_molecular_flux"] = φ_molecular_flux
             file[string(tracer)*"_interface_depth"] = interface_depth
         end
     else
         jldopen(flux_file, "w") do file
-            file[string(tracer)*"molecular_flux"] = φ_molecular_flux
+            file[string(tracer)*"_molecular_flux"] = φ_molecular_flux
             file[string(tracer)*"_interface_depth"] = interface_depth
         end
     end
