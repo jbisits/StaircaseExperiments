@@ -84,8 +84,8 @@ function φ_molelcuar_flux!(flux_file::AbstractString, tracers::AbstractString, 
         z✶ = V / SA
         Δz✶ = diff(z✶)
 
-        φ_molecular_flux = Array{Float64}(undef, 3, length(t))
-        interface_depth = Array{Int64}(undef, length(t))
+        φ_molecular_flux = Array{Float64}(undef, 3, length(timestamps))
+        interface_depth = Array{Int64}(undef, length(timestamps))
 
         for i ∈ eachindex(timestamps)
 
