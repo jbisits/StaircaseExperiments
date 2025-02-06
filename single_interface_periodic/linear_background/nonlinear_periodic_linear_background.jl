@@ -2,9 +2,9 @@ using StaircaseShenanigans
 
 architecture = GPU()
 diffusivities = (ν = 1e-6, κ = (S = 1e-9, T = 1e-7))
-domain_extent = (Lx = 0.1, Ly = 0.1, Lz = -1.0)
+domain_extent = (Lx = 0.07, Ly = 0.07, Lz = -1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Periodic)
-resolution = (Nx = 100, Ny = 100, Nz = 1000)
+resolution = (Nx = 70, Ny = 70, Nz = 1000)
 ρ₀ = gsw_rho(34.56, -1.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
@@ -22,7 +22,7 @@ noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(0.007, 0.1))
 sdns = StaircaseDNS(model_setup, interface_ics, noise)
 
 ## Build simulation
-stop_time = 3 * 60 * 60 # seconds
+stop_time = 6 * 60 * 60 # seconds
 output_path = joinpath(@__DIR__, "tracer_and_velocity_noise")
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    save_vertical_velocities!; output_path)
