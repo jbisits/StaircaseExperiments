@@ -23,7 +23,7 @@ sdns = StaircaseDNS(dns_model, interface_ics, initial_noise = noise)
 
 ## Build simulation
 stop_time = 6 * 60 * 60 # seconds
-output_path = joinpath(@__DIR__, "Velocity_noise_$(round(interface_ics.R_ρ, digits = 2))")
+output_path = joinpath(@__DIR__, "rundown_$(round(interface_ics.R_ρ, digits = 2))")
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    save_vertical_velocities!; output_path)
 ## Run
