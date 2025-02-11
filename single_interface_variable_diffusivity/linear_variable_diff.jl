@@ -1,11 +1,7 @@
 using StaircaseShenanigans, GibbsSeaWater
 
 architecture = GPU()
-@inline enhance_κₛ(i, j, k, grid, clock, fields, p) = clock.time < 20 * 60 ? p.κₛ : p.κₛ * 1000
-@inline enhance_κₜ(i, j, k, grid, clock, fields, p) = clock.time < 20 * 60 ? p.κₜ : p.κₜ * 10
-diffusivities = (ν=1e-6,
-                 κ=(S = enhance_κₛ, T = enhance_κₜ, parameters = (κₛ = 1e-9, κₜ = 1e-7),
-                    discrete_form=true))
+diffusivities = (ν = 1e-6, κ = (S = 1e-9, T = 1e-7))
 domain_extent = (Lx=0.07, Ly=0.07, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=70, Ny=70, Nz=1000)
@@ -13,6 +9,15 @@ resolution = (Nx=70, Ny=70, Nz=1000)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 dns_model = DNSModel(model_setup...)
+
+# Update diffusivity closure
+@inline enhance_κₛ(i, j, k, grid, clock, fields, p) = clock.time < 20 * 60 ? p.κₛ : p.κₛ * 1000
+@inline enhance_κₜ(i, j, k, grid, clock, fields, p) = clock.time < 20 * 60 ? p.κₜ : p.κₜ * 10
+variable_diffusivity = ScalarDiffusivity(ν = diffusivities.ν,
+                                         κ = (S = enhance_κₛ, T = enhance_κₜ),
+                                         parameters = (κₛ = 1e-9, κₜ = 1e-7),
+                                         discrete_form = true)
+dns_model.closure = variable_diffusivity
 
 ## Initial conditions
 depth_of_interface = -0.5
