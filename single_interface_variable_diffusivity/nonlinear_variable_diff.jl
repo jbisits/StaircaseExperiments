@@ -1,7 +1,9 @@
 using StaircaseShenanigans, GibbsSeaWater
 
 architecture = GPU()
-diffusivities = (ν = 1e-6, κ = (S = 1e-9, T = 1e-7))
+@inline enhance_κₛ(i, j, k, grid, clock, fields, p) = clock.time < 20 * 60 ? p.κₛ : p.κₛ * p.enhance * 100
+@inline enhance_κₜ(i, j, k, grid, clock, fields, p) = clock.time < 20 * 60 ? p.κₜ : p.κₜ * p.enhance
+diffusivities = (ν = 1e-6, κ = (S = enhance_κₛ, T = enhance_κₜ))
 domain_extent = (Lx=0.07, Ly=0.07, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=70, Ny=70, Nz=1000)
