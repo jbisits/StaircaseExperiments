@@ -11,11 +11,11 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 dns_model = DNSModel(model_setup...)
 
 # Update diffusivity closure
-@inline enhance_κₛ(i, j, k, grid, clock, fields, p) = clock.time < 20 * 60 ? p.κₛ : p.κₛ * 1000
-@inline enhance_κₜ(i, j, k, grid, clock, fields, p) = clock.time < 20 * 60 ? p.κₜ : p.κₜ * 10
+@inline enhance_κₛ(i, j, k, grid, clock, fields, p) = clock.time < 20 * 60 ? p.κₛ : p.κₛ * p.enhance * 100
+@inline enhance_κₜ(i, j, k, grid, clock, fields, p) = clock.time < 20 * 60 ? p.κₜ : p.κₜ * p.enhance
 variable_diffusivity = ScalarDiffusivity(ν = diffusivities.ν,
                                          κ = (S = enhance_κₛ, T = enhance_κₜ),
-                                         parameters = (κₛ = 1e-9, κₜ = 1e-7),
+                                         parameters = (κₛ = 1e-9, κₜ = 1e-7, enhance = 10),
                                          discrete_form = true)
 dns_model.closure = variable_diffusivity
 
