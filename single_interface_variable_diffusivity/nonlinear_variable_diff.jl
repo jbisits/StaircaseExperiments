@@ -1,8 +1,6 @@
 using StaircaseShenanigans, GibbsSeaWater
 
 architecture = GPU()
-@inline enhance_κₛ(i, j, k, grid, clock, fields, p) = clock.time < 20 * 60 ? p.κₛ : p.κₛ * p.enhance * 100
-@inline enhance_κₜ(i, j, k, grid, clock, fields, p) = clock.time < 20 * 60 ? p.κₜ : p.κₜ * p.enhance
 diffusivities = (ν = 1e-6, κ = (S = enhance_κₛ, T = enhance_κₜ))
 domain_extent = (Lx=0.07, Ly=0.07, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
@@ -25,8 +23,7 @@ dns_model.closure = variable_diffusivity
 depth_of_interface = -0.5
 salinity = [34.57, 34.70]
 temperature = [-1.5, 0.5]
-interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
-                                    interface_smoothing = TanhInterfaceSteepness(100.0))
+interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 noise = VelocityNoise(1e-2)
 
 ## setup model
