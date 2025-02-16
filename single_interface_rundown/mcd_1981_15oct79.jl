@@ -3,17 +3,21 @@ using StaircaseShenanigans, GibbsSeaWater
 ## Initial salinity and temperature from McDougall 1981 lab experiments
 Sₚ = [0.03, 6.02]
 T = [18.57, 31.58]
-salinity = gsw_sa_from_sp.(Sₚ, 0, 30, 30)
+salinity = gsw_sa_from_sp.(Sₚ, 0, 149, -35)
 temperature = gsw_ct_from_t.(salinity, T, 0)
-ρ₀ = gsw_rho.(salinity, temperature, 0)
+# ρ₀ = gsw_rho.(salinity, temperature, 0)
 # Δρ = diff(ρ₀) # = 1.1239926439408237
+
+Sₗ = gsw_sa_from_sp(6.02, 0, 149, -35)
+Θₗ = gsw_ct_from_t(Sₗ, 31.58, 0)
+ρ₀ = gsw_rho(Sₗ, Θₗ, 0)
 ##
 architecture = GPU()
 diffusivities = (ν=1e-6, κ=(S=1e-9, T=1e-7))
 domain_extent = (Lx=0.1, Ly=0.1, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=100, Ny=100, Nz=500)
-eos = TEOS10EquationOfState(reference_density = view(ρ₀, 2))
+eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 dns_model = DNSModel(model_setup...)
 
