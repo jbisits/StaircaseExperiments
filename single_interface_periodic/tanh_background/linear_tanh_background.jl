@@ -13,17 +13,17 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 
 ## Initial conditions
 depth_of_interface = -0.5
-salinity = [34.56, 34.7]
+salinity = [34.54, 34.7]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
-                                    background_state = BackgroundTanh(50))
+                                    background_state = BackgroundTanh(100))
 noise = VelocityNoise(1e-2)
 
 ## setup model
 sdns = StaircaseDNS(model_setup, interface_ics, noise)
 
 ## Build simulation
-stop_time = 5 * 60 * 60 # seconds
+stop_time = 8 * 60 * 60 # seconds
 output_path = joinpath(@__DIR__, "tanh_background_$(round(interface_ics.R_ρ, digits = 2))")
 checkpointer_time_interval = 60 * 60 # seconds
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
@@ -32,8 +32,7 @@ simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                     overwrite_saved_output = restart)
 ## Run
 # simulation.stop_time = _ * 60 * 60 # update to pickup from a checkpoint
-pickup = restart ? false : joinpath(@__DIR__,
-                                    "string_to_chekcpoint") # need to edit this with the actual string
+pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
 run!(simulation; pickup)
 
 ## Compute density ratio
