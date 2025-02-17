@@ -1,6 +1,6 @@
 using StaircaseShenanigans, GibbsSeaWater
 
-restart = false
+restart = true
 
 ## Initial salinity and temperature from McDougall 1981 lab experiments
 Sₚ = [0.03, 6.02]
@@ -34,14 +34,16 @@ noise = VelocityNoise(1e-2)
 sdns = StaircaseDNS(dns_model, interface_ics, initial_noise = noise)
 
 ## Build simulation
-stop_time = 4 * 60 * 60 # seconds
+stop_time = 8 * 60 * 60 # seconds
 output_path = joinpath(@__DIR__, "McDougall1981_15oct_$(round(interface_ics.R_ρ, digits = 2))")
+checkpointer_time_interval = 60 * 60 # seconds
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    save_vertical_velocities!; output_path,
+                                   checkpointer_time_interval,
                                    overwrite_saved_output = restart)
 ## Run
-simulation.stop_time = 8 * 60 * 60 # update to pickup from a checkpoint
-pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
+# simulation.stop_time = 8 * 60 * 60 # update to pickup from a checkpoint
+# pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
 run!(simulation; pickup)
 
 ## Compute density ratio
