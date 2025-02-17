@@ -1,5 +1,7 @@
 using StaircaseShenanigans, GibbsSeaWater
 
+restart = false
+
 architecture = GPU()
 diffusivities = (ν=1e-6, κ=(S=1e-9, T=1e-7))
 domain_extent = (Lx=0.07, Ly=0.07, Lz=-1.0)
@@ -26,9 +28,13 @@ output_path = joinpath(@__DIR__, "step_background_$(round(interface_ics.R_ρ, di
 checkpointer_time_interval = 60 * 60 # seconds
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                     save_vertical_velocities!;
-                                    output_path, checkpointer_time_interval)
+                                    output_path, checkpointer_time_interval,
+                                    overwrite_saved_output = restart)
+
+simulation.stop_time = 12 * 60 * 60
+pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
 ## Run
-run!(simulation)
+run!(simulation; pickup)
 
 ## Compute density ratio
 compute_R_ρ!(simulation.output_writers[:computed_output].filepath,
