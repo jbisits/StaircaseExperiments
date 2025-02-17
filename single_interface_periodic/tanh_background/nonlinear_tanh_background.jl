@@ -1,6 +1,6 @@
 using StaircaseShenanigans, GibbsSeaWater
 
-restart = true
+restart = fals
 
 architecture = GPU()
 diffusivities = (ν=1e-6, κ=(S=1e-9, T=1e-7))
@@ -33,7 +33,7 @@ simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                     output_path, checkpointer_time_interval,
                                     overwrite_saved_output = restart)
 ## Run
-# simulation.stop_time = _ * 60 * 60 # update to pickup from a checkpoint
+simulation.stop_time = 16 * 60 * 60 # update to pickup from a checkpoint
 pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
 run!(simulation; pickup)
 
