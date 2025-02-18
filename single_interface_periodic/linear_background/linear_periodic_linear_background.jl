@@ -7,12 +7,12 @@ diffusivities = (ν = 1e-6, κ = (S = 1e-9, T = 1e-7))
 domain_extent = (Lx = 0.07, Ly = 0.07, Lz = -1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Periodic)
 resolution = (Nx = 70, Ny = 70, Nz = 1000)
-eos = CustomLinearEquationOfState(0, 34.66)
+eos = CustomLinearEquationOfState(-0.5, 34.64)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 
 ## Initial conditions
 depth_of_interface = -0.5
-salinity = [34.58, 34.70]
+salinity = [34.59, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
                                     background_state = BackgroundLinear())
