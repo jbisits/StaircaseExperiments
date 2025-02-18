@@ -1,6 +1,6 @@
 using StaircaseShenanigans, GibbsSeaWater
 
-restart = false
+restart = true
 
 architecture = GPU()
 diffusivities = (ν=1e-6, κ=(S=1e-9, T=1e-7))
@@ -14,10 +14,10 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 
 ## Initial conditions
 depth_of_interface = -0.5
-salinity = [34.54, 34.7]
+salinity = [34.58, 34.7]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
-                                    background_state = BackgroundTanh(100))
+                                    background_state = BackgroundTanh(500))
 
 noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-5, 1e-5))
 
@@ -33,7 +33,7 @@ simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                     output_path, checkpointer_time_interval,
                                     overwrite_saved_output = restart)
 ## Run
-simulation.stop_time = 16 * 60 * 60 # update to pickup from a checkpoint
+# simulation.stop_time = 16 * 60 * 60 # update to pickup from a checkpoint
 pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
 run!(simulation; pickup)
 

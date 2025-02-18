@@ -13,7 +13,7 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 
 ## Initial conditions
 depth_of_interface = -0.5
-salinity = [34.54, 34.7]
+salinity = [34.58, 34.7]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
                                     background_state = BackgroundTanh(100))
@@ -23,7 +23,7 @@ noise = VelocityNoise(1e-2)
 sdns = StaircaseDNS(model_setup, interface_ics, noise)
 
 ## Build simulation
-stop_time = 8 * 60 * 60 # seconds
+stop_time = 5 * 60 * 60 # seconds
 output_path = joinpath(@__DIR__, "tanh_background_$(round(interface_ics.R_ρ, digits = 2))")
 checkpointer_time_interval = 60 * 60 # seconds
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,

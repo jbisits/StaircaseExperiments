@@ -4,6 +4,18 @@
 using Markdown
 using InteractiveUtils
 
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    #! format: off
+    quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
+    end
+    #! format: on
+end
+
 # ╔═╡ b8342884-a419-46ff-a2cf-3c7caac2f902
 begin
 	using Pkg
@@ -28,10 +40,21 @@ md"""
 # `tanh` background
 """
 
+# ╔═╡ 89a25913-e19b-4750-9f55-8df63f89326c
+begin 
+	salinity_upper = @bind Sᵤ Select([34.56, 34.58, 34.6])
+	temperature_upper = @bind Θᵤ Select([-1.5, 5, 10, 20])
+	md"""
+	Salinity in upper layer: $salinity_upper
+	
+	Temperature in upper layer: $temperature_upper
+	"""
+end
+
 # ╔═╡ f4c36c3e-e8f8-4d3e-872f-9a2a1a6fc3b0
 begin
 	S✶, Θ✶ = 34.7, 0.5
-	Sᵤ, Θᵤ = 34.59, -1.5
+	# Sᵤ, Θᵤ = 34.59, -1.5
 	ΔS, ΔΘ = (S✶ - Sᵤ), (Θ✶ - Θᵤ)
 	Sₘ, Θₘ = 0.5 * (S✶ + Sᵤ), 0.5 * (Θ✶ + Θᵤ)
 	Lz = -1
@@ -99,6 +122,10 @@ One thing I could try is to make it so that the change between levels is some ``
 but the units do not add up.
 Discretely my thought is that if there is a uniform ``\Delta S`` and ``\Delta \Theta`` for each ``\Delta z``, then we could set this to satisfy an ``R_{\rho}`` criteria?
 This might then actually get an instability because at present I just create a linear change between the top and bottom salinity and temperature.
+
+Turns out (unsurprisingly) that the grid level ``R_{\rho}`` is much finer.
+I have just started an unstable in density, linear background for S and T experiment.
+Really just need to understand if there is anything useful at all that can be done here.
 """
 
 # ╔═╡ 67fc284f-71d1-494a-bdcf-efff768f0683
@@ -153,6 +180,7 @@ end
 # ╟─189277c0-ecdf-11ef-0b11-ad7fc2913d2d
 # ╟─b8342884-a419-46ff-a2cf-3c7caac2f902
 # ╟─ff501fef-8e92-45f6-b26a-a9398c86957d
+# ╠═89a25913-e19b-4750-9f55-8df63f89326c
 # ╟─f4c36c3e-e8f8-4d3e-872f-9a2a1a6fc3b0
 # ╟─8667678b-a40b-4dfa-879a-0314616474fb
 # ╟─67e66c9a-309b-43f3-8956-92404d77a3ef
