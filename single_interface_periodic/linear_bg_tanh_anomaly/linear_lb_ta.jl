@@ -1,4 +1,4 @@
-using StaircaseShenanigans, GibbsSeaWater
+using StaircaseShenanigans
 
 restart = true
 
@@ -7,15 +7,15 @@ diffusivities = (ν = 1e-6, κ = (S = 1e-9, T = 1e-7))
 domain_extent = (Lx = 0.07, Ly = 0.07, Lz = -1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Periodic)
 resolution = (Nx = 70, Ny = 70, Nz = 1000)
-ρ₀ = gsw_rho(34.7, 0.5, 0)
-eos = TEOS10EquationOfState(reference_density = ρ₀)
+eos = CustomLinearEquationOfState(-0.5, 34.64)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 
 ## Initial conditions
 depth_of_interface = -0.5
-salinity = [34.59, 34.70]
+salinity = [34.56, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
+                                    interface_smoothing = TanhInterfaceSteepness(100.0),
                                     background_state = BackgroundLinear())
 # noise magnitude = 0.05ΔS, 0.05ΔΘ.
 noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(0.004, 0.05))
@@ -24,8 +24,8 @@ noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(0.004, 0.05))
 sdns = StaircaseDNS(model_setup, interface_ics, noise)
 
 ## Build simulation
-stop_time = 6 * 60 * 60 # seconds
-output_path = joinpath(@__DIR__, "linear_background_$(round(interface_ics.R_ρ, digits = 2))")
+stop_time = 4 * 60 * 60 # seconds
+output_path = joinpath(@__DIR__, "lb_ta_$(round(interface_ics.R_ρ, digits = 2))")
 checkpointer_time_interval = 60 * 60 # seconds
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    save_vertical_velocities!; output_path,
@@ -36,6 +36,7 @@ simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
 # simulation.stop_time = 12 * 60 * 60
 pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
 run!(simulation; pickup)
+
 
 ## Compute density ratio
 compute_R_ρ!(simulation.output_writers[:computed_output].filepath,
