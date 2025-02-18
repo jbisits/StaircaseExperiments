@@ -24,6 +24,7 @@ begin
 	using StaircaseShenanigans: CustomLinearEquationOfState
 	using SeawaterPolynomials: total_density
 	using PlutoUI
+	using LinearAlgebra: norm
 end
 
 # ╔═╡ 189277c0-ecdf-11ef-0b11-ad7fc2913d2d
@@ -66,6 +67,7 @@ begin
 	initial_Θ = @. Θᵤ + (ΔΘ / 2) * (1 + tanh((100 / 3) * (z - interface)) / abs(Lz))
 	reverse!(initial_Θ)
 	intial_ρ = gsw_sigma0.(initial_S, initial_Θ)
+	intial_ρ′ = (intial_ρ .- intial_ρ[end]) ./ norm(intial_ρ)
 	max_ρ, max_idx = findmax(intial_ρ)
 
 	S_range = range(Sᵤ, S✶, length = 1000)
@@ -74,7 +76,8 @@ begin
 	max_ρ_mix, mix_idx = findmax(ρ_mixing)
 
 	linear_eos = CustomLinearEquationOfState(Θₘ, Sₘ)
-	ρ_linear = total_density.(initial_Θ, initial_S, 0, fill(linear_eos, length(initial_S))) .- 1024.694#1024.6885
+	ρ_linear = total_density.(initial_Θ, initial_S, 0, fill(linear_eos, length(initial_S)))
+	ρ_linear′ = (ρ_linear .- ρ_linear[end]) ./ norm(ρ_linear)
 end
 
 # ╔═╡ 8667678b-a40b-4dfa-879a-0314616474fb
@@ -98,9 +101,9 @@ let
 	lines!(ax2, initial_Θ, z, color = :red)
 
 	ax3 = Axis(fig[1, 2],
-				xlabel = "σ₀ (kgm⁻³)")
-	lines!(ax3, intial_ρ, z, label = "Nonlinear eos")
-	lines!(ax3, ρ_linear, z, label = "Linear eos")
+				xlabel = "σ₀′ (nondim)")
+	lines!(ax3, intial_ρ′, z, label = "Nonlinear eos")
+	lines!(ax3, ρ_linear′, z, label = "Linear eos")
 	axislegend(ax3)
 	ax4 = Axis(fig[2, :], xlabel = "S (gkg⁻¹)", ylabel = "Θ (°C)")
 	lines!(ax4, initial_S, initial_Θ)
@@ -135,8 +138,10 @@ begin
 	α, β = gsw_alpha.(S_linear_bg, Θ_linear_bg, 0), gsw_beta.(S_linear_bg, Θ_linear_bg, 0)
 	α_interp = 0.5 * (α[1:end-1] .+ α[2:end])
 	β_interp = 0.5 * (β[1:end-1] .+ β[2:end])
-	ρ_linear_bg = gsw_rho.(S_linear_bg, Θ_linear_bg, 0) .- 1000
-	ρ_linear_bg_lineareos = total_density.(Θ_linear_bg, S_linear_bg, 0, fill(linear_eos, length(S_linear_bg))) .- 1024.6942
+	ρ_linear_bg = gsw_rho.(S_linear_bg, Θ_linear_bg, 0)
+	ρ_linear_bg′ = (ρ_linear_bg .- ρ_linear_bg[end]) ./ norm(ρ_linear_bg)
+	ρ_linear_bg_lineareos = total_density.(Θ_linear_bg, S_linear_bg, 0, fill(linear_eos, length(S_linear_bg)))
+	ρ_linear_bg_lineareos′ = (ρ_linear_bg_lineareos .- ρ_linear_bg_lineareos[end]) ./ norm(ρ_linear_bg_lineareos)
 	Δz = diff(z)
 	S_z = diff(S_linear_bg) .* Δz
 	Θ_z = diff(Θ_linear_bg) .* Δz
@@ -164,9 +169,9 @@ let
 	lines!(ax2, Θ_linear_bg, z, color = :red, linestyle = :dash)
 
 	ax3 = Axis(fig[1, 2],
-				xlabel = "σ₀ (kgm⁻³)")
-	lines!(ax3, ρ_linear_bg, z, label = "Nonlinear eos")
-	lines!(ax3, ρ_linear_bg_lineareos, z, label = "Linear eos")
+				xlabel = "σ₀′ (nondim)")
+	lines!(ax3, ρ_linear_bg′, z, label = "Nonlinear eos")
+	lines!(ax3, ρ_linear_bg_lineareos′, z, label = "Linear eos")
 	axislegend(ax3)
 	ax4 = Axis(fig[2, :], xlabel = "S (gkg⁻¹)", ylabel = "Θ (°C)")
 	lines!(ax4,  S_linear_bg, Θ_linear_bg)
