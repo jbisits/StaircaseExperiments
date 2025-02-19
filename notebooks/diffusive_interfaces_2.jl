@@ -251,8 +251,9 @@ let
 
 	ax3 = Axis(fig[1, 2],
 				xlabel = "σ₀′ (nondim)")
-	lines!(ax3, reverse(ρ_), z, label = "Nonlinear eos")
-	# lines!(ax3, ρ_linear_bg_lineareos, z, label = "Linear eos")
+	ρ_′ = (reverse(ρ_) .- reverse(ρ_)[end]) ./ norm(reverse(ρ_))
+	lines!(ax3, ρ_′, z, label = "Nonlinear eos")
+	lines!(ax3, ρ_linear_bg_lineareos′, z, label = "Linear eos")
 	axislegend(ax3)
 	ax4 = Axis(fig[2, :], xlabel = "S (gkg⁻¹)", ylabel = "Θ (°C)")
 	lines!(ax4,  S_linear_bg, Θ_linear_bg)
@@ -278,5 +279,5 @@ TableOfContents()
 # ╟─f126f7a6-5e86-4f4c-a36f-10b9cf5228b4
 # ╟─c80a9808-e582-438a-b903-3e2cb32d9505
 # ╟─c095e71b-bbb2-4586-aa0b-ce6c0f1ce74b
-# ╟─5b0e30d6-9808-45a4-b297-432e752c5181
+# ╠═5b0e30d6-9808-45a4-b297-432e752c5181
 # ╟─e2dd28a5-fd27-410a-9a87-a5be7299d72b
