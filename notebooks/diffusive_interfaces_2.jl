@@ -43,7 +43,7 @@ md"""
 
 # ╔═╡ 89a25913-e19b-4750-9f55-8df63f89326c
 begin 
-	salinity_upper = @bind Sᵤ Select([34.56, 34.58, 34.6])
+	salinity_upper = @bind Sᵤ Select([34.1, 34.4, 34.56, 34.58])
 	temperature_upper = @bind Θᵤ Select([-1.5, 5, 10, 20])
 	md"""
 	Salinity in upper layer: $salinity_upper
@@ -264,6 +264,115 @@ let
 	fig
 end
 
+# ╔═╡ 4fbff48c-b7fe-48d2-a5d6-0ffe6f2476fb
+begin
+	z_idx = [1, Int(Nz / 2), Nz]
+	z_points = [z[i] for i ∈ z_idx]
+	Θ_points = [Θ_[i] for i ∈ z_idx]
+	A = [z_points.^2 z_points z_points.^0]
+	quad_coeffs = A \ Θ_points
+	Θ_quadratic(z, quad_coeffs) =  quad_coeffs[1] * z.^2 + quad_coeffs[2] * z .+ quad_coeffs[3]
+	Θ_quad_curve = Θ_quadratic(z, quad_coeffs)
+end
+
+# ╔═╡ 368caa28-ed82-4e71-94b0-07a43ef8317a
+let
+	fig = Figure(size = (1000,1000))
+	ax1 = Axis(fig[1, 1],
+			    xticklabelcolor = :blue,
+			    bottomspinecolor = :blue,
+			    xtickcolor = :blue,
+				xlabelcolor = :blue,
+				xlabel = "S (gkg⁻¹)",
+				ylabel = "z (m)")
+	ax2 = Axis(fig[1, 1],
+				xaxisposition = :top,
+			    xticklabelcolor = :red,
+			    topspinecolor = :red,
+			    xtickcolor = :red,
+				xlabelcolor = :red,
+				xlabel = "Θ (°C)")
+	lines!(ax1, reverse(S_range), z, color = :blue)
+	lines!(ax2, reverse(Θ_), z, color = :red, linestyle = :dash)
+	lines!(ax2, reverse(Θ_quad_curve), z, color = :green, linestyle = :dash, label = "Quadratic fit")
+	axislegend(ax2)
+
+	ax3 = Axis(fig[1, 2],
+				xlabel = "σ₀′ (nondim)")
+	ρ_′ = (reverse(ρ_) .- reverse(ρ_)[end]) ./ norm(reverse(ρ_))
+	ρ_quad_fit = gsw_rho.(S_range, Θ_quad_curve, 0)
+	ρ_quad_fit′ = (reverse(ρ_quad_fit) .- reverse(ρ_quad_fit)[end]) ./ norm(reverse(ρ_quad_fit))
+	lines!(ax3, ρ_′, z, label = "Nonlinear eos")
+	lines!(ax3, ρ_quad_fit′, z, color = :green, label = "Θ quadratic fit nleos")
+	lines!(ax3, ρ_linear_bg_lineareos′, z, label = "Linear eos")
+	axislegend(ax3)
+	ax4 = Axis(fig[2, :], xlabel = "S (gkg⁻¹)", ylabel = "Θ (°C)")
+	lines!(ax4,  S_linear_bg, Θ_linear_bg)
+	lines!(ax4, S_range, Θ_, color = :orange)
+	lines!(ax4, S_range, Θ_quad_curve, color = :green)
+	# scatter!(ax4, initial_S[max_idx], initial_Θ[max_idx], color = :orange)
+	# lines!(ax4, S_range, mixing_line, color = :purple, linestyle = :dash)
+	# scatter!(ax4, S_range[mix_idx], mixing_line[mix_idx], color = :red)
+	fig
+end
+
+# ╔═╡ b382ef7c-108a-4a54-b8ce-88652574b051
+md"""
+Another brute forcing method but done by setting ``\Delta \rho`` and finding ``\Delta \Theta`` based off this assuming ``\Delta S`` is constant (i.e. salinity background is still linear).
+"""
+
+# ╔═╡ 6acc0f20-4d72-4fa3-b1fe-e9a14bdabbfc
+begin
+	ρ_background_increas = reverse(ρ_background)
+	Δρ_increase = diff(ρ_background_increas)[1]
+	S_range
+	Θ_test_range = range(Θᵤ, Θ✶, length = 100000)
+	find = [findfirst(gsw_rho.(S_range[n + 1], Θ_test_range, 0) .- (ρᵤ + n * Δρ_increase).≤ Δρ_increase) for n in 1:Nz-1]
+	found_Θ_range = vcat(Θᵤ, Θ_test_range[find])
+end
+
+# ╔═╡ 88731f8a-89c6-4647-ace4-50de6e9fbecd
+let
+	fig = Figure(size = (1000,1000))
+	ax1 = Axis(fig[1, 1],
+			    xticklabelcolor = :blue,
+			    bottomspinecolor = :blue,
+			    xtickcolor = :blue,
+				xlabelcolor = :blue,
+				xlabel = "S (gkg⁻¹)",
+				ylabel = "z (m)")
+	ax2 = Axis(fig[1, 1],
+				xaxisposition = :top,
+			    xticklabelcolor = :red,
+			    topspinecolor = :red,
+			    xtickcolor = :red,
+				xlabelcolor = :red,
+				xlabel = "Θ (°C)")
+	lines!(ax1, reverse(S_range), z, color = :blue)
+	lines!(ax2, reverse(Θ_), z, color = :red, linestyle = :dash)
+	lines!(ax2, reverse(found_Θ_range), z, color = :green, linestyle = :dash, label = "Alternate method")
+	axislegend(ax2)
+
+	ax3 = Axis(fig[1, 2],
+				xlabel = "σ₀′ (nondim)")
+	ρ_′ = (reverse(ρ_) .- reverse(ρ_)[end]) ./ norm(reverse(ρ_))
+	ρ_quad_fit = gsw_rho.(S_range, found_Θ_range, 0)
+	ρ_quad_fit′ = (reverse(ρ_quad_fit) .- reverse(ρ_quad_fit)[end]) ./ norm(reverse(ρ_quad_fit))
+	lines!(ax3, ρ_′, z, label = "Nonlinear eos")
+	lines!(ax3, ρ_quad_fit′, z, color = :green, label = "Alternate method")
+	lines!(ax3, ρ_linear_bg_lineareos′, z, label = "Linear eos")
+	axislegend(ax3)
+	ax4 = Axis(fig[2, :], xlabel = "S (gkg⁻¹)", ylabel = "Θ (°C)")
+	lines!(ax4,  S_linear_bg, Θ_linear_bg)
+	lines!(ax4, S_range, Θ_, color = :orange)
+	lines!(ax4, S_range, found_Θ_range, color = :green)
+	# scatter!(ax4, initial_S[max_idx], initial_Θ[max_idx], color = :orange)
+	# lines!(ax4, S_range, mixing_line, color = :purple, linestyle = :dash)
+	# scatter!(ax4, S_range[mix_idx], mixing_line[mix_idx], color = :red)
+	fig
+
+end
+
 # ╔═╡ e2dd28a5-fd27-410a-9a87-a5be7299d72b
 TableOfContents()
 
@@ -278,6 +387,11 @@ TableOfContents()
 # ╟─67fc284f-71d1-494a-bdcf-efff768f0683
 # ╟─f126f7a6-5e86-4f4c-a36f-10b9cf5228b4
 # ╟─c80a9808-e582-438a-b903-3e2cb32d9505
-# ╟─c095e71b-bbb2-4586-aa0b-ce6c0f1ce74b
-# ╠═5b0e30d6-9808-45a4-b297-432e752c5181
+# ╠═c095e71b-bbb2-4586-aa0b-ce6c0f1ce74b
+# ╟─5b0e30d6-9808-45a4-b297-432e752c5181
+# ╟─4fbff48c-b7fe-48d2-a5d6-0ffe6f2476fb
+# ╟─368caa28-ed82-4e71-94b0-07a43ef8317a
+# ╟─b382ef7c-108a-4a54-b8ce-88652574b051
+# ╠═6acc0f20-4d72-4fa3-b1fe-e9a14bdabbfc
+# ╠═88731f8a-89c6-4647-ace4-50de6e9fbecd
 # ╟─e2dd28a5-fd27-410a-9a87-a5be7299d72b
