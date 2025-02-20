@@ -13,13 +13,36 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 
 ## Initial conditions
 depth_of_interface = -0.5
-salinity = [34.56, 34.70]
+salinity = [34.54, 34.70]
 temperature = [-1.5, 0.5]
+
+Sᵤ, Sₗ = salinity
+S_range = range(Sᵤ, Sₗ, length = resolution.Nz)
+ΔS = diff(Array(salinity))[1]
+S_b = BackgroundField(linear_background, parameters = (Cᵤ = Sᵤ, ΔC = ΔS, Lz = abs(domain_extent.Lz)))
+
+Tᵤ, Tₗ = temperature
+
+ρᵤ, ρₗ = total_density(Tᵤ, Sᵤ, 0, eos), total_density(Tₗ, Sₗ, 0, eos)
+ρ_range = range(ρᵤ, ρₗ, length = resolution.Nz)
+
+Δρ = diff(Array(ρ_range))[1]
+
+N_T = 100000
+T_range = range(Tᵤ, Tₗ, length = N_T)
+find = [findfirst(total_density.(T_range, S_range[n + 1], 0, fill(eos, length(N_T))) .- (ρᵤ + n * Δρ).≤ Δρ) for n in 0:resolution.Nz-1]
+T_background_profile = reshape(reverse(T_range[find]), (1, 1, resolution.Nz))
+model = DNSModel(model_setup...) # needed for grid
+T_bf = similar(model.tracers.T)
+set!(T_bf, T_background_profile)
+
+background_fields = (S = S_b, T = T_bf)
+
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
                                     interface_smoothing = TanhInterfaceSteepness(100.0),
-                                    background_state = BackgroundLinear())
-# noise magnitude = 0.05ΔS, 0.05ΔΘ.
-noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(0.004, 0.05))
+                                    background_state = background_fields)
+
+noise = VelocityNoise(1e-2)
 
 ## setup model
 sdns = StaircaseDNS(model_setup, interface_ics, noise)

@@ -12,13 +12,13 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 
 ## Initial conditions
 depth_of_interface = -0.5
-salinity = [34.56, 34.70]
+salinity = [34.54, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
                                     interface_smoothing = TanhInterfaceSteepness(100.0),
                                     background_state = BackgroundLinear())
-# noise magnitude = 0.05ΔS, 0.05ΔΘ.
-noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(0.004, 0.05))
+
+noise = VelocityNoise(1e-2)
 
 ## setup model
 sdns = StaircaseDNS(model_setup, interface_ics, noise)
