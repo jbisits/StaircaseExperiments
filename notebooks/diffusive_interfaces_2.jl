@@ -327,8 +327,8 @@ begin
 	Δρ_increase = diff(ρ_background_increas)[1]
 	S_range
 	Θ_test_range = range(Θᵤ, Θ✶, length = 100000)
-	find = [findfirst(gsw_rho.(S_range[n + 1], Θ_test_range, 0) .- (ρᵤ + n * Δρ_increase).≤ Δρ_increase) for n in 1:Nz-1]
-	found_Θ_range = vcat(Θᵤ, Θ_test_range[find])
+	find = [findfirst(gsw_rho.(S_range[n + 1], Θ_test_range, 0) .- (ρᵤ + n * Δρ_increase).≤ Δρ_increase) for n in 0:Nz-1]
+	found_Θ_range = Θ_test_range[find]
 end
 
 # ╔═╡ 88731f8a-89c6-4647-ace4-50de6e9fbecd
