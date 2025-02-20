@@ -11,13 +11,11 @@ resolution = (Nx = 70, Ny = 70, Nz = 1000)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
-model = DNSModel(model_setup...) # needed for grid
 
 ## Initial conditions
 depth_of_interface = -0.5
 salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
-interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
 Sᵤ, Sₗ = salinity
 S_range = range(Sᵤ, Sₗ, length = resolution.Nz)
@@ -35,18 +33,19 @@ N_T = 100000
 T_range = range(Tᵤ, Tₗ, length = N_T)
 find = [findfirst(total_density.(T_range, S_range[n + 1], 0, fill(eos, length(N_T))) .- (ρᵤ + n * Δρ).≤ Δρ) for n in 0:resolution.Nz-1]
 T_background_profile = reshape(reverse(T_range[find]), (1, 1, resolution.Nz))
+model = DNSModel(model_setup...) # needed for grid
 T_bf = similar(model.tracers.T)
 set!(T_bf, T_background_profile)
 
 background_fields = (S = S_b, T = T_bf)
-
-model = DNSModel(model_setup...; background_fields) # overwrite with background_fields
+interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
+                                    background_state = background_fields)
 
 # noise magnitude = 0.05ΔS, 0.05ΔΘ.
 noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(0.004, 0.05))
 
 ## setup model
-sdns = StaircaseDNS(model, interface_ics, noise)
+sdns = StaircaseDNS(model_setup, interface_ics, noise)
 
 ## Build simulation
 stop_time = 1 * 60 * 60 # seconds
@@ -72,7 +71,7 @@ animation_path = simulation.output_writers[:computed_output].filepath[1:(reduced
 cd(animation_path)
 @info "Producing animations"
 using CairoMakie
-animate_density_anomaly(simulation.output_writers[:computed_output].filepath, "σ")
-animate_tracers_anomaly(simulation.output_writers[:tracers].filepath)
 animate_density(simulation.output_writers[:computed_output].filepath, "σ")
 animate_tracers(simulation.output_writers[:tracers].filepath)
+animate_density_anomaly(simulation.output_writers[:computed_output].filepath, "σ")
+animate_tracers_anomaly(simulation.output_writers[:tracers].filepath)

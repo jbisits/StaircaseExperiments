@@ -1,4 +1,5 @@
 using StaircaseShenanigans
+using SeawaterPolynomials: total_density
 
 architecture = CPU() # or GPU()
 diffusivities = (ν = 1e-5, κ = (S = 1e-7, T = 1e-5))
@@ -13,7 +14,6 @@ model = DNSModel(model_setup...) # needed for grid
 depth_of_interface = -0.5
 salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
-interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
 Sᵤ, Sₗ = salinity
 S_range = range(Sᵤ, Sₗ, length = resolution.Nz)
@@ -35,10 +35,10 @@ T_bf = similar(model.tracers.T)
 set!(T_bf, T_background_profile)
 
 background_fields = (S = S_b, T = T_bf)
-
-model = DNSModel(model_setup...; background_fields)
+interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
+                                    background_state = background_fields)
 ##
-noise = VelocityNoise()
+noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(0.004, 0.05))
 
 ## setup model
 sdns = StaircaseDNS(model_setup, interface_ics, noise)
