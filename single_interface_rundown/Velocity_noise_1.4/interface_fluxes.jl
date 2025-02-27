@@ -65,7 +65,7 @@ Fₛ_nonlinear = nonlinear_interface_fluxes["S_flux"][2, :]
 linear_Fₛ_Fₜ = Fₛ_linear ./ Fₜ_linear
 nonlinear_Fₛ_Fₜ = Fₛ_nonlinear ./ Fₜ_nonlinear
 fig = Figure(size = (800, 400))
-ax = Axis(fig[1, 1], xlabel = "t", ylabel = "Fₛ / Fₜ")
+ax = Axis(fig[1, 1], xlabel = "R_ρ", ylabel = "Fₛ / Fₜ")
 lines!(ax, R_ρ_linear, linear_Fₛ_Fₜ, label = "linear eos")
 lines!(ax, R_ρ_nonlinear, nonlinear_Fₛ_Fₜ, label = "nonlinear eos")
 axislegend(ax, position = :rb)

@@ -373,6 +373,58 @@ let
 
 end
 
+# ╔═╡ 969a8384-4791-4ad0-8447-04b645f0533b
+begin
+	_Θ = Ref{Cdouble}.(Θ_range)
+	_Θ_n = Ref{Cdouble}.(zeros(length(Θ_range)))
+gsw_ct_from_rho.(reverse(ρ_background), S_range, 0, _Θ, _Θ_n)
+end
+
+# ╔═╡ 75fdcdb6-f732-47a4-b9d8-665bd560600e
+_Θ′ = [_Θ[i].x for i ∈ 1:1000]
+
+# ╔═╡ ca627a1e-33a3-471d-b152-cf7a028cdf35
+let
+	fig = Figure(size = (1000,1000))
+	ax1 = Axis(fig[1, 1],
+			    xticklabelcolor = :blue,
+			    bottomspinecolor = :blue,
+			    xtickcolor = :blue,
+				xlabelcolor = :blue,
+				xlabel = "S (gkg⁻¹)",
+				ylabel = "z (m)")
+	ax2 = Axis(fig[1, 1],
+				xaxisposition = :top,
+			    xticklabelcolor = :red,
+			    topspinecolor = :red,
+			    xtickcolor = :red,
+				xlabelcolor = :red,
+				xlabel = "Θ (°C)")
+	lines!(ax1, reverse(S_range), z, color = :blue)
+	lines!(ax2, reverse(Θ_), z, color = :red, linestyle = :dash)
+	lines!(ax2, reverse(_Θ′), z, color = :green, linestyle = :dash, label = "Alternate method")
+	axislegend(ax2)
+
+	ax3 = Axis(fig[1, 2],
+				xlabel = "σ₀′ (nondim)")
+	ρ_′ = (reverse(ρ_) .- reverse(ρ_)[end]) ./ norm(reverse(ρ_))
+	ρ_quad_fit = gsw_rho.(S_range, found_Θ_range, 0)
+	ρ_quad_fit′ = (reverse(ρ_quad_fit) .- reverse(ρ_quad_fit)[end]) ./ norm(reverse(ρ_quad_fit))
+	lines!(ax3, ρ_′, z, label = "Nonlinear eos")
+	lines!(ax3, ρ_quad_fit′, z, color = :green, label = "Alternate method")
+	lines!(ax3, ρ_linear_bg_lineareos′, z, label = "Linear eos")
+	axislegend(ax3)
+	ax4 = Axis(fig[2, :], xlabel = "S (gkg⁻¹)", ylabel = "Θ (°C)")
+	lines!(ax4,  S_linear_bg, Θ_linear_bg)
+	lines!(ax4, S_range, Θ_, color = :orange)
+	lines!(ax4, S_range, found_Θ_range, color = :green)
+	# scatter!(ax4, initial_S[max_idx], initial_Θ[max_idx], color = :orange)
+	# lines!(ax4, S_range, mixing_line, color = :purple, linestyle = :dash)
+	# scatter!(ax4, S_range[mix_idx], mixing_line[mix_idx], color = :red)
+	fig
+
+end
+
 # ╔═╡ e2dd28a5-fd27-410a-9a87-a5be7299d72b
 TableOfContents()
 
@@ -387,11 +439,14 @@ TableOfContents()
 # ╟─67fc284f-71d1-494a-bdcf-efff768f0683
 # ╟─f126f7a6-5e86-4f4c-a36f-10b9cf5228b4
 # ╟─c80a9808-e582-438a-b903-3e2cb32d9505
-# ╠═c095e71b-bbb2-4586-aa0b-ce6c0f1ce74b
+# ╟─c095e71b-bbb2-4586-aa0b-ce6c0f1ce74b
 # ╟─5b0e30d6-9808-45a4-b297-432e752c5181
 # ╟─4fbff48c-b7fe-48d2-a5d6-0ffe6f2476fb
 # ╟─368caa28-ed82-4e71-94b0-07a43ef8317a
 # ╟─b382ef7c-108a-4a54-b8ce-88652574b051
 # ╟─6acc0f20-4d72-4fa3-b1fe-e9a14bdabbfc
 # ╠═88731f8a-89c6-4647-ace4-50de6e9fbecd
+# ╠═969a8384-4791-4ad0-8447-04b645f0533b
+# ╟─75fdcdb6-f732-47a4-b9d8-665bd560600e
+# ╠═ca627a1e-33a3-471d-b152-cf7a028cdf35
 # ╟─e2dd28a5-fd27-410a-9a87-a5be7299d72b
