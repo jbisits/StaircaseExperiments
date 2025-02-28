@@ -17,12 +17,34 @@ depth_of_interface = -0.5
 salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
 
-Sᵤ, Sₗ = salinity
-S_range = range(Sᵤ, Sₗ, length = resolution.Nz)
-ΔS = diff(Array(salinity))[1]
-S_b = BackgroundField(linear_background, parameters = (Cᵤ = Sᵤ, ΔC = ΔS, Lz = abs(domain_extent.Lz)))
+## stabilise with T
+# Sᵤ, Sₗ = salinity
+# S_range = range(Sᵤ, Sₗ, length = resolution.Nz)
+# ΔS = diff(Array(salinity))[1]
+# S_bf = BackgroundField(linear_background, parameters = (Cᵤ = Sᵤ, ΔC = ΔS, Lz = abs(domain_extent.Lz)))
 
+# Tᵤ, Tₗ = temperature
+
+# z = znodes(model.grid, Center())
+# p = Array(gsw_p_from_z.(z, 60))
+# reverse!(p)
+# ρᵤ, ρₗ = gsw_rho(Sᵤ, Tᵤ, p[1]), gsw_rho(Sₗ, Tₗ, p[end])
+# ρ_range = range(ρᵤ, ρₗ, length = resolution.Nz)
+
+# found_T = gsw_ct_from_rho.(ρ_range, S_range, p)
+# found_T = [found_T[i][1] for i ∈ eachindex(found_T)]
+# reverse!(found_T)
+# T_background_profile = reshape(found_T, (1, 1, resolution.Nz))
+# T_bf = similar(model.tracers.T)
+# set!(T_bf, T_background_profile)
+
+## stabilise with S
 Tᵤ, Tₗ = temperature
+T_range = range(Tᵤ, Tₗ, length = resolution.Nz)
+ΔT = diff(Array(temperature))[1]
+T_bf = BackgroundField(linear_background, parameters = (Cᵤ = Tᵤ, ΔC = ΔT, Lz = abs(domain_extent.Lz)))
+
+Sᵤ, Sₗ = salinity
 
 z = znodes(model.grid, Center())
 p = Array(gsw_p_from_z.(z, 60))
@@ -30,14 +52,14 @@ reverse!(p)
 ρᵤ, ρₗ = gsw_rho(Sᵤ, Tᵤ, p[1]), gsw_rho(Sₗ, Tₗ, p[end])
 ρ_range = range(ρᵤ, ρₗ, length = resolution.Nz)
 
-found_T = gsw_ct_from_rho.(ρ_range, S_range, p)
-found_T = [found_T[i][1] for i ∈ eachindex(found_T)]
-reverse!(found_T)
-T_background_profile = reshape(found_T, (1, 1, resolution.Nz))
-T_bf = similar(model.tracers.T)
-set!(T_bf, T_background_profile)
+found_S = gsw_sa_from_rho.(ρ_range, T_range, p)
+found_S = [found_S[i][1] for i ∈ eachindex(found_S)]
+reverse!(found_S)
+S_background_profile = reshape(found_S, (1, 1, resolution.Nz))
+S_bf = similar(model.tracers.S)
+set!(S_bf, S_background_profile)
 
-background_fields = (S = S_b, T = T_bf)
+background_fields = (S = S_bf, T = T_bf)
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
                                     background_state = background_fields)
 
