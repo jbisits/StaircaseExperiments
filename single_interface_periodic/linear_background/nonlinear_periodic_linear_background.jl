@@ -58,7 +58,7 @@ simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
 
 ## Run
 # simulation.stop_time = 3 * 60 * 60
-# pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
+pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
 run!(simulation; pickup)
 
 ## Compute density ratio
