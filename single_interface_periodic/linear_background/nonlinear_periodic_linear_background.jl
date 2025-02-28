@@ -1,7 +1,6 @@
 using StaircaseShenanigans, GibbsSeaWater
-using SeawaterPolynomials: total_density
 
-restart = false
+restart = true
 
 architecture = GPU()
 diffusivities = (ν = 1e-6, κ = (S = 1e-9, T = 1e-7))
@@ -11,6 +10,7 @@ resolution = (Nx = 70, Ny = 70, Nz = 1000)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
+model = DNSModel(model_setup...) # needed for grid
 
 ## Initial conditions
 depth_of_interface = -0.5
@@ -24,16 +24,16 @@ S_b = BackgroundField(linear_background, parameters = (Cᵤ = Sᵤ, ΔC = ΔS, L
 
 Tᵤ, Tₗ = temperature
 
-ρᵤ, ρₗ = total_density(Tᵤ, Sᵤ, 0, eos), total_density(Tₗ, Sₗ, 0, eos)
+z = znodes(model.grid, Center())
+p = Array(gsw_p_from_z.(z, 60))
+reverse!(p)
+ρᵤ, ρₗ = gsw_rho(Sᵤ, Tᵤ, p[1]), gsw_rho(Sₗ, Tₗ, p[end])
 ρ_range = range(ρᵤ, ρₗ, length = resolution.Nz)
 
-Δρ = diff(Array(ρ_range))[1]
-
-N_T = 100000
-T_range = range(Tᵤ, Tₗ, length = N_T)
-find = [findfirst(total_density.(T_range, S_range[n + 1], 0, fill(eos, length(N_T))) .- (ρᵤ + n * Δρ).≤ Δρ) for n in 0:resolution.Nz-1]
-T_background_profile = reshape(reverse(T_range[find]), (1, 1, resolution.Nz))
-model = DNSModel(model_setup...) # needed for grid
+found_T = gsw_ct_from_rho.(ρ_range, S_range, p)
+found_T = [found_T[i][1] for i ∈ eachindex(found_T)]
+reverse!(found_T)
+T_background_profile = reshape(found_T, (1, 1, resolution.Nz))
 T_bf = similar(model.tracers.T)
 set!(T_bf, T_background_profile)
 
@@ -48,7 +48,7 @@ noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(0.004, 0.05))
 sdns = StaircaseDNS(model_setup, interface_ics, noise)
 
 ## Build simulation
-stop_time = 1 * 60 * 60 # seconds
+stop_time = 3 * 60 * 60 # seconds
 output_path = joinpath(@__DIR__, "linear_background_$(round(interface_ics.R_ρ, digits = 2))")
 checkpointer_time_interval = 60 * 60 # seconds
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
@@ -57,8 +57,8 @@ simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    overwrite_saved_output = restart)
 
 ## Run
-simulation.stop_time = 3 * 60 * 60
-pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
+# simulation.stop_time = 3 * 60 * 60
+# pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
 run!(simulation; pickup)
 
 ## Compute density ratio

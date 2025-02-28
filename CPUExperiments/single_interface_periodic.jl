@@ -1,5 +1,4 @@
-using StaircaseShenanigans
-using SeawaterPolynomials: total_density
+using StaircaseShenanigans, GibbsSeaWater
 
 architecture = CPU() # or GPU()
 diffusivities = (ν = 1e-5, κ = (S = 1e-7, T = 1e-5))
@@ -22,15 +21,16 @@ S_b = BackgroundField(linear_background, parameters = (Cᵤ = Sᵤ, ΔC = ΔS, L
 
 Tᵤ, Tₗ = temperature
 
-ρᵤ, ρₗ = total_density(Tᵤ, Sᵤ, 0, eos), total_density(Tₗ, Sₗ, 0, eos)
+z = znodes(model.grid, Center())
+p = Array(gsw_p_from_z.(z, 60))
+reverse!(p)
+ρᵤ, ρₗ = gsw_rho(Sᵤ, Tᵤ, p[1]), gsw_rho(Sₗ, Tₗ, p[end])
 ρ_range = range(ρᵤ, ρₗ, length = resolution.Nz)
 
-Δρ = diff(Array(ρ_range))[1]
-
-N_T = 100000
-T_range = range(Tᵤ, Tₗ, length = N_T)
-find = [findfirst(total_density.(T_range, S_range[n + 1], 0, fill(eos, length(N_T))) .- (ρᵤ + n * Δρ).≤ Δρ) for n in 0:resolution.Nz-1]
-T_background_profile = reshape(reverse(T_range[find]), (1, 1, resolution.Nz))
+found_T = gsw_ct_from_rho.(ρ_range, S_range, p)
+found_T = [found_T[i][1] for i ∈ eachindex(found_T)]
+reverse!(found_T)
+T_background_profile = reshape(found_T, (1, 1, resolution.Nz))
 T_bf = similar(model.tracers.T)
 set!(T_bf, T_background_profile)
 
