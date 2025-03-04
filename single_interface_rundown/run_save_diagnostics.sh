@@ -8,7 +8,7 @@
 #PBS -l wd
 #PBS -M z5131023@unsw.edu.au
 
-cd /g/data/e14/jb2381/StaircaseExperiments/single_interface_rundown/Velocity_noise_1.4/lineareos_single_interface_360min/
+cd /g/data/e14/jb2381/StaircaseExperiments/single_interface_rundown/
 
 # Julia
 export JULIA_DEPOT_PATH="/g/data/e14/jb2381/.julia"
