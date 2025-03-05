@@ -13,7 +13,6 @@ cd /g/data/e14/jb2381/StaircaseExperiments/single_interface_rundown/rundown_1.05
 # Julia
 export JULIA_DEPOT_PATH="/g/data/e14/jb2381/.julia"
 export JULIA_NUM_THREADS=auto
-module load julia
 
 # Run the experiment
 julia --project save_diagnostics.jl > $PBS_JOBID.log
