@@ -113,7 +113,7 @@ end
 let
 	# mins = round.(Int64, dims["time"] ./ 60)
 	timestamps = Time(0, 1, 0):Minute(1):Time(18, 0, 0) 
-	R_ρ_interp = 0.5 * (dims["R_ρ"][1:end-1] .+ dims["R_ρ"][2:end])
+	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
 	ta = TimeArray((;timestamps, Rᵨ = R_ρ_interp, Ẽ = expt_data["Ẽ"]), timestamp = :timestamps)
 	ta_mean = moving(mean, ta, window)
 	
@@ -137,7 +137,7 @@ Salinity flux looks wrong.
 
 # ╔═╡ c852e2d3-f489-4b98-a183-dae4c3594947
 let
-	R_ρ_interp = 0.5 * (dims["R_ρ"][1:end-1] .+ dims["R_ρ"][2:end])
+	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
 	fig = Figure(size = (800, 800))
 	axT = Axis(fig[1, 1], ylabel = "T flux")
 	lines!(axT, R_ρ_interp, expt_data["T_flux"][2, :])
@@ -148,9 +148,6 @@ let
 	lines!(axf, R_ρ_interp, R_f)
 	fig
 end
-
-# ╔═╡ 7470c12a-7671-4b42-8463-a8c51f08ff39
-expt_data["S_flux"][2, end-10:end]
 
 # ╔═╡ 0a9d245d-8285-4a22-9edf-178d9e85addb
 md"""
@@ -184,7 +181,7 @@ let
 				ylabelcolor = :dodgerblue,
 			    ytickcolor = :dodgerblue,
 				ylabel = "Rᵨ")
-	lines!(ax2, mins, dims["R_ρ"], color = :dodgerblue, label = "Rᵨ")
+	lines!(ax2, mins, expt_data["R_ρ"], color = :dodgerblue, label = "Rᵨ")
 	axislegend(ax, merge = true, position = :rc)
 	fig
 end
@@ -193,8 +190,8 @@ end
 let
 	fig = Figure(size = (500, 500))
 	ax = Axis(fig[1, 1], xlabel = "Rᵨ", ylabel = "z✶")
-	lines!(ax, dims["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "salinity")
-	lines!(ax, dims["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "temperature", linestyle = :dot)
+	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "salinity")
+	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "temperature", linestyle = :dot)
 	ylims!(ax, 0.49, 0.54)
 	vlines!(ax, 1.6, color = :red, linestyle = :dash)
 	axislegend(ax, position = :rb)
@@ -216,7 +213,6 @@ TableOfContents()
 # ╟─a6403686-dc8a-480d-9d77-82a0562e4665
 # ╟─bbdef33d-6493-4f95-ba92-92d08e75c69a
 # ╟─c852e2d3-f489-4b98-a183-dae4c3594947
-# ╠═7470c12a-7671-4b42-8463-a8c51f08ff39
 # ╟─0a9d245d-8285-4a22-9edf-178d9e85addb
 # ╟─9a8041ad-6b12-4ef5-9f2f-44189de067f9
 # ╟─3e422d6d-912f-4119-a290-648dbe036dde
