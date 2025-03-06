@@ -17,4 +17,4 @@ export JULIA_DEPOT_PATH="/g/data/e14/jb2381/.julia"
 export JULIA_NUM_THREADS=auto
 
 # Run the experiment
-julia --project mcd_1981_15oct79.jl > $PBS_JOBID.log
+julia --project mcd_1981_25oct79.jl > $PBS_JOBID.log
