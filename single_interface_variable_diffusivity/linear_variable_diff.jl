@@ -1,23 +1,15 @@
 using StaircaseShenanigans, GibbsSeaWater
 
 architecture = GPU()
-diffusivities = (ν = 1e-6, κ = (S = 1e-9, T = 1e-7))
+diffusivities = (ν = 1e-6, κ = (S = enhance_κₛ, T = enhance_κₜ),
+                parameters = (κₛ = 1e-9, κₜ = 1e-7, diff_change = 20, enhance = 10),
+                discrete_form = true)
 domain_extent = (Lx=0.07, Ly=0.07, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=70, Ny=70, Nz=1000)
 ρ₀ = gsw_rho(34.57, 0.5, 0)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
-dns_model = DNSModel(model_setup...)
-
-# Update diffusivity closure
-@inline enhance_κₛ(i, j, k, grid, clock, fields, p) = clock.time < 20 * 60 ? p.κₛ : p.κₛ * p.enhance * 100
-@inline enhance_κₜ(i, j, k, grid, clock, fields, p) = clock.time < 20 * 60 ? p.κₜ : p.κₜ * p.enhance
-variable_diffusivity = ScalarDiffusivity(ν = diffusivities.ν,
-                                         κ = (S = enhance_κₛ, T = enhance_κₜ),
-                                         parameters = (κₛ = 1e-9, κₜ = 1e-7, enhance = 10),
-                                         discrete_form = true)
-dns_model.closure = variable_diffusivity
 
 ## Initial conditions
 depth_of_interface = -0.5
@@ -28,7 +20,7 @@ interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperatur
 noise = VelocityNoise(1e-2)
 
 ## setup model
-sdns = StaircaseDNS(dns_model, interface_ics, initial_noise = noise)
+sdns = StaircaseDNS(model_setup, interface_ics, initial_noise = noise)
 
 ## Build simulation
 stop_time = 3 * 60 * 60 # seconds
