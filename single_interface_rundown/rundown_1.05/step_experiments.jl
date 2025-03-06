@@ -149,6 +149,9 @@ let
 	fig
 end
 
+# ╔═╡ 7470c12a-7671-4b42-8463-a8c51f08ff39
+expt_data["S_flux"][2, end-10:end]
+
 # ╔═╡ 0a9d245d-8285-4a22-9edf-178d9e85addb
 md"""
 ### Interface thickness, height and change in concentation between layers
@@ -198,9 +201,6 @@ let
 	fig
 end
 
-# ╔═╡ c9129b86-c802-43f5-b9b5-9a157fcd8a51
-keys(leos)
-
 # ╔═╡ 963fa274-2d8f-47fd-b227-4d7b3275d7ad
 TableOfContents()
 
@@ -216,9 +216,9 @@ TableOfContents()
 # ╟─a6403686-dc8a-480d-9d77-82a0562e4665
 # ╟─bbdef33d-6493-4f95-ba92-92d08e75c69a
 # ╟─c852e2d3-f489-4b98-a183-dae4c3594947
+# ╠═7470c12a-7671-4b42-8463-a8c51f08ff39
 # ╟─0a9d245d-8285-4a22-9edf-178d9e85addb
 # ╟─9a8041ad-6b12-4ef5-9f2f-44189de067f9
 # ╟─3e422d6d-912f-4119-a290-648dbe036dde
 # ╟─d0148931-4198-4bb3-893c-a9b73e1ec7a9
-# ╠═c9129b86-c802-43f5-b9b5-9a157fcd8a51
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad
