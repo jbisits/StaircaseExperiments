@@ -1,6 +1,6 @@
 using StaircaseShenanigans, GibbsSeaWater
 
-restart = false
+restart = true
 
 architecture = GPU()
 diffusivities = (ν = 1e-6, κ = (S = enhance_κₛ, T = enhance_κₜ),
