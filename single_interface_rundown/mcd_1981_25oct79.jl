@@ -28,13 +28,13 @@ depth_of_interface = -0.25
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 # α = gsw_alpha.(salinity, temperature, 0)
 # δ = ((α[1] - α[2]) / (α[1] + α[2])) * (1 / (1 - interface_ics.R_ρ)) # = 1.2734404572776699
-noise = VelocityNoise(1e-6)
+noise = VelocityNoise(1e-8)
 
 ## setup model
 sdns = StaircaseDNS(dns_model, interface_ics, initial_noise = noise)
 
 ## Build simulation
-stop_time = 8 * 60 * 60 # seconds
+stop_time = 4 * 60 * 60 # seconds
 output_path = joinpath(@__DIR__, "McDougall1981_25oct_$(round(interface_ics.R_ρ, digits = 2))")
 checkpointer_time_interval = 60 * 60 # seconds
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,

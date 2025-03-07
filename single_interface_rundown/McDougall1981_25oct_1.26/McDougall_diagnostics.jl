@@ -185,6 +185,9 @@ let
 	fig
 end
 
+# ╔═╡ 8fe25407-63b7-415d-bf84-0e1ea6ee4038
+0.2 * (0.1/100)^2 / 1e-6
+
 # ╔═╡ 963fa274-2d8f-47fd-b227-4d7b3275d7ad
 TableOfContents()
 
@@ -203,4 +206,5 @@ TableOfContents()
 # ╟─9a8041ad-6b12-4ef5-9f2f-44189de067f9
 # ╟─3e422d6d-912f-4119-a290-648dbe036dde
 # ╟─d0148931-4198-4bb3-893c-a9b73e1ec7a9
+# ╠═8fe25407-63b7-415d-bf84-0e1ea6ee4038
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad
