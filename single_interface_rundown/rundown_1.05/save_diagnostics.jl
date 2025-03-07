@@ -1,6 +1,6 @@
 using StaircaseShenanigans
 
-initial_state = "step"
+initial_state = "tanh"
 
 diagnostics_file = initial_state*"/diagnostics.jld2"
 
