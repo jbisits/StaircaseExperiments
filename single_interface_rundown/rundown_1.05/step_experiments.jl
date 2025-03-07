@@ -24,6 +24,8 @@ begin
 end
 
 # ╔═╡ 6301138c-fa0b-11ef-0f3b-39dac35db063
+begin
+initial_state = @bind is Select(["step", "tanh"])
 md"""
 # Single interface experiments
 
@@ -39,16 +41,20 @@ The diagnostics, from [McDougall (1981)](https://www.sciencedirect.com/science/a
 - salinity and temperature flux across interface
 - interface height
 - interface thickness
+
+I have two versions: one with an initial step change an one with `tanh` profiles that change at different rates over the interface to setup the interface.
+Can choose which one to view: $initial_state
 """
+end
 
 # ╔═╡ dc0440f3-b915-4974-9b3f-76b34e20b8e0
 begin
-	linear_animation_path = joinpath(@__DIR__, "step/lineareos")
-	nonlinear_animation_path = joinpath(@__DIR__, "step/nonlineareos")
-	dims = load("diagnostics.jld2", "dims")
-	leos = load("diagnostics.jld2", "linear")
-	nleos = load("diagnostics.jld2", "nonlinear")
-	@info "Output loaded"
+	linear_animation_path = joinpath(@__DIR__, is*"/lineareos")
+	nonlinear_animation_path = joinpath(@__DIR__, is*"/nonlineareos")
+	dims = load(is*"_diagnostics.jld2", "dims")
+	leos = load(is*"_diagnostics.jld2", "linear")
+	nleos = load(is*"_diagnostics.jld2", "nonlinear")
+	@info "$is initial condition output loaded"
 end
 
 # ╔═╡ 38b12f7f-4d53-4302-a4ce-7e8c07d49ca9
@@ -112,7 +118,8 @@ end
 # ╔═╡ a6403686-dc8a-480d-9d77-82a0562e4665
 let
 	# mins = round.(Int64, dims["time"] ./ 60)
-	timestamps = Time(0, 1, 0):Minute(1):Time(18, 0, 0) 
+	time_hours = is == "step" ? 18 : 8
+	timestamps = Time(0, 1, 0):Minute(1):Time(time_hours, 0, 0) 
 	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
 	ta = TimeArray((;timestamps, Rᵨ = R_ρ_interp, Ẽ = expt_data["Ẽ"]), timestamp = :timestamps)
 	ta_mean = moving(mean, ta, window)
