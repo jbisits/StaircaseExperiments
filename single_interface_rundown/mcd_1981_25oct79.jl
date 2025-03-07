@@ -28,7 +28,7 @@ depth_of_interface = -0.25
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 # α = gsw_alpha.(salinity, temperature, 0)
 # δ = ((α[1] - α[2]) / (α[1] + α[2])) * (1 / (1 - interface_ics.R_ρ)) # = 1.2734404572776699
-noise = VelocityNoise(1e-4)
+noise = VelocityNoise(1e-6)
 
 ## setup model
 sdns = StaircaseDNS(dns_model, interface_ics, initial_noise = noise)
