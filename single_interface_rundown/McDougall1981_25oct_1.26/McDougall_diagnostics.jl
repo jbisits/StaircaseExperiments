@@ -25,12 +25,14 @@ end
 
 # ╔═╡ 6301138c-fa0b-11ef-0f3b-39dac35db063
 md"""
-# Single interface experiments
+# McDougall expt 25 October 1979
 
-This notebook contains diagnostics computed from two single interface experiments.
-Both experiments have the same initial salinity and temperature within each layer and the two layers meet at a sharp interface.
-One has a linear equation of state the other uses 55 term non-linear eos.
-Initialy velocity noise ``\mathcal{O}(10^{-2})`` is used to kick off the simulation and they are then run for 18 hours.
+This notebook shows the diagnostics listed below for the experiment ran on 25th October in [McDougall (1981)](https://www.sciencedirect.com/science/article/abs/pii/0079661181900021).
+Perhaps it is because of the smaller domain size (only horizontally) or the initial noise is too intense but we have not got the best match between these two experiments, especially the salinity in the upper vs lower layer.
+Currently I am not sure why this is but density and temperature match well.
+The entrainment shows a similar patter to the lab experiment but is smaller (though I need to check I identified the correct expt) and the **salinity and temperature flux just look wrong.**
+I thought I had used this function successfully but clearly I need to revisit what it is doing.
+It does produce something sensible for the temperature in my other experiments though.
 
 The diagnostics, from [McDougall (1981)](https://www.sciencedirect.com/science/article/abs/pii/0079661181900021) and [Carpenter el al (2012)](https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/abs/simulations-of-a-doublediffusive-interface-in-the-diffusive-convection-regime/63D2ECE2AA41439E01A01F9A0D76F2E2), are:
 - salinity, temperature and density in each layer
@@ -45,16 +47,8 @@ The diagnostics, from [McDougall (1981)](https://www.sciencedirect.com/science/a
 begin
 	dims = load("diagnostics.jld2", "dims")
 	expt_data = load("diagnostics.jld2", "diags")
+	animation_path = @__DIR__
 	@info "Output loaded"
-end
-
-# ╔═╡ 38b12f7f-4d53-4302-a4ce-7e8c07d49ca9
-begin
-	md"""
-	# Equation of state
-
-	I have the data saved for both linear and non linear equation of state. To save writing all the same code twice select the eos: $(eos_select)
-	"""
 end
 
 # ╔═╡ e177c879-b7d0-4328-b5ad-776f8c64e050
@@ -106,7 +100,7 @@ end
 # ╔═╡ a6403686-dc8a-480d-9d77-82a0562e4665
 let
 	# mins = round.(Int64, dims["time"] ./ 60)
-	timestamps = Time(0, 1, 0):Minute(1):Time(18, 0, 0)
+	timestamps = Time(0, 1, 0):Minute(1):Time(8, 0, 0)
 	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
 	ta = TimeArray((;timestamps, Rᵨ = R_ρ_interp, Ẽ = expt_data["Ẽ"]), timestamp = :timestamps)
 	ta_mean = moving(mean, ta, window)
@@ -126,7 +120,7 @@ end
 # ╔═╡ bbdef33d-6493-4f95-ba92-92d08e75c69a
 md"""
 ### Salinity and temperature flux
-Salinity flux looks wrong.
+Both of these look wrong now.
 """
 
 # ╔═╡ c852e2d3-f489-4b98-a183-dae4c3594947
@@ -186,7 +180,6 @@ let
 	ax = Axis(fig[1, 1], xlabel = "Rᵨ", ylabel = "z✶")
 	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "salinity")
 	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "temperature", linestyle = :dot)
-	ylims!(ax, 0.49, 0.54)
 	vlines!(ax, 1.6, color = :red, linestyle = :dash)
 	axislegend(ax, position = :rb)
 	fig
@@ -199,7 +192,6 @@ TableOfContents()
 # ╟─6301138c-fa0b-11ef-0f3b-39dac35db063
 # ╟─010ecdc3-51d6-41a6-9bc5-6efbba0723a6
 # ╟─dc0440f3-b915-4974-9b3f-76b34e20b8e0
-# ╟─38b12f7f-4d53-4302-a4ce-7e8c07d49ca9
 # ╟─e177c879-b7d0-4328-b5ad-776f8c64e050
 # ╟─07089057-5b2f-40e5-a485-0eeac1e9b348
 # ╟─c2dce901-8578-448c-8c6e-ec7bb3e6d71b
