@@ -1,21 +1,20 @@
 using StaircaseShenanigans
 
 initial_states = ("step", "tanh")
+groups = ("lineareos", "nonlineareos")
 
 for initial_state ∈ initial_states
 
-    diagnostics_file = initial_state*"/diagnostics.jld2"
+    for group ∈ groups
 
-    linear_path = joinpath(@__DIR__, initial_state, "lineareos_single_interface_480min")
-    tracers = joinpath(linear_path, "tracers.nc")
-    computed_output = joinpath(linear_path, "computed_output.nc")
+        diagnostics_file = initial_state*"/diagnostics.jld2"
 
-    save_diagnostics!(diagnostics_file, tracers, computed_output, group = "linear")
+        path = joinpath(@__DIR__, initial_state, group*"_single_interface_480min")
+        tracers = joinpath(path, "tracers.nc")
+        computed_output = joinpath(path, "computed_output.nc")
 
-    nonlinear_path = joinpath(@__DIR__, initial_state, "nonlineareos_single_interface_480min")
-    tracers = joinpath(nonlinear_path, "tracers.nc")
-    computed_output = joinpath(nonlinear_path, "computed_output.nc")
+        save_diagnostics!(diagnostics_file, tracers, computed_output; group)
 
-    save_diagnostics!(diagnostics_file, tracers, computed_output, group = "nonlinear")
+    end
 
 end
