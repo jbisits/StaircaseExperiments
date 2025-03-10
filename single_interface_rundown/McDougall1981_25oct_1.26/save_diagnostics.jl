@@ -6,4 +6,4 @@ data_path = joinpath(@__DIR__, "nonlineareos_single_interface_240min")
 tracers = joinpath(data_path, "tracers.nc")
 computed_output = joinpath(data_path, "computed_output.nc")
 
-save_diagnostics!(diagnostics_file, tracers, computed_output, group = "diags_lessnoise")
+save_diagnostics!(diagnostics_file, tracers, computed_output, group = "diags")

@@ -137,13 +137,19 @@ let
 end
 
 # ╔═╡ bbdef33d-6493-4f95-ba92-92d08e75c69a
+begin
+which_flux = @bind wf Select(["Horizontal average", "No ha"])
 md"""
 ### Salinity and temperature flux
-Salinity flux looks wrong.
+Salinity flux looks wrong when using whole domain.
+Also have horizontal average flux of salintiy and temperature.
+$which_flux
 """
+end
 
 # ╔═╡ c852e2d3-f489-4b98-a183-dae4c3594947
 let
+	# S_flux = wf == "Horizontal average" ? expt_data["ha_S_flux"] : expt_data["S_flux"]
 	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
 	fig = Figure(size = (800, 800))
 	axT = Axis(fig[1, 1], ylabel = "T flux")
@@ -218,7 +224,7 @@ TableOfContents()
 # ╟─c2dce901-8578-448c-8c6e-ec7bb3e6d71b
 # ╟─5581d9c6-197b-4901-bb4e-e515ef249836
 # ╟─a6403686-dc8a-480d-9d77-82a0562e4665
-# ╟─bbdef33d-6493-4f95-ba92-92d08e75c69a
+# ╠═bbdef33d-6493-4f95-ba92-92d08e75c69a
 # ╟─c852e2d3-f489-4b98-a183-dae4c3594947
 # ╟─0a9d245d-8285-4a22-9edf-178d9e85addb
 # ╟─9a8041ad-6b12-4ef5-9f2f-44189de067f9

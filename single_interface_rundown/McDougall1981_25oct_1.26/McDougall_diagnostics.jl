@@ -24,6 +24,8 @@ begin
 end
 
 # ╔═╡ 6301138c-fa0b-11ef-0f3b-39dac35db063
+begin
+choose_expt = @bind expt Select(["1e-8", "1e-2"])
 md"""
 # McDougall expt 25 October 1979
 
@@ -40,13 +42,17 @@ The diagnostics, from [McDougall (1981)](https://www.sciencedirect.com/science/a
 - ``\Delta S``, ``\Delta T`` and ``R_{\rho}`` computed from top and bottom quarter of domain for upper and lower layer (respectively)
 - salinity and temperature flux across interface
 - interface height
-- interface thickness
+- interface thickness.
+
+I have run the same experiment twice with different noise magnitude because I am having issues with the flux calculation and I think it is because the turbulence is so vigorous in part due to the random noise.
+Noise magnitude $(choose_expt).
 """
+end
 
 # ╔═╡ dc0440f3-b915-4974-9b3f-76b34e20b8e0
 begin
 	dims = load("diagnostics.jld2", "dims")
-	expt_data = load("diagnostics.jld2", "diags")
+	expt_data = expt == "1e-8" ? load("diagnostics.jld2", "diags_lessnoise") : load("diagnostics.jld2", "diags")
 	animation_path = @__DIR__
 	@info "Output loaded"
 end
@@ -100,7 +106,8 @@ end
 # ╔═╡ a6403686-dc8a-480d-9d77-82a0562e4665
 let
 	# mins = round.(Int64, dims["time"] ./ 60)
-	timestamps = Time(0, 1, 0):Minute(1):Time(8, 0, 0)
+	sim_hours = expt == "1e-8" ? 4 : 8
+	timestamps = Time(0, 1, 0):Minute(1):Time(sim_hours, 0, 0)
 	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
 	ta = TimeArray((;timestamps, Rᵨ = R_ρ_interp, Ẽ = expt_data["Ẽ"]), timestamp = :timestamps)
 	ta_mean = moving(mean, ta, window)
