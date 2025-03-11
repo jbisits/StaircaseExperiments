@@ -4,16 +4,16 @@ restart = false
 
 architecture = GPU()
 diffusivities = (ν=1e-6, κ=(S=1e-9, T=1e-7))
-domain_extent = (Lx=0.07, Ly=0.07, Lz=-1.0)
+domain_extent = (Lx=0.1, Ly=0.1, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-resolution = (Nx=70, Ny=70, Nz=1000)
+resolution = (Nx=100, Ny=100, Nz=1000)
 ρ₀ = gsw_rho(34.57, 0.5, 0)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 dns_model = DNSModel(model_setup...)
 
 ## Initial conditions
-depth_of_interface = -0.5
+depth_of_interface = -0.25
 salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)

@@ -57,9 +57,6 @@ begin
 	@info "Output loaded"
 end
 
-# ╔═╡ 33835bcd-dbd1-48d5-87da-71a4866359ec
-expt_data["R_ρ"] 
-
 # ╔═╡ e177c879-b7d0-4328-b5ad-776f8c64e050
 begin
 	md"""
@@ -112,19 +109,19 @@ let
 	sim_hours = expt == "1e-2" ? 8 : expt == "1e-8" ? 4 : 1
 	timestamps = Time(0, 0, 0):Minute(1):Time(sim_hours-1, 59, 0)
 	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
-	# ta = TimeArray((;timestamps, Rᵨ = R_ρ_interp, Ẽ = expt_data["Ẽ"]), timestamp = :timestamps)
-	# ta_mean = moving(mean, ta, window)
+	ta = TimeArray((;timestamps, Rᵨ = R_ρ_interp, Ẽ = expt_data["Ẽ"]), timestamp = :timestamps)
+	ta_mean = moving(mean, ta, window)
 
-	# fig = Figure(size = (600, 800))
-	# ax1 = Axis(fig[1, 1], xlabel = "R_ρ", ylabel = "Ẽ")
-	# lines!(ax1, R_ρ_interp, expt_data["Ẽ"])
-	# vlines!(ax1, 1.6, color = :red, linestyle = :dash)
+	fig = Figure(size = (600, 800))
+	ax1 = Axis(fig[1, 1], xlabel = "R_ρ", ylabel = "Ẽ")
+	lines!(ax1, R_ρ_interp, expt_data["Ẽ"])
+	vlines!(ax1, 1.6, color = :red, linestyle = :dash)
 
-	# ax2 = Axis(fig[2, 1], xlabel = "R_ρ", ylabel = "Ẽ")
-	# lines!(ax2, values(ta_mean), label = "Averaging window = $window mins")
-	# vlines!(ax2, 1.6, color = :red, linestyle = :dash)
-	# axislegend(ax2)
-	# fig
+	ax2 = Axis(fig[2, 1], xlabel = "R_ρ", ylabel = "Ẽ")
+	lines!(ax2, values(ta_mean), label = "Averaging window = $window mins")
+	vlines!(ax2, 1.6, color = :red, linestyle = :dash)
+	axislegend(ax2)
+	fig
 end
 
 # ╔═╡ bbdef33d-6493-4f95-ba92-92d08e75c69a
@@ -138,12 +135,40 @@ let
 	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
 	fig = Figure(size = (800, 800))
 	axT = Axis(fig[1, 1], ylabel = "T flux")
-	lines!(axT, R_ρ_interp, expt_data["T_flux"][2, :])
+	lines!(axT, R_ρ_interp, expt_data["T_flux"][3, :])
 	axS = Axis(fig[2, 1], ylabel = "S flux")
-	lines!(axS, R_ρ_interp, expt_data["S_flux"][2, :])
-	R_f = expt_data["S_flux"][2, :] ./ expt_data["T_flux"][2, :]
+	lines!(axS, R_ρ_interp, expt_data["S_flux"][3, :])
+	R_f = expt_data["S_flux"][3, :] ./ expt_data["T_flux"][3, :]
 	axf = Axis(fig[3, 1], xlabel = "Rᵨ",ylabel = "R_f")
 	lines!(axf, R_ρ_interp, R_f)
+	fig
+end
+
+# ╔═╡ fb112b31-b30a-4a37-8593-46506114b32f
+let
+	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
+
+	fig = Figure(size = (800, 800))
+	axT = Axis(fig[1, 1], ylabel = "T flux")
+	T_interface_idx = expt_data["ha_T_interface_idx"]
+	T_flux_interface = [expt_data["ha_T_flux"][idx, i] for (i, idx) ∈ enumerate(T_interface_idx)]
+	lines!(axT, R_ρ_interp, T_flux_interface)
+	
+	axS = Axis(fig[2, 1], ylabel = "S flux")
+	S_interface_idx = expt_data["ha_S_interface_idx"]
+	S_flux_interface = [expt_data["ha_S_flux"][idx, i] for (i, idx) ∈ enumerate(S_interface_idx)]
+	lines!(axS, R_ρ_interp, S_flux_interface)
+	
+	R_f = S_flux_interface ./ T_flux_interface
+	axf = Axis(fig[3, 1], xlabel = "Rᵨ",ylabel = "R_f")
+	lines!(axf, R_ρ_interp, R_f)
+
+	a, b = [R_ρ_interp.^0 R_ρ_interp] \ R_f
+	lines!(axf, R_ρ_interp, a .+ b .* R_ρ_interp, label = "Linear fit, slope = $(b)")
+	# lines!(axf, R_ρ_interp[100:end], 0.01/2 .* R_ρ_interp[100:end])
+	axislegend(axf, position = :rb)
+	
+	Label(fig[0, 1], "Horizontally averaged flux through interface", tellwidth = false, font = :bold)
 	fig
 end
 
@@ -154,7 +179,7 @@ md"""
 
 # ╔═╡ 9a8041ad-6b12-4ef5-9f2f-44189de067f9
 let
-	timestamps = dims["time"][2:end] ./ 60
+	timestamps = eachindex(expt_data["R_ρ"][2:end])
 	fig = Figure(size = (800, 800))
 	axhₜ = Axis(fig[1, 1], ylabel = "hₜ (cm)")
 	lines!(axhₜ, timestamps, 100 * expt_data["hₜ"])
@@ -167,7 +192,7 @@ end
 
 # ╔═╡ 3e422d6d-912f-4119-a290-648dbe036dde
 let
-	mins = dims["time"] ./ 60
+	mins = eachindex(expt_data["R_ρ"])
 	fig = Figure(size = (500, 500))
 	ax = Axis(fig[1, 1], xlabel = "time (mins)")
 	lines!(ax, mins, expt_data["ΔS"] ./ expt_data["ΔS"][1], color = :blue, label = "ΔS / ΔS₀")
@@ -199,17 +224,17 @@ end
 TableOfContents()
 
 # ╔═╡ Cell order:
-# ╠═6301138c-fa0b-11ef-0f3b-39dac35db063
+# ╟─6301138c-fa0b-11ef-0f3b-39dac35db063
 # ╟─010ecdc3-51d6-41a6-9bc5-6efbba0723a6
-# ╠═dc0440f3-b915-4974-9b3f-76b34e20b8e0
-# ╠═33835bcd-dbd1-48d5-87da-71a4866359ec
+# ╟─dc0440f3-b915-4974-9b3f-76b34e20b8e0
 # ╟─e177c879-b7d0-4328-b5ad-776f8c64e050
 # ╟─07089057-5b2f-40e5-a485-0eeac1e9b348
 # ╟─c2dce901-8578-448c-8c6e-ec7bb3e6d71b
 # ╟─5581d9c6-197b-4901-bb4e-e515ef249836
-# ╠═a6403686-dc8a-480d-9d77-82a0562e4665
+# ╟─a6403686-dc8a-480d-9d77-82a0562e4665
 # ╟─bbdef33d-6493-4f95-ba92-92d08e75c69a
 # ╟─c852e2d3-f489-4b98-a183-dae4c3594947
+# ╟─fb112b31-b30a-4a37-8593-46506114b32f
 # ╟─0a9d245d-8285-4a22-9edf-178d9e85addb
 # ╟─9a8041ad-6b12-4ef5-9f2f-44189de067f9
 # ╟─3e422d6d-912f-4119-a290-648dbe036dde
