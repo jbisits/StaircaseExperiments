@@ -2,7 +2,7 @@ using StaircaseShenanigans
 
 diagnostics_file = "diagnostics.jld2"
 time_length = ("60min", "240min", "480min")
-groups = ("noise", "lessnoise", "nonoise")
+groups = ("nonoise", "lessnoise", "noise")
 
 for (i, t) ∈ enumerate(time_length)
     data_path = joinpath(@__DIR__, "nonlineareos_single_interface_"*t)

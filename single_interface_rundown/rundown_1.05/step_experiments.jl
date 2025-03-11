@@ -52,8 +52,8 @@ begin
 	linear_animation_path = joinpath(@__DIR__, is*"/lineareos")
 	nonlinear_animation_path = joinpath(@__DIR__, is*"/nonlineareos")
 	dims = load(is*"_diagnostics.jld2", "dims")
-	leos = load(is*"_diagnostics.jld2", "linear")
-	nleos = load(is*"_diagnostics.jld2", "nonlinear")
+	leos = load(is*"_diagnostics.jld2", "lineareos")
+	nleos = load(is*"_diagnostics.jld2", "nonlineareos")
 	@info "$is initial condition output loaded"
 end
 
@@ -138,18 +138,15 @@ end
 
 # ╔═╡ bbdef33d-6493-4f95-ba92-92d08e75c69a
 begin
-which_flux = @bind wf Select(["Horizontal average", "No ha"])
 md"""
 ### Salinity and temperature flux
 Salinity flux looks wrong when using whole domain.
 Also have horizontal average flux of salintiy and temperature.
-$which_flux
 """
 end
 
 # ╔═╡ c852e2d3-f489-4b98-a183-dae4c3594947
 let
-	# S_flux = wf == "Horizontal average" ? expt_data["ha_S_flux"] : expt_data["S_flux"]
 	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
 	fig = Figure(size = (800, 800))
 	axT = Axis(fig[1, 1], ylabel = "T flux")
@@ -159,6 +156,24 @@ let
 	R_f = expt_data["S_flux"][2, :] ./ expt_data["T_flux"][2, :]
 	axf = Axis(fig[3, 1], xlabel = "Rᵨ",ylabel = "R_f")
 	lines!(axf, R_ρ_interp, R_f)
+	fig
+end
+
+# ╔═╡ 924c4472-817e-429b-9cb6-ef2c5c347ba4
+@bind depth PlutoUI.Slider(eachindex(dims["zC"]), show_value = true)
+
+# ╔═╡ baa37deb-ea5a-4437-afa0-0e30a755df9c
+let
+	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
+	fig = Figure(size = (800, 800))
+	axT = Axis(fig[1, 1], ylabel = "T flux")
+	lines!(axT, R_ρ_interp, expt_data["ha_T_flux"][depth, :])
+	axS = Axis(fig[2, 1], ylabel = "S flux")
+	lines!(axS, R_ρ_interp, expt_data["ha_S_flux"][depth, :])
+	R_f = expt_data["ha_S_flux"][depth, :] ./ expt_data["ha_T_flux"][depth, :]
+	axf = Axis(fig[3, 1], xlabel = "Rᵨ",ylabel = "R_f")
+	lines!(axf, R_ρ_interp, R_f)
+	Label(fig[0, 1], "Horizontally averaged flux through depth z = $(dims["zC"][depth])", tellwidth = false, font = :bold)
 	fig
 end
 
@@ -224,8 +239,10 @@ TableOfContents()
 # ╟─c2dce901-8578-448c-8c6e-ec7bb3e6d71b
 # ╟─5581d9c6-197b-4901-bb4e-e515ef249836
 # ╟─a6403686-dc8a-480d-9d77-82a0562e4665
-# ╠═bbdef33d-6493-4f95-ba92-92d08e75c69a
+# ╟─bbdef33d-6493-4f95-ba92-92d08e75c69a
 # ╟─c852e2d3-f489-4b98-a183-dae4c3594947
+# ╟─924c4472-817e-429b-9cb6-ef2c5c347ba4
+# ╟─baa37deb-ea5a-4437-afa0-0e30a755df9c
 # ╟─0a9d245d-8285-4a22-9edf-178d9e85addb
 # ╟─9a8041ad-6b12-4ef5-9f2f-44189de067f9
 # ╟─3e422d6d-912f-4119-a290-648dbe036dde
