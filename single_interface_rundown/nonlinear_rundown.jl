@@ -6,7 +6,7 @@ architecture = GPU()
 diffusivities = (ν=1e-5, κ=(S=1e-8, T=1e-6))
 domain_extent = (Lx=0.1, Ly=0.1, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-resolution = (Nx=50, Ny=50, Nz=200)
+resolution = (Nx=50, Ny=50, Nz=250)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
@@ -47,5 +47,5 @@ animation_path = simulation.output_writers[:computed_output].filepath[1:(reduced
 cd(animation_path)
 @info "Producing animations"
 using CairoMakie
-animate_density(simulation.output_writers[:computed_output].filepath, "σ")
-animate_tracers(simulation.output_writers[:tracers].filepath)
+animate_density(simulation.output_writers[:computed_output].filepath, "σ", xslice = 25, yslice = 25)
+animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 25, yslice = 25)
