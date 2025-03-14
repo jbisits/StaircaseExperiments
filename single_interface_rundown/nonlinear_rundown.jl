@@ -20,7 +20,7 @@ interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperatur
 noise = NoiseAtDepth([-0.27, -0.23], TracerNoise(0.0, 1e-6))
 
 ## setup model
-sdns = StaircaseDNS(dns_model, interface_ics, initial_noise = nothing)
+sdns = StaircaseDNS(dns_model, interface_ics, initial_noise = noise)
 
 ## Build simulation
 stop_time = 1 * 60 * 60 # seconds
