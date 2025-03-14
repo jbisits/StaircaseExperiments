@@ -15,7 +15,7 @@ Sₗ = gsw_sa_from_sp(7.01, 0, 149, -35)
 ρ₀ = gsw_rho(Sₗ, Θₗ, 0)
 ##
 architecture = GPU()
-diffusivities = (ν=1e-6, κ=(S=1e-9, T=1e-7))
+diffusivities = (ν=1e-5, κ=(S=1e-8, T=1e-9))
 domain_extent = (Lx=0.1, Ly=0.1, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=100, Ny=100, Nz=500)
@@ -34,7 +34,7 @@ noise = NoiseAtDepth([-0.27, -0.23], TracerNoise(1e-5, 0.0))
 sdns = StaircaseDNS(dns_model, interface_ics, initial_noise = noise)
 
 ## Build simulation
-stop_time = 2 * 60 * 60 # seconds
+stop_time = 1 * 60 * 60 # seconds
 output_path = joinpath(@__DIR__, "McDougall1981_25oct_$(round(interface_ics.R_ρ, digits = 2))")
 checkpointer_time_interval = 60 * 60 # seconds
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,

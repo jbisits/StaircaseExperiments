@@ -3,10 +3,10 @@ using StaircaseShenanigans, GibbsSeaWater
 restart = true
 
 architecture = GPU()
-diffusivities = (ν=1e-6, κ=(S=1e-9, T=1e-7))
+diffusivities = (ν=1e-5, κ=(S=1e-8, T=1e-6))
 domain_extent = (Lx=0.07, Ly=0.07, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-resolution = (Nx=100, Ny=100, Nz=1000)
+resolution = (Nx=70, Ny=70, Nz=500)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
@@ -24,7 +24,7 @@ sdns = StaircaseDNS(dns_model, interface_ics, initial_noise = noise)
 
 ## Build simulation
 stop_time = 1 * 60 * 60 # seconds
-initial_state = interface_ics.interface_smoothing isa TanhInterfaceSteepness ?  "tanh" : "step"
+initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
 output_path = joinpath(@__DIR__, "rundown_$(round(interface_ics.R_ρ, digits = 2))", initial_state)
 checkpointer_time_interval = 60 * 60 # seconds
 max_Δt = 7e-2
