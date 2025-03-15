@@ -16,7 +16,8 @@ dns_model = DNSModel(model_setup...)
 depth_of_interface = -0.25
 salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
-interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
+interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
+                                    interface_smoothing = TanhInterfaceThickness(0.005, 0.005))
 noise = NoiseAtDepth([-0.27, -0.23], TracerNoise(0.0, 1e-6))
 
 ## setup model
