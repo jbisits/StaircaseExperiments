@@ -6,7 +6,7 @@ architecture = GPU()
 diffusivities = (ν=1e-5, κ=(S=1e-8, T=1e-6))
 domain_extent = (Lx=0.1, Ly=0.1, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-resolution = (Nx=60, Ny=60, Nz=300)
+resolution = (Nx=25, Ny=25, Nz=125)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
@@ -27,11 +27,12 @@ stop_time = 1 * 60 * 60 # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
 output_path = joinpath(@__DIR__, "rundown_$(round(interface_ics.R_ρ, digits = 2))", initial_state)
 checkpointer_time_interval = 60 * 60 # seconds
-max_Δt = 7e-2
+# max_Δt = 5e-2
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    save_vertical_velocities!; output_path,
                                    checkpointer_time_interval,
-                                   overwrite_saved_output = restart, max_Δt)
+                                   overwrite_saved_output = restart)
+                                    # ,max_Δt)
 ## Run
 # simulation.stop_time = 18 * 60 * 60 # update to pickup from a checkpoint
 pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
