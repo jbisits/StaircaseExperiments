@@ -3,8 +3,8 @@ using StaircaseShenanigans
 initial_states = ("step")
 groups = ("lineareos", "nonlineareos")
 
-for initial_state ∈ initial_states
-
+# for initial_state ∈ initial_states
+initial_state = "step"
     for group ∈ groups
 
         diagnostics_file = initial_state*"/diagnostics.jld2"
@@ -17,4 +17,4 @@ for initial_state ∈ initial_states
 
     end
 
-end
+# end
