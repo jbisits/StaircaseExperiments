@@ -25,7 +25,7 @@ end
 
 # ╔═╡ 6301138c-fa0b-11ef-0f3b-39dac35db063
 begin
-initial_state = @bind is Select(["step", "tanh"])
+initial_state = @bind is Select(["step", "tanh", "tau10"])
 md"""
 # Single interface experiments
 
@@ -118,7 +118,7 @@ end
 # ╔═╡ a6403686-dc8a-480d-9d77-82a0562e4665
 let
 	# mins = round.(Int64, dims["time"] ./ 60)
-	time_hours = is == "step" ? 18 : 8
+	time_hours = is == "step" ? 18 : is == "tanh" ? 8 : 1
 	timestamps = Time(0, 1, 0):Minute(1):Time(time_hours, 0, 0) 
 	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
 	ta = TimeArray((;timestamps, Rᵨ = R_ρ_interp, Ẽ = expt_data["Ẽ"]), timestamp = :timestamps)
@@ -229,11 +229,49 @@ let
 	ax = Axis(fig[1, 1], xlabel = "Rᵨ", ylabel = "z✶")
 	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "salinity")
 	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "temperature", linestyle = :dot)
-	ylims!(ax, 0.49, 0.54)
+	# ylims!(ax, 0.49, 0.54)
 	vlines!(ax, 1.6, color = :red, linestyle = :dash)
 	axislegend(ax, position = :rb)
 	fig
 end
+
+# ╔═╡ 6ce43b6e-c3fa-408f-8702-900eaeb17bf5
+md"""
+# Length scales
+
+## Batchelor length
+"""
+
+# ╔═╡ 4538f159-01d9-45fd-9fa5-d7463c506a77
+begin
+	Ba = 1e3 * expt_data["Ba"][2:end]
+	Ba_fig, Ba_ax = lines(Ba)
+	Ba_ax.xlabel = "time (mins)"
+	Ba_ax.ylabel = "Batchelor length (mm)"
+	min_Ba = minimum(Ba)
+	Ba_ax.title = "Batchelor length minimum = $(min_Ba)mm"
+	Ba_fig
+end
+
+# ╔═╡ d9422085-e838-44a1-91be-b81458dc3013
+begin
+	Lx = Ly = 0.1
+	Nx = 2000
+	Δx = Lx / Nx
+	Lz = 0.5
+	Nz = 10000
+	Δz = Lz / Nz
+	md"""
+	Above can see a figure of the Batchelor scale with minimal length $(min_Ba).
+	To achieve this in the domain size I have this would need resolution of $(min_Ba * 1e-3) everywhere so around 4e-5.
+	This is achieved with ``L_{x} = `` $(Lx), ``N_{x} = `` $(Nx) and ``L_{x} = `` $(Lz), ``N_{z} = `` $(Nz) susch that Δx = $(Δx) and Δz = $(Δz).
+
+	I have the leeway that people use ``Δ < 2.5 Ba`` as the upper limit so what I need to resolve is $(min_Ba * 2.5) so $(min_Ba * 2.5 * 1e-3)m ~ 1e-4. This is what to start with!
+	"""
+end
+
+# ╔═╡ b37be0a8-5e63-4068-8825-a7e0f4657338
+0.1 / 1000
 
 # ╔═╡ 963fa274-2d8f-47fd-b227-4d7b3275d7ad
 TableOfContents()
@@ -255,4 +293,8 @@ TableOfContents()
 # ╟─9a8041ad-6b12-4ef5-9f2f-44189de067f9
 # ╟─3e422d6d-912f-4119-a290-648dbe036dde
 # ╟─d0148931-4198-4bb3-893c-a9b73e1ec7a9
+# ╟─6ce43b6e-c3fa-408f-8702-900eaeb17bf5
+# ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
+# ╠═d9422085-e838-44a1-91be-b81458dc3013
+# ╟─b37be0a8-5e63-4068-8825-a7e0f4657338
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad
