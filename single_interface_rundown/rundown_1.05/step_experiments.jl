@@ -25,7 +25,7 @@ end
 
 # ╔═╡ 6301138c-fa0b-11ef-0f3b-39dac35db063
 begin
-initial_state = @bind is Select(["step", "tanh", "tau10"])
+initial_state = @bind is Select([ "diff_initial_h", "step", "tanh"])
 md"""
 # Single interface experiments
 
@@ -270,8 +270,8 @@ begin
 	"""
 end
 
-# ╔═╡ b37be0a8-5e63-4068-8825-a7e0f4657338
-0.1 / 1000
+# ╔═╡ a7e59423-baab-4771-a8c2-8862b640659d
+expt_data
 
 # ╔═╡ 963fa274-2d8f-47fd-b227-4d7b3275d7ad
 TableOfContents()
@@ -295,6 +295,6 @@ TableOfContents()
 # ╟─d0148931-4198-4bb3-893c-a9b73e1ec7a9
 # ╟─6ce43b6e-c3fa-408f-8702-900eaeb17bf5
 # ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
-# ╠═d9422085-e838-44a1-91be-b81458dc3013
-# ╟─b37be0a8-5e63-4068-8825-a7e0f4657338
+# ╟─d9422085-e838-44a1-91be-b81458dc3013
+# ╠═a7e59423-baab-4771-a8c2-8862b640659d
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad
