@@ -7,7 +7,7 @@ groups = ("lineareos", "nonlineareos")
 initial_state = "step"
     for group ∈ groups
 
-        diagnostics_file = initial_state*"/diagnostics.jld2"
+        diagnostics_file = initial_state*"/diff_initial_h_diagnostics.jld2"
 
         path = joinpath(@__DIR__, initial_state, group*"_single_interface_60min")
         tracers = joinpath(path, "tracers.nc")
