@@ -244,12 +244,15 @@ md"""
 
 # ╔═╡ 4538f159-01d9-45fd-9fa5-d7463c506a77
 begin
-	Ba = 1e3 * expt_data["Ba"][2:end]
-	Ba_fig, Ba_ax = lines(Ba)
+	η = 1e3 * expt_data["η"][2:end] 
+	Ba = 1e3 * expt_data["Ba"][2:end] 
+	Ba_fig, Ba_ax = lines(Ba, label = "Ba")
+	lines!(Ba_ax, η, label = "η")
 	Ba_ax.xlabel = "time (mins)"
-	Ba_ax.ylabel = "Batchelor length (mm)"
+	Ba_ax.ylabel = "Length (mm)"
 	min_Ba = minimum(Ba)
-	Ba_ax.title = "Batchelor length minimum = $(min_Ba)mm"
+	min_η = minimum(η)
+	Ba_ax.title = "η minimum = $(min_η)mm,  Ba minimum = $(min_Ba)mm"
 	Ba_fig
 end
 
@@ -266,8 +269,31 @@ begin
 	To achieve this in the domain size I have this would need resolution of $(min_Ba * 1e-3) everywhere so around 4e-5.
 	This is achieved with ``L_{x} = `` $(Lx), ``N_{x} = `` $(Nx) and ``L_{x} = `` $(Lz), ``N_{z} = `` $(Nz) susch that Δx = $(Δx) and Δz = $(Δz).
 
-	I have the leeway that people use ``Δ < 2.5 Ba`` as the upper limit so what I need to resolve is $(min_Ba * 2.5) so $(min_Ba * 2.5 * 1e-3)m ~ 1e-4. This is what to start with!
+	I have the leeway that people use ``Δ < 2.5 Ba`` as the upper limit so what I need to resolve is $(min_Ba * 2.5), so $(min_Ba * 2.5 * 1e-3)m ~ 1e-4. This is what to start with!
+	If I set ``N_{x} = N_{y} = 1000`` and ``N_{z} = 5000`` I should be able to get to DNS.
+	Though this resolution is insane compared to the previous work.
+	There are still chances to increase ``\eta`` by increasing ``\nu = \mathcal{O}(10^{-4})`` but the real resolution buster is the Schmidt number.
+	The only way that this can change is to increase salinity diffusivity.
+
+	If we have closed energy budget and can show results match a higher simulation we can live with that.
 	"""
+end
+
+# ╔═╡ c576c4cd-1101-46e2-b6fa-b574f0b13dfe
+let
+	Δt = diff(dims["time"])
+	ek = expt_data["∫Eₖ"]
+	dₜek = diff(ek) ./ Δt
+	ε = 0.5 * (expt_data["∫ε"][1:end-1] .+ expt_data["∫ε"][2:end])
+	∫wb = 0.5 * (expt_data["∫wb"][1:end-1] .+ expt_data["∫wb"][2:end])
+	RHS = ∫wb .- ε
+	fig, ax = lines(eachindex(Δt), dₜek, label = "dₜek")
+	lines!(ax, eachindex(Δt), RHS, label = "∫wb - ε")
+	ax.title = "Energy  budget"
+	ax.xlabel = "time (minutes)"
+	ax.ylabel = "Watts / ρ₀"
+	axislegend(ax)
+	fig
 end
 
 # ╔═╡ a7e59423-baab-4771-a8c2-8862b640659d
@@ -294,7 +320,8 @@ TableOfContents()
 # ╟─3e422d6d-912f-4119-a290-648dbe036dde
 # ╟─d0148931-4198-4bb3-893c-a9b73e1ec7a9
 # ╟─6ce43b6e-c3fa-408f-8702-900eaeb17bf5
-# ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
+# ╠═4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013
-# ╠═a7e59423-baab-4771-a8c2-8862b640659d
+# ╟─c576c4cd-1101-46e2-b6fa-b574f0b13dfe
+# ╟─a7e59423-baab-4771-a8c2-8862b640659d
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad
