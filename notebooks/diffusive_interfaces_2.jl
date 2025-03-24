@@ -56,7 +56,7 @@ end
 begin
 	S✶, Θ✶ = 34.7, 0.5
 	# Sᵤ, Θᵤ = 34.59, -1.5
-	ΔS, ΔΘ = (S✶ - Sᵤ), (Θ✶ - Θᵤ)
+	ΔS, ΔΘ = abs(S✶ - Sᵤ), abs(Θ✶ - Θᵤ)
 	Sₘ, Θₘ = 0.5 * (S✶ + Sᵤ), 0.5 * (Θ✶ + Θᵤ)
 	Lz = -100
 	Lz_upper = Lz+1 # top of the domain
@@ -136,14 +136,15 @@ Really just need to understand if there is anything useful at all that can be do
 
 # ╔═╡ 67fc284f-71d1-494a-bdcf-efff768f0683
 begin
-	S_linear_bg = @. Sᵤ + (ΔS/Δz_domain) * (z - Lz)
-	Θ_linear_bg = @. Θᵤ + (ΔΘ/Δz_domain) * (z - Lz)
+	S_linear_bg = @. S✶ + (ΔS/Δz_domain) * (z - Lz)
+	Θ_linear_bg = @. Θ✶ + (ΔΘ/Δz_domain) * (z - Lz)
 	α, β = gsw_alpha.(S_linear_bg, Θ_linear_bg, 0), gsw_beta.(S_linear_bg, Θ_linear_bg, 0)
 	α_interp = 0.5 * (α[1:end-1] .+ α[2:end])
 	β_interp = 0.5 * (β[1:end-1] .+ β[2:end])
-	ρ_linear_bg = gsw_rho.(S_linear_bg, Θ_linear_bg, 0)
+	p_ = gsw_p_from_z.(z, -60)
+	ρ_linear_bg = gsw_rho.(S_linear_bg, Θ_linear_bg, p_)
 	ρ_linear_bg′ = (ρ_linear_bg .- ρ_linear_bg[end]) ./ norm(ρ_linear_bg)
-	ρ_linear_bg_lineareos = total_density.(Θ_linear_bg, S_linear_bg, 0, fill(linear_eos, length(S_linear_bg)))
+	ρ_linear_bg_lineareos = total_density.(Θ_linear_bg, S_linear_bg, z, fill(linear_eos, length(S_linear_bg)))
 	ρ_linear_bg_lineareos′ = (ρ_linear_bg_lineareos .- ρ_linear_bg_lineareos[end]) ./ norm(ρ_linear_bg_lineareos)
 	Δz_range = diff(z)
 	# S_z = diff(S_linear_bg) .* Δz
