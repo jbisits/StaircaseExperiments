@@ -58,14 +58,15 @@ begin
 	# Sᵤ, Θᵤ = 34.59, -1.5
 	ΔS, ΔΘ = (S✶ - Sᵤ), (Θ✶ - Θᵤ)
 	Sₘ, Θₘ = 0.5 * (S✶ + Sᵤ), 0.5 * (Θ✶ + Θᵤ)
-	Lz = -1
-	interface = Lz / 2
+	Lz = -100
+	Lz_upper = Lz+1 # top of the domain
+	interface = abs(Lz_upper+ Lz) / 2
 	Nz = 1000
-	z = range(Lz, 0, length = Nz)
+	z = range(Lz, Lz_upper, length = Nz)
 	scale = 100
-	initial_S = @. Sᵤ + (ΔS / 2) * (1 + tanh(100 * (z - interface)) / abs(Lz))
+	initial_S = @. Sᵤ + (ΔS / 2) * (1 + tanh(100 * (z - interface) / abs(Lz_upper+ Lz)))
 	reverse!(initial_S)
-	initial_Θ = @. Θᵤ + (ΔΘ / 2) * (1 + tanh((100 / 3) * (z - interface)) / abs(Lz))
+	initial_Θ = @. Θᵤ + (ΔΘ / 2) * (1 + tanh((100 / 3) * (z - interface)/ abs(Lz_upper + Lz)))
 	reverse!(initial_Θ)
 	intial_ρ = gsw_sigma0.(initial_S, initial_Θ)
 	intial_ρ′ = (intial_ρ .- intial_ρ[end]) ./ norm(intial_ρ)
@@ -288,7 +289,7 @@ TableOfContents()
 # ╟─b8342884-a419-46ff-a2cf-3c7caac2f902
 # ╟─ff501fef-8e92-45f6-b26a-a9398c86957d
 # ╟─89a25913-e19b-4750-9f55-8df63f89326c
-# ╟─f4c36c3e-e8f8-4d3e-872f-9a2a1a6fc3b0
+# ╠═f4c36c3e-e8f8-4d3e-872f-9a2a1a6fc3b0
 # ╟─8667678b-a40b-4dfa-879a-0314616474fb
 # ╟─67e66c9a-309b-43f3-8956-92404d77a3ef
 # ╟─67fc284f-71d1-494a-bdcf-efff768f0683
