@@ -60,13 +60,14 @@ begin
 	Sₘ, Θₘ = 0.5 * (S✶ + Sᵤ), 0.5 * (Θ✶ + Θᵤ)
 	Lz = -100
 	Lz_upper = Lz+1 # top of the domain
-	interface = abs(Lz_upper+ Lz) / 2
+	interface = (Lz_upper+ Lz) / 2
 	Nz = 1000
 	z = range(Lz, Lz_upper, length = Nz)
+	Δz_domain = z[1] - z[end]
 	scale = 100
-	initial_S = @. Sᵤ + (ΔS / 2) * (1 + tanh(100 * (z - interface) / abs(Lz_upper+ Lz)))
+	initial_S = @. Sᵤ + (ΔS / 2) * (1 + tanh(100 * (z - interface) / abs(Lz_upper- Lz)))
 	reverse!(initial_S)
-	initial_Θ = @. Θᵤ + (ΔΘ / 2) * (1 + tanh((100 / 3) * (z - interface)/ abs(Lz_upper + Lz)))
+	initial_Θ = @. Θᵤ + (ΔΘ / 2) * (1 + tanh((100 / 3) * (z - interface)/ abs(Lz_upper - Lz)))
 	reverse!(initial_Θ)
 	intial_ρ = gsw_sigma0.(initial_S, initial_Θ)
 	intial_ρ′ = (intial_ρ .- intial_ρ[end]) ./ norm(intial_ρ)
@@ -135,8 +136,8 @@ Really just need to understand if there is anything useful at all that can be do
 
 # ╔═╡ 67fc284f-71d1-494a-bdcf-efff768f0683
 begin
-	S_linear_bg = @. Sᵤ - ΔS * z / abs(Lz)
-	Θ_linear_bg = @. Θᵤ - ΔΘ * z / abs(Lz)
+	S_linear_bg = @. Sᵤ + (ΔS/Δz_domain) * (z - Lz)
+	Θ_linear_bg = @. Θᵤ + (ΔΘ/Δz_domain) * (z - Lz)
 	α, β = gsw_alpha.(S_linear_bg, Θ_linear_bg, 0), gsw_beta.(S_linear_bg, Θ_linear_bg, 0)
 	α_interp = 0.5 * (α[1:end-1] .+ α[2:end])
 	β_interp = 0.5 * (β[1:end-1] .+ β[2:end])
@@ -144,10 +145,10 @@ begin
 	ρ_linear_bg′ = (ρ_linear_bg .- ρ_linear_bg[end]) ./ norm(ρ_linear_bg)
 	ρ_linear_bg_lineareos = total_density.(Θ_linear_bg, S_linear_bg, 0, fill(linear_eos, length(S_linear_bg)))
 	ρ_linear_bg_lineareos′ = (ρ_linear_bg_lineareos .- ρ_linear_bg_lineareos[end]) ./ norm(ρ_linear_bg_lineareos)
-	Δz = diff(z)
-	S_z = diff(S_linear_bg) .* Δz
-	Θ_z = diff(Θ_linear_bg) .* Δz
-	(β_interp .* S_z) ./ (Θ_z .* α_interp)
+	Δz_range = diff(z)
+	# S_z = diff(S_linear_bg) .* Δz
+	# Θ_z = diff(Θ_linear_bg) .* Δz
+	# (β_interp .* S_z) ./ (Θ_z .* α_interp)
 end
 
 # ╔═╡ f126f7a6-5e86-4f4c-a36f-10b9cf5228b4
@@ -289,10 +290,10 @@ TableOfContents()
 # ╟─b8342884-a419-46ff-a2cf-3c7caac2f902
 # ╟─ff501fef-8e92-45f6-b26a-a9398c86957d
 # ╟─89a25913-e19b-4750-9f55-8df63f89326c
-# ╠═f4c36c3e-e8f8-4d3e-872f-9a2a1a6fc3b0
+# ╟─f4c36c3e-e8f8-4d3e-872f-9a2a1a6fc3b0
 # ╟─8667678b-a40b-4dfa-879a-0314616474fb
 # ╟─67e66c9a-309b-43f3-8956-92404d77a3ef
-# ╟─67fc284f-71d1-494a-bdcf-efff768f0683
+# ╠═67fc284f-71d1-494a-bdcf-efff768f0683
 # ╟─f126f7a6-5e86-4f4c-a36f-10b9cf5228b4
 # ╟─c80a9808-e582-438a-b903-3e2cb32d9505
 # ╟─c095e71b-bbb2-4586-aa0b-ce6c0f1ce74b
