@@ -3,7 +3,7 @@ using StaircaseShenanigans, GibbsSeaWater
 restart = true
 
 architecture = GPU()
-diffusivities = (ν = 1e-6, κ = (S = 1e-9, T = 1e-7))
+diffusivities = (ν=7e-6, κ=(S=1e-8, T=1e-6))
 domain_extent = (Lx = 0.07, Ly = 0.07, Lz = -1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Periodic)
 resolution = (Nx = 70, Ny = 70, Nz = 1000)
@@ -17,31 +17,34 @@ depth_of_interface = -0.5
 salinity = [34.56, 34.70]
 temperature = [-1.5, 0.5]
 
-## stabilise with T
-Sᵤ, Sₗ = salinity
-S_range = range(Sᵤ, Sₗ, length = resolution.Nz)
-ΔS = diff(Array(salinity))[1]
-S_bf = BackgroundField(linear_background, parameters = (Cᵤ = Sᵤ, ΔC = ΔS, Lz = abs(domain_extent.Lz)))
+# ## stabilise with T
+# Sᵤ, Sₗ = salinity
+# S_range = range(Sᵤ, Sₗ, length = resolution.Nz)
+# ΔS = diff(Array(salinity))[1]
+# Δz = domain_extent.Lz - 0
+# S_bf = BackgroundField(linear_background, parameters = (Cᵤ = Sᵤ, ΔC = ΔS, Δz = Δz, Lz = 0))
 
-Tᵤ, Tₗ = temperature
+# Tᵤ, Tₗ = temperature
 
-z = znodes(model.grid, Center())
-p = Array(gsw_p_from_z.(z, 60))
-reverse!(p)
-ρᵤ, ρₗ = gsw_rho(Sᵤ, Tᵤ, p[1]), gsw_rho(Sₗ, Tₗ, p[end])
-ρ_range = range(ρᵤ, ρₗ, length = resolution.Nz)
+# z = znodes(model.grid, Center())
+# p = Array(gsw_p_from_z.(z, 60))
+# reverse!(p)
+# ρᵤ, ρₗ = gsw_rho(Sᵤ, Tᵤ, p[1]), gsw_rho(Sₗ, Tₗ, p[end])
+# ρ_range = range(ρᵤ, ρₗ, length = resolution.Nz)
 
-found_T = gsw_ct_from_rho.(ρ_range, S_range, p)
-found_T = [found_T[i][1] for i ∈ eachindex(found_T)]
-reverse!(found_T)
-T_background_profile = reshape(found_T, (1, 1, resolution.Nz))
-T_bf = similar(model.tracers.T)
-set!(T_bf, T_background_profile)
+# found_T = gsw_ct_from_rho.(ρ_range, S_range, p)
+# found_T = [found_T[i][1] for i ∈ eachindex(found_T)]
+# reverse!(found_T)
+# T_background_profile = reshape(found_T, (1, 1, resolution.Nz))
+# T_bf = similar(model.tracers.T)
+# set!(T_bf, T_background_profile)
 
-background_fields = (S = S_bf, T = T_bf)
+# background_fields = (S = S_bf, T = T_bf)
+# interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
+#                                     background_state = background_fields)
+
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
-                                    background_state = background_fields)
-
+                                    background_state = BackgroundLinear())
 # noise magnitude = 0.05ΔS, 0.05ΔΘ.
 noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(0.004, 0.05))
 

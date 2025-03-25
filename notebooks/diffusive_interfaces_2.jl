@@ -58,8 +58,8 @@ begin
 	# Sᵤ, Θᵤ = 34.59, -1.5
 	ΔS, ΔΘ = abs(S✶ - Sᵤ), abs(Θ✶ - Θᵤ)
 	Sₘ, Θₘ = 0.5 * (S✶ + Sᵤ), 0.5 * (Θ✶ + Θᵤ)
-	Lz = -100
-	Lz_upper = Lz+1 # top of the domain
+	Lz = -0.5
+	Lz_upper = 0 # top of the domain
 	interface = (Lz_upper+ Lz) / 2
 	Nz = 1000
 	z = range(Lz, Lz_upper, length = Nz)

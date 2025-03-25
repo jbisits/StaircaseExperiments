@@ -17,7 +17,8 @@ temperature = [-1.5, 0.5]
 Sᵤ, Sₗ = salinity
 S_range = range(Sᵤ, Sₗ, length = resolution.Nz)
 ΔS = diff(Array(salinity))[1]
-S_b = BackgroundField(linear_background, parameters = (Cᵤ = Sᵤ, ΔC = ΔS, Lz = abs(domain_extent.Lz)))
+Δz = domain_extent.Lz - 0
+S_b = BackgroundField(linear_background, parameters = (Cᵤ = Sᵤ, ΔC = ΔS, Δz = Δz, Lz = 0))
 
 Tᵤ, Tₗ = temperature
 
