@@ -46,7 +46,7 @@ temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
                                     background_state = BackgroundLinear())
 # noise magnitude = 0.05ΔS, 0.05ΔΘ.
-noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(0.004, 0.05))
+noise = (velocities = VelocityNoise(1e-6), tracers = TracerNoise(0.004, 0.05))
 
 ## setup model
 sdns = StaircaseDNS(model_setup, interface_ics, noise)
