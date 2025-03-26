@@ -4,17 +4,17 @@ restart = true
 
 architecture = GPU()
 diffusivities = (ν=7e-6, κ=(S=1e-8, T=1e-6))
-domain_extent = (Lx = 0.07, Ly = 0.07, Lz = -1.0)
+domain_extent = (Lx=0.1, Ly=0.1, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Periodic)
-resolution = (Nx = 70, Ny = 70, Nz = 1000)
+resolution = (Nx=100, Ny=100, Nz=500)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 model = DNSModel(model_setup...) # needed for grid
 
 ## Initial conditions
-depth_of_interface = -0.5
-salinity = [34.56, 34.70]
+depth_of_interface = -0.25
+salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
 
 # ## stabilise with T
@@ -46,7 +46,7 @@ temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
                                     background_state = BackgroundLinear())
 # noise magnitude = 0.05ΔS, 0.05ΔΘ.
-noise = (velocities = VelocityNoise(1e-6), tracers = TracerNoise(0.004, 0.05))
+noise = (velocities = VelocityNoise(1e-4), tracers = TracerNoise(0.004, 0.05))
 
 ## setup model
 sdns = StaircaseDNS(model_setup, interface_ics, noise)
