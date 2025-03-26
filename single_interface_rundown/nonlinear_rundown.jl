@@ -10,6 +10,7 @@ resolution = (Nx=100, Ny=100, Nz=500)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
+dns_model = DNSModel(model_setup...)
 
 ## Initial conditions
 depth_of_interface = -0.25
@@ -19,7 +20,7 @@ interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperatur
                                     interface_smoothing = TanhInterfaceThickness(0.02, 0.05))
 initial_noise = NoiseAtDepth([-0.22, -0.20], TracerNoise(0.0, 1e-4))
 ## setup model
-sdns = StaircaseDNS(model_setup, interface_ics, initial_noise)
+sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
 ## Build simulation
 stop_time = 1 * 60 * 60 # seconds
