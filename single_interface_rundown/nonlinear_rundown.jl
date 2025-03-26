@@ -17,7 +17,7 @@ salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
                                     interface_smoothing = TanhInterfaceThickness(0.02, 0.05))
-initial_noise = NoiseAtDepth([-0.27, -0.23], TracerNoise(0.0, 1e-6))
+initial_noise = NoiseAtDepth([-0.27, -0.23], TracerNoise(0.0, 1e-4))
 ## setup model
 sdns = StaircaseDNS(model_setup, interface_ics, initial_noise)
 
