@@ -1,13 +1,12 @@
 using StaircaseShenanigans
 
-initial_states = ("step")
+initial_states = ("step", "tanh")
 groups = ("lineareos", "nonlineareos")
 
-# for initial_state ∈ initial_states
-initial_state = "step"
+for initial_state ∈ initial_states
+
     diagnostics_file = initial_state*"/diff_initial_h_diagnostics.jld2"
     for group ∈ groups
-
 
         path = joinpath(@__DIR__, initial_state, group*"_single_interface_60min")
         tracers = joinpath(path, "tracers.nc")
@@ -17,4 +16,4 @@ initial_state = "step"
 
     end
 
-# end
+end
