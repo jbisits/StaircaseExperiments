@@ -25,7 +25,7 @@ end
 
 # ╔═╡ 6301138c-fa0b-11ef-0f3b-39dac35db063
 begin
-initial_state = @bind is Select([ "diff_initial_h", "step", "tanh"])
+initial_state = @bind is Select(["step", "tanh", "diff_initial_h"])
 md"""
 # Single interface experiments
 
@@ -51,15 +51,15 @@ end
 begin
 	linear_animation_path = joinpath(@__DIR__, is*"/lineareos")
 	nonlinear_animation_path = joinpath(@__DIR__, is*"/nonlineareos")
-	dims = load(is*"_diagnostics.jld2", "dims")
+	dims = load(joinpath(is, is*"_diagnostics.jld2"), "dims")
 	leos = load(is*"_diagnostics.jld2", "lineareos")
-	nleos = load(is*"_diagnostics.jld2", "nonlineareos")
+	nleos = load(joinpath(is, is*"_diagnostics.jld2"), "nonlineareos")
 	@info "$is initial condition output loaded"
 end
 
 # ╔═╡ 38b12f7f-4d53-4302-a4ce-7e8c07d49ca9
 begin
-	eos_select = @bind eos Select(["Linear", "Nonlinear"])
+	eos_select = @bind eos Select(["Nonlinear", "Linear"])
 	md"""
 	# Equation of state
 	
@@ -118,7 +118,8 @@ end
 # ╔═╡ a6403686-dc8a-480d-9d77-82a0562e4665
 let
 	# mins = round.(Int64, dims["time"] ./ 60)
-	time_hours = is == "step" ? 18 : is == "tanh" ? 8 : 1
+	# = is == "step" ? 1 : is == "tanh" ? 8 : 1
+	time_hours = 1
 	timestamps = Time(0, 1, 0):Minute(1):Time(time_hours, 0, 0) 
 	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
 	ta = TimeArray((;timestamps, Rᵨ = R_ρ_interp, Ẽ = expt_data["Ẽ"]), timestamp = :timestamps)
@@ -299,6 +300,14 @@ end
 # ╔═╡ a7e59423-baab-4771-a8c2-8862b640659d
 expt_data
 
+# ╔═╡ f200b8e0-2b14-4270-963b-6bb1b154d550
+let
+	fig, ax = lines(expt_data["∫wb"], label = "wb")
+	lines!(ax, -expt_data["∫ε"], label = "ε")
+	axislegend(ax)
+	fig
+end
+
 # ╔═╡ 963fa274-2d8f-47fd-b227-4d7b3275d7ad
 TableOfContents()
 
@@ -323,5 +332,6 @@ TableOfContents()
 # ╠═4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013
 # ╟─c576c4cd-1101-46e2-b6fa-b574f0b13dfe
-# ╟─a7e59423-baab-4771-a8c2-8862b640659d
+# ╠═a7e59423-baab-4771-a8c2-8862b640659d
+# ╠═f200b8e0-2b14-4270-963b-6bb1b154d550
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad
