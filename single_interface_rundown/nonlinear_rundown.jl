@@ -3,7 +3,7 @@ using StaircaseShenanigans, GibbsSeaWater
 restart = true
 
 architecture = GPU()
-diffusivities = (ν=7e-4, κ=(S=7e-7, T=1e-5))
+diffusivities = (ν=1e-4, κ=(S=1.4e-7, T=1.4e-5))
 domain_extent = (Lx=0.1, Ly=0.1, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=60, Ny=60, Nz=250)
