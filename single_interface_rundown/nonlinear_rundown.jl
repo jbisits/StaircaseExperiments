@@ -14,11 +14,10 @@ dns_model = DNSModel(model_setup...)
 
 ## Initial conditions
 depth_of_interface = -0.25
-salinity = [34.58, 34.70]
-temperature = [-1.5, 0.5]
-interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
-                                    interface_smoothing = TanhInterfaceThickness(0.01, 0.01))
-initial_noise = NoiseAtDepth([-0.26, -0.24], VelocityNoise(1e-4))
+salinity = [34.63, 34.70]
+temperature = [-0.5, 0.5]
+interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
+initial_noise = NoiseAtDepth([-0.26, -0.24], VelocityNoise(1e-5))
 ## setup model
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
