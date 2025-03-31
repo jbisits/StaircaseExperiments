@@ -18,7 +18,7 @@ salinity = [34.63, 34.70]
 temperature = [-0.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
                                     #interface_smoothing = TanhInterfaceThickness(0.01, 0.01))
-initial_noise = NoiseAtDepth([-0.26, -0.24], TracerNoise(2e-4, 0.0))
+initial_noise = NoiseAtDepth([-0.51, -0.49], TracerNoise(2e-4, 0.0))
 ## setup model
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
@@ -27,7 +27,7 @@ stop_time = 1 * 60 * 60 # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
 output_path = joinpath(@__DIR__, "rundown_$(round(interface_ics.R_ρ, digits = 2))", initial_state)
 checkpointer_time_interval = 60 * 60 # seconds
-max_Δt = 7e-3
+max_Δt = 7e-2
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    save_vertical_velocities!; output_path,
                                    checkpointer_time_interval,
