@@ -3,14 +3,14 @@ using StaircaseShenanigans, GibbsSeaWater
 restart = true
 
 architecture = GPU()
-diffusivities = (ν=5e-6, κ=(S=5.4e-8, T=5.4e-7))
+diffusivities = (ν=5e-6, κ=(S=5.4e-9, T=5.4e-7))
 domain_extent = (Lx=0.07, Ly=0.07, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=70, Ny=70, Nz=1000)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
-dns_model = DNSModel(model_setup...)
+dns_model = DNSModel(model_setup...; TD = VerticallyImplicitTimeDiscretization())
 
 ## Initial conditions
 depth_of_interface = -0.5
