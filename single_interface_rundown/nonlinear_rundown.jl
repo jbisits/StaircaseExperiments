@@ -10,7 +10,7 @@ resolution = (Nx=35, Ny=35, Nz=500)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
-dns_model = DNSModel(model_setup...; TD = VerticallyImplicitTimeDiscretization(), centred_advection_scheme_order = 4)
+dns_model = DNSModel(model_setup...; TD = VerticallyImplicitTimeDiscretization())
 
 ## Initial conditions
 depth_of_interface = -0.5
@@ -29,7 +29,7 @@ stop_time = 1 * 60 * 60 # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
 output_path = joinpath(@__DIR__, "rundown_$(round(interface_ics.R_ρ, digits = 2))", initial_state)
 checkpointer_time_interval = 60 * 60 # seconds
-Δt = 1e-3
+Δt = 1e-4
 max_Δt = 7e-2
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    save_vertical_velocities!; output_path,
