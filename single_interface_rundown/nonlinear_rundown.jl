@@ -3,7 +3,7 @@ using StaircaseShenanigans, GibbsSeaWater
 restart = true
 
 architecture = GPU()
-diffusivities = (ν=1e-6, κ=(S=1.4e-9, T=1.4e-7))
+diffusivities = (ν=5e-6, κ=(S=5.4e-9, T=5.4e-7))
 domain_extent = (Lx=0.07, Ly=0.07, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=70, Ny=70, Nz=1000)
@@ -20,7 +20,7 @@ salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
                                     #interface_smoothing = TanhInterfaceThickness(0.01, 0.01))
-initial_noise = NoiseAtDepth([depth_of_interface-0.02, depth_of_interface+0.02], TracerNoise(2e-4, 0.0))
+initial_noise = NoiseAtDepth([depth_of_interface-0.02, depth_of_interface+0.02], TracerNoise(0.0, 1e-4))
 ## setup model
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
