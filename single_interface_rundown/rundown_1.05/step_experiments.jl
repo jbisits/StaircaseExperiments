@@ -52,8 +52,8 @@ begin
 	linear_animation_path = joinpath(@__DIR__, is*"/lineareos")
 	nonlinear_animation_path = joinpath(@__DIR__, is*"/nonlineareos")
 	dims = load(joinpath(is, is*"_diagnostics.jld2"), "dims")
-	leos = load(is*"_diagnostics.jld2", "lineareos")
-	nleos = load(joinpath(is, is*"_diagnostics.jld2"), "nonlineareos")
+	# leos = load(is*"_diagnostics.jld2", "lineareos")
+	# nleos = load(joinpath(is, is*"_diagnostics.jld2"), "nonlineareos")
 	@info "$is initial condition output loaded"
 end
 
@@ -69,8 +69,10 @@ end
 
 # ╔═╡ e177c879-b7d0-4328-b5ad-776f8c64e050
 begin
-		expt_data = eos == "Linear" ? leos : nleos
-	animation_path = eos == "Linear" ? linear_animation_path : nonlinear_animation_path
+	# 	expt_data = eos == "Linear" ? leos : nleos
+	# animation_path = eos == "Linear" ? linear_animation_path : nonlinear_animation_path
+			expt_data = load(joinpath(is, is*"_diagnostics.jld2"))
+	# animation_path = eos == "Linear" ? linear_animation_path : nonlinear_animation_path
 	md"""
 	## Animations
 	
@@ -259,24 +261,26 @@ end
 
 # ╔═╡ d9422085-e838-44a1-91be-b81458dc3013
 begin
-	Lx = Ly = 0.1
-	Nx = 2000
+	Lx = Ly = 0.07
+	Nx = 35
 	Δx = Lx / Nx
-	Lz = 0.5
-	Nz = 10000
+	Lz = 1
+	Nz = 500
 	Δz = Lz / Nz
 	md"""
-	Above can see a figure of the Batchelor scale with minimal length $(min_Ba).
-	To achieve this in the domain size I have this would need resolution of $(min_Ba * 1e-3) everywhere so around 4e-5.
-	This is achieved with ``L_{x} = `` $(Lx), ``N_{x} = `` $(Nx) and ``L_{x} = `` $(Lz), ``N_{z} = `` $(Nz) susch that Δx = $(Δx) and Δz = $(Δz).
+	Above can see a figure of the Batchelor scale with minimal length $(round(min_Ba, digits = 2))mm.
+	To achieve this in the domain size I have this would need resolution of $(min_Ba * 1e-3) everywhere so around 2.8e-4.
+	This simulation was run with:
+	- ``L_{x} = `` $(Lx), ``N_{x} = `` $(Nx) ``\implies`` Δx = $(Δx)
+	- ``L_{z} = `` $(Lz), ``N_{z} = `` $(Nz) ``\implies`` Δz = $(Δz).
 
-	I have the leeway that people use ``Δ < 2.5 Ba`` as the upper limit so what I need to resolve is $(min_Ba * 2.5), so $(min_Ba * 2.5 * 1e-3)m ~ 1e-4. This is what to start with!
-	If I set ``N_{x} = N_{y} = 1000`` and ``N_{z} = 5000`` I should be able to get to DNS.
-	Though this resolution is insane compared to the previous work.
-	There are still chances to increase ``\eta`` by increasing ``\nu = \mathcal{O}(10^{-4})`` but the real resolution buster is the Schmidt number.
-	The only way that this can change is to increase salinity diffusivity.
+	So with what I have done I am an order of magnitiude away.
+	But I have the leeway that people use ``Δ < 2.5 Ba`` as the upper limit so what I need to resolve is $(round(min_Ba, digits = 2) * 2.5), so $(round(min_Ba, digits = 2) * 2.5 * 1e-3)m ~ 7e-4.
+	
+	If I set ``N_{x} = N_{y} = 110`` and ``N_{z} = 1500`` I should be able to get to DNS resolution with the 2.5Ba argument provided that I get closed energy budget.
+	This resolution is *less* than what I ran with the cabbeling DNS so it should be possible --- just that so far this simulation has required a significantly smaller timestep.
 
-	If we have closed energy budget and can show results match a higher simulation we can live with that.
+	One other option is to look at a further reduction to the diffusivities then ramp up and provided everything is scaled correctly it should still work but will check with supervisors what they think first.
 	"""
 end
 
@@ -297,13 +301,10 @@ let
 	fig
 end
 
-# ╔═╡ a7e59423-baab-4771-a8c2-8862b640659d
-expt_data
-
 # ╔═╡ f200b8e0-2b14-4270-963b-6bb1b154d550
 let
 	fig, ax = lines(expt_data["∫wb"], label = "wb")
-	lines!(ax, -expt_data["∫ε"], label = "ε")
+	lines!(ax, expt_data["∫ε"], label = "ε")
 	axislegend(ax)
 	fig
 end
@@ -314,7 +315,7 @@ TableOfContents()
 # ╔═╡ Cell order:
 # ╟─6301138c-fa0b-11ef-0f3b-39dac35db063
 # ╟─010ecdc3-51d6-41a6-9bc5-6efbba0723a6
-# ╟─dc0440f3-b915-4974-9b3f-76b34e20b8e0
+# ╠═dc0440f3-b915-4974-9b3f-76b34e20b8e0
 # ╟─38b12f7f-4d53-4302-a4ce-7e8c07d49ca9
 # ╟─e177c879-b7d0-4328-b5ad-776f8c64e050
 # ╟─07089057-5b2f-40e5-a485-0eeac1e9b348
@@ -329,9 +330,8 @@ TableOfContents()
 # ╟─3e422d6d-912f-4119-a290-648dbe036dde
 # ╟─d0148931-4198-4bb3-893c-a9b73e1ec7a9
 # ╟─6ce43b6e-c3fa-408f-8702-900eaeb17bf5
-# ╠═4538f159-01d9-45fd-9fa5-d7463c506a77
+# ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013
-# ╟─c576c4cd-1101-46e2-b6fa-b574f0b13dfe
-# ╠═a7e59423-baab-4771-a8c2-8862b640659d
+# ╠═c576c4cd-1101-46e2-b6fa-b574f0b13dfe
 # ╠═f200b8e0-2b14-4270-963b-6bb1b154d550
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad
