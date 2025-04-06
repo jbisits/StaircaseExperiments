@@ -6,7 +6,7 @@ architecture = GPU()
 diffusivities = (ν=7e-4, κ=(S=1e-7, T=1e-5))
 domain_extent = (Lx=0.07, Ly=0.07, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-resolution = (Nx=50, Ny=50, Nz=800)
+resolution = (Nx=40, Ny=40, Nz=600)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
@@ -20,7 +20,7 @@ salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
                                     # interface_smoothing = TanhInterfaceThickness(0.01, 0.01))
-initial_noise = NoiseAtDepth([depth_of_interface-0.02, depth_of_interface+0.02], VelocityNoise(1e-6))
+initial_noise = NoiseAtDepth([depth_of_interface-0.02, depth_of_interface+0.02], VelocityNoise(1e-5))
 ## setup model
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
