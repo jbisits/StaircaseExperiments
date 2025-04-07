@@ -18,7 +18,7 @@ salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
-initial_noise = NoiseAtDepth([depth_of_interface-0.02, depth_of_interface+0.02], VelocityNoise(1e-5))
+initial_noise = NoiseAtDepth([depth_of_interface-0.02, depth_of_interface+0.02], TracersNoise(2e-4, 0.0))
 ## setup model
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
@@ -36,7 +36,8 @@ simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    save_schedule,
                                    checkpointer_time_interval,
                                    overwrite_saved_output = restart,
-                                   max_Δt, Δt)
+                                   max_Δt,
+                                   Δt)
 ## Run
 # simulation.stop_time = 18 * 60 * 60 # update to pickup from a checkpoint
 pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
