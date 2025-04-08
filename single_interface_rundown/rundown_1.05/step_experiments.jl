@@ -77,10 +77,10 @@ begin
 	## Animations
 	
 	### Density
-	$(LocalResource(joinpath(animation_path, "density.mp4")))
+	$(LocalResource("density.mp4"))
 	
 	### Salinity and temperature
-	$(LocalResource(joinpath(animation_path, "tracers.mp4")))
+	$(LocalResource("tracers.mp4"))
 	"""
 end
 
@@ -264,20 +264,20 @@ begin
 	Lx = Ly = 0.07
 	Nx = 35
 	Δx = Lx / Nx
-	Lz = 1
-	Nz = 500
+	Lz = 0.5
+	Nz = 250
 	Δz = Lz / Nz
 	md"""
 	Above can see a figure of the Batchelor scale with minimal length $(round(min_Ba, digits = 2))mm.
-	To achieve this in the domain size I have this would need resolution of $(min_Ba * 1e-3) everywhere so around 2.8e-4.
+	To achieve this in the domain size I have this would need resolution of $(min_Ba * 1e-3) everywhere so around 3e-4.
 	This simulation was run with:
 	- ``L_{x} = `` $(Lx), ``N_{x} = `` $(Nx) ``\implies`` Δx = $(Δx)
 	- ``L_{z} = `` $(Lz), ``N_{z} = `` $(Nz) ``\implies`` Δz = $(Δz).
 
 	So with what I have done I am an order of magnitiude away.
-	But I have the leeway that people use ``Δ < 2.5 Ba`` as the upper limit so what I need to resolve is $(round(min_Ba, digits = 2) * 2.5), so $(round(min_Ba, digits = 2) * 2.5 * 1e-3)m ~ 7e-4.
+	But I have the leeway that people use ``Δ < 2.5 Ba`` as the upper limit so what I need to resolve is $(round(min_Ba, digits = 2) * 2.5), so $(round(min_Ba, digits = 2) * 2.5 * 1e-3)m ~ 7.5e-4.
 	
-	If I set ``N_{x} = N_{y} = 110`` and ``N_{z} = 1500`` I should be able to get to DNS resolution with the 2.5Ba argument provided that I get closed energy budget.
+	If I set ``N_{x} = N_{y} = 100`` and ``N_{z} = 700`` I should be able to get to DNS resolution with the 2.5Ba argument provided that I get closed energy budget.
 	This resolution is *less* than what I ran with the cabbeling DNS so it should be possible --- just that so far this simulation has required a significantly smaller timestep.
 
 	One other option is to look at a further reduction to the diffusivities then ramp up and provided everything is scaled correctly it should still work but will check with supervisors what they think first.
@@ -332,6 +332,6 @@ TableOfContents()
 # ╟─6ce43b6e-c3fa-408f-8702-900eaeb17bf5
 # ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013
-# ╠═c576c4cd-1101-46e2-b6fa-b574f0b13dfe
+# ╟─c576c4cd-1101-46e2-b6fa-b574f0b13dfe
 # ╠═f200b8e0-2b14-4270-963b-6bb1b154d550
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad

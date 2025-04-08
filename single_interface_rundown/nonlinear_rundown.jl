@@ -6,7 +6,7 @@ architecture = GPU()
 diffusivities = (ν=1e-5, κ=(S=1.4e-8, T=1.4e-6))
 domain_extent = (Lx=0.07, Ly=0.07, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-resolution = (Nx=35, Ny=35, Nz=250)
+resolution = (Nx=100, Ny=100, Nz=700)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
@@ -23,10 +23,10 @@ initial_noise = NoiseAtDepth([depth_of_interface-0.02, depth_of_interface+0.02],
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
 ## Build simulation
-stop_time = 1 * 60 * 60 # seconds
+stop_time = 2 * 60 * 60 # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
 output_path = joinpath(@__DIR__, "rundown_$(round(interface_ics.R_ρ, digits = 2))", initial_state)
-save_schedule = 15
+save_schedule = 30
 checkpointer_time_interval = 60 * 60 # seconds
 Δt = 1e-4
 max_Δt = 2e-3
