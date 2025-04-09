@@ -230,7 +230,7 @@ end
 let
 	fig = Figure(size = (500, 500))
 	ax = Axis(fig[1, 1], xlabel = "Rᵨ", ylabel = "z✶")
-	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "salinity")
+	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["S_interface_idx"]], label = "salinity")
 	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "temperature", linestyle = :dot)
 	# ylims!(ax, 0.49, 0.54)
 	vlines!(ax, 1.6, color = :red, linestyle = :dash)
@@ -284,6 +284,13 @@ begin
 	"""
 end
 
+# ╔═╡ 3c0e1dfd-e4ba-448f-8475-ada056c8b5fe
+md"""
+## Energy budget
+
+I am not quite sure why this is not closed -- could be resolution?
+"""
+
 # ╔═╡ c576c4cd-1101-46e2-b6fa-b574f0b13dfe
 let
 	Δt = diff(dims["time"])
@@ -309,13 +316,35 @@ let
 	fig
 end
 
+# ╔═╡ 50e87efc-a49c-4ffd-bfbd-cd5dfad40639
+md"""
+# Setup for boundary conditions
+
+To get a model that does not run down it seems like best option is including some kind of boundary conditions.
+Ideally we would use periodic or jump boundary conditions but nonlinear eos causes problems with this.
+"""
+
+# ╔═╡ ee9c0edb-477b-4cc0-8c57-36845a90bbaf
+@bind Rᵨ_val PlutoUI.Slider(round.(expt_data["R_ρ"][:], digits =3), show_value = true, default=1.415)
+
+# ╔═╡ 68a0a47e-e919-4d9d-b1a5-090d69bf633e
+begin
+	find_Rᵨ = findfirst(expt_data["R_ρ"] .> Rᵨ_val)
+	Shaflux = expt_data["ha_S_flux"][expt_data["ha_S_interface_idx"][find_Rᵨ], find_Rᵨ]
+	Thaflux = expt_data["ha_T_flux"][expt_data["ha_T_interface_idx"][find_Rᵨ], find_Rᵨ]
+	md"""
+	Horizontally averaged salinity flux through interface for ``R_{\rho} = `` $(Rᵨ_val) is ``J_{S} = `` $(round(Shaflux, digits = 10)) with 
+	Horizontally averaged temperature flux through interface for ``R_{\rho} = `` $(Rᵨ_val) is ``J_{T} = `` $(round(Thaflux, digits = 7)).
+	"""
+end
+
 # ╔═╡ 963fa274-2d8f-47fd-b227-4d7b3275d7ad
 TableOfContents()
 
 # ╔═╡ Cell order:
 # ╟─6301138c-fa0b-11ef-0f3b-39dac35db063
 # ╟─010ecdc3-51d6-41a6-9bc5-6efbba0723a6
-# ╠═dc0440f3-b915-4974-9b3f-76b34e20b8e0
+# ╟─dc0440f3-b915-4974-9b3f-76b34e20b8e0
 # ╟─38b12f7f-4d53-4302-a4ce-7e8c07d49ca9
 # ╟─e177c879-b7d0-4328-b5ad-776f8c64e050
 # ╟─07089057-5b2f-40e5-a485-0eeac1e9b348
@@ -328,10 +357,14 @@ TableOfContents()
 # ╟─0a9d245d-8285-4a22-9edf-178d9e85addb
 # ╟─9a8041ad-6b12-4ef5-9f2f-44189de067f9
 # ╟─3e422d6d-912f-4119-a290-648dbe036dde
-# ╟─d0148931-4198-4bb3-893c-a9b73e1ec7a9
+# ╠═d0148931-4198-4bb3-893c-a9b73e1ec7a9
 # ╟─6ce43b6e-c3fa-408f-8702-900eaeb17bf5
 # ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013
+# ╟─3c0e1dfd-e4ba-448f-8475-ada056c8b5fe
 # ╟─c576c4cd-1101-46e2-b6fa-b574f0b13dfe
-# ╠═f200b8e0-2b14-4270-963b-6bb1b154d550
+# ╟─f200b8e0-2b14-4270-963b-6bb1b154d550
+# ╟─50e87efc-a49c-4ffd-bfbd-cd5dfad40639
+# ╟─ee9c0edb-477b-4cc0-8c57-36845a90bbaf
+# ╠═68a0a47e-e919-4d9d-b1a5-090d69bf633e
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad
