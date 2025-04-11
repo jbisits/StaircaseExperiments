@@ -3,10 +3,10 @@ using StaircaseShenanigans, GibbsSeaWater
 restart = true
 
 architecture = GPU()
-diffusivities = (ν=1e-5, κ=(S=1.4e-8, T=1.4e-6))
+diffusivities = (ν=1e-5, κ=(S=1.4e-7, T=1.4e-6))
 domain_extent = (Lx=0.07, Ly=0.07, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-resolution = (Nx=100, Ny=100, Nz=700)
+resolution = (Nx=70, Ny=70, Nz=500)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
@@ -18,12 +18,13 @@ salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
-initial_noise = NoiseAtDepth([depth_of_interface-0.02, depth_of_interface+0.02], TracerNoise(2e-4, 0.0))
+# initial_noise = NoiseAtDepth([depth_of_interface-0.02, depth_of_interface+0.02], TracerNoise(2e-4, 0.0))
+initial_noise = VelocityNoise(1e-5)
 ## setup model
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
 ## Build simulation
-stop_time = 2 * 60 * 60 # seconds
+stop_time = Int(1 * 60 * 60) # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
 output_path = joinpath(@__DIR__, "rundown_$(round(interface_ics.R_ρ, digits = 2))", initial_state)
 save_schedule = 30

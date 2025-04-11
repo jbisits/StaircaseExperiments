@@ -247,15 +247,16 @@ md"""
 
 # ╔═╡ 4538f159-01d9-45fd-9fa5-d7463c506a77
 begin
-	η = 1e3 * expt_data["η"][2:end] 
-	Ba = 1e3 * expt_data["Ba"][2:end] 
-	Ba_fig, Ba_ax = lines(Ba, label = "Ba")
-	lines!(Ba_ax, η, label = "η")
+	η = 1e3 * expt_data["η"][2:end]
+	Ba = 1e3 * expt_data["Ba"][2:end]
+	Ba_fig, Ba_ax = lines(log10.(Ba), label = "Ba")
+	lines!(Ba_ax, log10.(η), label = "η")
 	Ba_ax.xlabel = "time (mins)"
-	Ba_ax.ylabel = "Length (mm)"
+	Ba_ax.ylabel = "Length (log10(mm))"
 	min_Ba = minimum(Ba)
 	min_η = minimum(η)
 	Ba_ax.title = "η minimum = $(min_η)mm,  Ba minimum = $(min_Ba)mm"
+	axislegend(Ba_ax)
 	Ba_fig
 end
 
@@ -289,6 +290,9 @@ md"""
 ## Energy budget
 
 I am not quite sure why this is not closed -- could be resolution?
+*Update:* does not appear to be resolution as this is more or less at Batchelor scale.
+I would say it looks like spikes in ``\varepsilon`` except that this is smooth.
+I have also computed the buoyancy flux in two ways and they are equal.
 """
 
 # ╔═╡ c576c4cd-1101-46e2-b6fa-b574f0b13dfe
@@ -298,6 +302,7 @@ let
 	dₜek = diff(ek) ./ Δt
 	ε = 0.5 * (expt_data["∫ε"][1:end-1] .+ expt_data["∫ε"][2:end])
 	∫wb = 0.5 * (expt_data["∫wb"][1:end-1] .+ expt_data["∫wb"][2:end])
+	∫gρw = 0.5 * (expt_data["∫gρw"][1:end-1] .+ expt_data["∫gρw"][2:end])
 	RHS = ∫wb .- ε
 	fig, ax = lines(eachindex(Δt), dₜek, label = "dₜek")
 	lines!(ax, eachindex(Δt), RHS, label = "∫wb - ε")
@@ -305,19 +310,20 @@ let
 	ax.xlabel = "time (minutes)"
 	ax.ylabel = "Watts / ρ₀"
 	axislegend(ax)
+
+	ax2 = Axis(fig[2, 1], title = "Absolute error")
+	abs_err = abs.(dₜek .- RHS)
+	lines!(ax2, abs_err)
 	fig
 end
 
 # ╔═╡ f200b8e0-2b14-4270-963b-6bb1b154d550
 let
 	fig, ax = lines(expt_data["∫wb"], label = "wb")
-	lines!(ax, expt_data["∫ε"], label = "ε")
+	lines!(ax, -expt_data["∫gρw"], label = "∫gρw (post processing)", linestyle = :dash)
 	axislegend(ax)
 	fig
 end
-
-# ╔═╡ b097d5c3-271d-4f3c-bcc9-3800b7edd584
-expt_data["S_interface_idx"][15]
 
 # ╔═╡ 50e87efc-a49c-4ffd-bfbd-cd5dfad40639
 md"""
@@ -367,7 +373,6 @@ TableOfContents()
 # ╟─3c0e1dfd-e4ba-448f-8475-ada056c8b5fe
 # ╟─c576c4cd-1101-46e2-b6fa-b574f0b13dfe
 # ╟─f200b8e0-2b14-4270-963b-6bb1b154d550
-# ╠═b097d5c3-271d-4f3c-bcc9-3800b7edd584
 # ╟─50e87efc-a49c-4ffd-bfbd-cd5dfad40639
 # ╟─ee9c0edb-477b-4cc0-8c57-36845a90bbaf
 # ╟─68a0a47e-e919-4d9d-b1a5-090d69bf633e
