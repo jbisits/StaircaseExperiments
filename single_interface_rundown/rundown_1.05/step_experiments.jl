@@ -77,10 +77,10 @@ begin
 	## Animations
 	
 	### Density
-	$(LocalResource("density.mp4"))
+	$(LocalResource(is*"/density.mp4"))
 	
 	### Salinity and temperature
-	$(LocalResource("tracers.mp4"))
+	$(LocalResource(is*"/tracers.mp4"))
 	"""
 end
 
@@ -121,21 +121,21 @@ end
 let
 	# mins = round.(Int64, dims["time"] ./ 60)
 	# = is == "step" ? 1 : is == "tanh" ? 8 : 1
-	time_hours = 1
-	timestamps = Time(0, 1, 0):Minute(1):Time(time_hours, 0, 0) 
+	# time_hours = 1
+	# timestamps = Time(0, 1, 0):Minute(1):Time(time_hours, 0, 0) 
 	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
-	ta = TimeArray((;timestamps, Rᵨ = R_ρ_interp, Ẽ = expt_data["Ẽ"]), timestamp = :timestamps)
-	ta_mean = moving(mean, ta, window)
+	# ta = TimeArray((;timestamps, Rᵨ = R_ρ_interp, Ẽ = expt_data["Ẽ"]), timestamp = :timestamps)
+	# ta_mean = moving(mean, ta, window)
 	
 	fig = Figure(size = (600, 800))
 	ax1 = Axis(fig[1, 1], xlabel = "R_ρ", ylabel = "Ẽ")
 	lines!(ax1, R_ρ_interp, expt_data["Ẽ"])
 	vlines!(ax1, 1.6, color = :red, linestyle = :dash)
 
-	ax2 = Axis(fig[2, 1], xlabel = "R_ρ", ylabel = "Ẽ")
-	lines!(ax2, values(ta_mean), label = "Averaging window = $window mins")
-	vlines!(ax2, 1.6, color = :red, linestyle = :dash)
-	axislegend(ax2)
+	# ax2 = Axis(fig[2, 1], xlabel = "R_ρ", ylabel = "Ẽ")
+	# lines!(ax2, values(ta_mean), label = "Averaging window = $window mins")
+	# vlines!(ax2, 1.6, color = :red, linestyle = :dash)
+	# axislegend(ax2)
 	fig
 end
 
@@ -263,21 +263,21 @@ end
 begin
 	Lx = Ly = 0.07
 	Nx = 35
-	Δx = Lx / Nx
+	Δx = diff(dims["x_caa"])[1]
 	Lz = 0.5
 	Nz = 250
-	Δz = Lz / Nz
+	Δz = diff(dims["z_aaf"])[1]
 	md"""
 	Above can see a figure of the Batchelor scale with minimal length $(round(min_Ba, digits = 2))mm.
 	To achieve this in the domain size I have this would need resolution of $(min_Ba * 1e-3) everywhere so around 3e-4.
 	This simulation was run with:
-	- ``L_{x} = `` $(Lx), ``N_{x} = `` $(Nx) ``\implies`` Δx = $(Δx)
-	- ``L_{z} = `` $(Lz), ``N_{z} = `` $(Nz) ``\implies`` Δz = $(Δz).
+	- Δx = $(Δx)
+	- Δz = $(Δz).
 
 	So with what I have done I am an order of magnitiude away.
-	But I have the leeway that people use ``Δ < 2.5 Ba`` as the upper limit so what I need to resolve is $(round(min_Ba, digits = 2) * 2.5), so $(round(min_Ba, digits = 2) * 2.5 * 1e-3)m ~ 7.5e-4.
+	But I have the leeway that people use ``Δ < 2.5 Ba`` as the upper limit so what I need to resolve is $(round(min_Ba, digits = 2) * 2.5), so $(round(min_Ba, digits = 2) * 2.5 * 1e-3)m.
 	
-	If I set ``N_{x} = N_{y} = 100`` and ``N_{z} = 700`` I should be able to get to DNS resolution with the 2.5Ba argument provided that I get closed energy budget.
+	If I set ``N_{x} = N_{y} = 100`` and ``N_{z} = 700``, for ``L_{x} = L_{y} = `` $(Lx) and ``L_{z} = `` $(Lz), I should be able to get to DNS resolution with the 2.5Ba argument provided that I get closed energy budget.
 	This resolution is *less* than what I ran with the cabbeling DNS so it should be possible --- just that so far this simulation has required a significantly smaller timestep.
 
 	One other option is to look at a further reduction to the diffusivities then ramp up and provided everything is scaled correctly it should still work but will check with supervisors what they think first.
@@ -315,6 +315,9 @@ let
 	axislegend(ax)
 	fig
 end
+
+# ╔═╡ b097d5c3-271d-4f3c-bcc9-3800b7edd584
+expt_data["S_interface_idx"][15]
 
 # ╔═╡ 50e87efc-a49c-4ffd-bfbd-cd5dfad40639
 md"""
@@ -357,13 +360,14 @@ TableOfContents()
 # ╟─0a9d245d-8285-4a22-9edf-178d9e85addb
 # ╟─9a8041ad-6b12-4ef5-9f2f-44189de067f9
 # ╟─3e422d6d-912f-4119-a290-648dbe036dde
-# ╠═d0148931-4198-4bb3-893c-a9b73e1ec7a9
+# ╟─d0148931-4198-4bb3-893c-a9b73e1ec7a9
 # ╟─6ce43b6e-c3fa-408f-8702-900eaeb17bf5
 # ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013
 # ╟─3c0e1dfd-e4ba-448f-8475-ada056c8b5fe
 # ╟─c576c4cd-1101-46e2-b6fa-b574f0b13dfe
 # ╟─f200b8e0-2b14-4270-963b-6bb1b154d550
+# ╠═b097d5c3-271d-4f3c-bcc9-3800b7edd584
 # ╟─50e87efc-a49c-4ffd-bfbd-cd5dfad40639
 # ╟─ee9c0edb-477b-4cc0-8c57-36845a90bbaf
 # ╟─68a0a47e-e919-4d9d-b1a5-090d69bf633e

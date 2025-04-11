@@ -1,6 +1,6 @@
 using StaircaseShenanigans, GibbsSeaWater
 
-restart = false
+restart = true
 
 architecture = GPU()
 diffusivities = (ν=1e-5, κ=(S=1.4e-8, T=1.4e-6))
@@ -30,13 +30,13 @@ initial_noise = NoiseAtDepth([depth_of_interface-0.02, depth_of_interface+0.02],
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
 ## Build simulation
-stop_time = 2 * 60 * 60 # seconds
+stop_time = 1 * 60 * 60 # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
 output_path = joinpath(@__DIR__, "fluxbcs_$(round(interface_ics.R_ρ, digits = 2))", initial_state)
 save_schedule = 30
 checkpointer_time_interval = 60 * 60 # seconds
 Δt = 1e-4
-max_Δt = 5e-5
+max_Δt = 2e-3
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    save_vertical_velocities!;
                                    output_path,
@@ -46,7 +46,7 @@ simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    max_Δt,
                                    Δt)
 ## Run
-simulation.stop_time = 6 * 60 * 60 # update to pickup from a checkpoint
+# simulation.stop_time = 6 * 60 * 60 # update to pickup from a checkpoint
 pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
 run!(simulation; pickup)
 
