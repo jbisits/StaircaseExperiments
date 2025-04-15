@@ -3,7 +3,13 @@ using StaircaseShenanigans, GibbsSeaWater
 restart = true
 
 architecture = GPU()
-diffusivities = (ν=1e-5, κ=(S=1.4e-7, T=1.4e-6))
+Pr = 7   # Prandtl
+τ = 0.05 # diff ratio
+ν = 1e-5 # set this get the others
+κₜ = round(ν / Pr, digits = 8)
+κₛ = round(τ * κₜ, digits = 10)
+Sc = ν / κₛ
+diffusivities = (;ν, κ=(S=κₛ, T=κₜ))
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=50, Ny=50, Nz=500)
