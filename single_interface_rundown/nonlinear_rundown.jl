@@ -5,9 +5,8 @@ restart = true
 architecture = GPU()
 Pr = 7   # Prandtl
 τ = 0.05 # diff ratio
-ν = 1e-6 # set this get the others
-κₜ = round(ν / Pr, digits = 8)
-κₛ = round(τ * κₜ, digits = 10)
+ν = 5e-6 # set this get the others
+κₜ, κₛ = κₛ_and_κₜ_from_ν(ν; τ, Pr)
 Sc = ν / κₛ
 diffusivities = (;ν, κ=(S=κₛ, T=κₜ))
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
