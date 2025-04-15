@@ -19,7 +19,7 @@ temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
 # initial_noise = NoiseAtDepth([depth_of_interface-0.02, depth_of_interface+0.02], TracerNoise(2e-4, 0.0))
-initial_noise = (velocities = VelocityNoise(1e-3), tracers = TracerNoise(1e-3))
+initial_noise = (velocities = VelocityNoise(1e-3), tracers = TracerNoise(1e-4, 1e-2))
 ## setup model
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
