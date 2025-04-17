@@ -127,10 +127,10 @@ let
 	# ta = TimeArray((;timestamps, Rᵨ = R_ρ_interp, Ẽ = expt_data["Ẽ"]), timestamp = :timestamps)
 	# ta_mean = moving(mean, ta, window)
 	
-	fig = Figure(size = (600, 800))
+	fig = Figure(size = (500, 500))
 	ax1 = Axis(fig[1, 1], xlabel = "R_ρ", ylabel = "Ẽ")
 	lines!(ax1, R_ρ_interp, expt_data["Ẽ"])
-	vlines!(ax1, 1.6, color = :red, linestyle = :dash)
+	# vlines!(ax1, 1.6, color = :red, linestyle = :dash)
 
 	# ax2 = Axis(fig[2, 1], xlabel = "R_ρ", ylabel = "Ẽ")
 	# lines!(ax2, values(ta_mean), label = "Averaging window = $window mins")
@@ -270,7 +270,7 @@ begin
 	Δz = diff(dims["z_aaf"])[1]
 	md"""
 	Above can see a figure of the Batchelor scale with minimal length $(round(min_Ba, digits = 2))mm.
-	To achieve this in the domain size I have this would need resolution of $(min_Ba * 1e-3) everywhere so around 3e-4.
+	To achieve this in the domain size I have this would need resolution of $(min_Ba * 1e-3) everywhere so around 4e-4.
 	This simulation was run with:
 	- Δx = $(Δx)
 	- Δz = $(Δz).
@@ -304,16 +304,16 @@ let
 	∫wb = 0.5 * (expt_data["∫wb"][1:end-1] .+ expt_data["∫wb"][2:end])
 	∫gρw = 0.5 * (expt_data["∫gρw"][1:end-1] .+ expt_data["∫gρw"][2:end])
 	RHS = ∫wb .- ε
-	fig, ax = lines(eachindex(Δt), dₜek, label = "dₜek")
-	lines!(ax, eachindex(Δt), RHS, label = "∫wb - ε")
+	fig, ax = lines(eachindex(Δt)[2:end], dₜek[2:end], label = "dₜek")
+	lines!(ax, eachindex(Δt)[2:end], RHS[2:end], label = "∫wb - ε")
 	ax.title = "Energy  budget"
 	ax.xlabel = "time (minutes)"
 	ax.ylabel = "Watts / ρ₀"
-	axislegend(ax)
+	axislegend(ax, position = :rb)
 
 	ax2 = Axis(fig[2, 1], title = "Absolute error")
 	abs_err = abs.(dₜek .- RHS)
-	lines!(ax2, abs_err)
+	lines!(ax2, abs_err[2:end])
 	fig
 end
 
