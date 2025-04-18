@@ -249,8 +249,8 @@ md"""
 begin
 	η = 1e3 * expt_data["η"][2:end]
 	Ba = 1e3 * expt_data["Ba"][2:end]
-	Ba_fig, Ba_ax = lines(log10.(Ba), label = "Ba")
-	lines!(Ba_ax, log10.(η), label = "η")
+	Ba_fig, Ba_ax = lines(log10.(η), label = "η")
+	lines!(Ba_ax, log10.(Ba), label = "Ba")
 	Ba_ax.xlabel = "time (mins)"
 	Ba_ax.ylabel = "Length (log10(mm))"
 	min_Ba = minimum(Ba)
