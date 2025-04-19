@@ -11,7 +11,7 @@ Sc = ν / κₛ
 diffusivities = (;ν, κ=(S=κₛ, T=κₜ))
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-resolution = (Nx=50, Ny=50, Nz=500)
+resolution = (Nx=50, Ny=50, Nz=1000)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
