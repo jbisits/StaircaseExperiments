@@ -4,7 +4,7 @@ restart = true
 
 architecture = GPU()
 Pr = 7   # Prandtl
-τ = 0.02 # diff ratio
+τ = 0.03 # diff ratio
 ν = 2.5e-6 # set this get the others
 κₜ, κₛ = κₛ_and_κₜ_from_ν(ν; τ, Pr)
 Sc = ν / κₛ
