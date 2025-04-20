@@ -4,8 +4,8 @@ restart = true
 
 architecture = GPU()
 Pr = 7   # Prandtl
-τ = 0.03 # diff ratio
-ν = 2.5e-6 # set this get the others
+τ = 0.01 # τ = 0.05 # diff ratio
+ν = 4.5e-6 # ν = 2.5e-6 # set this get the others
 κₜ, κₛ = κₛ_and_κₜ_from_ν(ν; τ, Pr)
 Sc = ν / κₛ
 diffusivities = (;ν, κ=(S=κₛ, T=κₜ))
