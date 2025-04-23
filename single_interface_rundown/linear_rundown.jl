@@ -33,7 +33,7 @@ simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    checkpointer_time_interval,
                                    overwrite_saved_output = restart, max_Δt)
 ## Run
-# simulation.stop_time = 18 * 60 * 60 # update to pickup from a checkpoint
+restart ? nothing : simulation.stop_time = Int(10 * 60 * 60) # update to pickup from a checkpoint
 pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
 run!(simulation; pickup)
 
