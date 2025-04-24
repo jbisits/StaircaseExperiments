@@ -15,9 +15,9 @@ eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 # bcs from a rundown model and are an approximation/test to see if can simulate
 # effect of interfaces either side.
-Jᵀ = 6.6e-6
+Jᵀ = 6.6e-7
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
-Jˢ = 1.5e-7
+Jˢ = 1.5e-8
 S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ), bottom = FluxBoundaryCondition(Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
 dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
@@ -64,3 +64,14 @@ cd(animation_path)
 using CairoMakie
 animate_density(simulation.output_writers[:computed_output].filepath, "σ", xslice = 17, yslice = 17)
 animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslice = 17)
+
+using JLD2
+ds = NCDataset(simulation.output_writers[:computed_output].filepath)
+R_ρ = "R_rho.jld2"
+if isfile(R_ρ)
+    rm(R_ρ)
+end
+jldopen(R_ρ, "w") do f
+    f["R_ρ"] = ds[:R_ρ]
+end
+close(ds)
