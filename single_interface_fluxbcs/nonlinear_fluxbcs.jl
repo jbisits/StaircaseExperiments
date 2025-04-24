@@ -24,7 +24,7 @@ dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplici
 
 ## Initial conditions
 depth_of_interface = -0.5
-salinity = [34.56, 34.70]
+salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
@@ -54,6 +54,9 @@ pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir,
 run!(simulation; pickup)
 
 ## Produce animations
+compute_R_ρ!(simulation.output_writers[:computed_output].filepath,
+             simulation.output_writers[:tracers].filepath, eos)
+
 reduced_path = findlast('/', simulation.output_writers[:computed_output].filepath)
 animation_path = simulation.output_writers[:computed_output].filepath[1:(reduced_path-1)]
 cd(animation_path)
