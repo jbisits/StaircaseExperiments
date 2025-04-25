@@ -10,7 +10,7 @@ diffusivities = diffusivities_from_ν(ν; τ, Pr)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=50, Ny=50, Nz=500)
-ρ₀ = gsw_rho(34.7, 0.5, 0)
+ρ₀ = gsw_rho(34.7, 0.5, 0.5)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 # bcs from a rundown model and are an approximation/test to see if can simulate
