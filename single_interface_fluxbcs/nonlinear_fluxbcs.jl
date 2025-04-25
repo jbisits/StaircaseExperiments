@@ -15,9 +15,9 @@ eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 # bcs from a rundown model and are an approximation/test to see if can simulate
 # effect of interfaces either side.
-Jᵀ = 6.6e-5
+Jᵀ = 1.06e-5
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
-Jˢ = 1.5e-7
+Jˢ = 3.8e-7
 S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ), bottom = FluxBoundaryCondition(Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
 dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
@@ -72,6 +72,6 @@ if isfile(R_ρ)
     rm(R_ρ)
 end
 jldopen(R_ρ, "w") do f
-    f["R_ρ"] = ds[:R_ρ]
+    f["R_ρ"] = ds[:R_ρ][:]
 end
 close(ds)
