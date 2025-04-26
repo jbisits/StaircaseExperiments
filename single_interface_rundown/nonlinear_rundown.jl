@@ -9,7 +9,7 @@ Pr = 7   # Prandtl
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-resolution = (Nx=83, Ny=83, Nz=1650)
+resolution = (Nx=80, Ny=80, Nz=1600)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
@@ -33,7 +33,7 @@ output_path = joinpath(@__DIR__, "dns_rundown_$(round(interface_ics.R_ρ, digits
 save_schedule = 60
 checkpointer_time_interval = 60 * 60 # seconds
 Δt = 1e-3
-max_Δt = 7e-2
+max_Δt = 5e-2
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    save_vertical_velocities!;
                                    output_path,

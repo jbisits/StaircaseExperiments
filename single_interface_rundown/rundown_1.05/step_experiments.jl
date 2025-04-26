@@ -256,7 +256,7 @@ begin
 	min_Ba = minimum(Ba)
 	min_η = minimum(η)
 	Ba_ax.title = "η minimum = $(min_η)mm,  Ba minimum = $(min_Ba)mm"
-	axislegend(Ba_ax)
+	axislegend(Ba_ax, position = :rc)
 	Ba_fig
 end
 
