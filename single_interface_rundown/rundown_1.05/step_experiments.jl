@@ -276,7 +276,7 @@ begin
 	- Δz = $(Δz).
 
 	So with what I have done I am an order of magnitiude away.
-	But I have the leeway that people use ``Δ < 2.5 Ba`` as the upper limit so what I need to resolve is $(round(min_Ba, digits = 2) * 2.5), so $(round(min_Ba, digits = 2) * 2.5 * 1e-3)m.
+	But I have the leeway that people use ``Δ < 2.5 Ba`` as the upper limit so what I need to resolve is $(round(min_Ba, digits = 2) * 2.5)mm, so $(round(min_Ba, digits = 2) * 2.5 * 1e-3)m.
 	
 	If I set ``N_{x} = N_{y} = 100`` and ``N_{z} = 700``, for ``L_{x} = L_{y} = `` $(Lx) and ``L_{z} = `` $(Lz), I should be able to get to DNS resolution with the 2.5Ba argument provided that I get closed energy budget.
 	This resolution is *less* than what I ran with the cabbeling DNS so it should be possible --- just that so far this simulation has required a significantly smaller timestep.
