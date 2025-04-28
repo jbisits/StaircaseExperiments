@@ -20,34 +20,34 @@ depth_of_interface = -0.5
 salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
 
-# ## stabilise with T
-# Sᵤ, Sₗ = salinity
-# S_range = range(Sᵤ, Sₗ, length = resolution.Nz)
-# ΔS = diff(Array(salinity))[1]
-# Δz = domain_extent.Lz - 0
-# S_bf = BackgroundField(linear_background, parameters = (Cᵤ = Sᵤ, ΔC = ΔS, Δz = Δz, Lz = 0))
+# ## get constant density gradient from linear salinity (i.e. temperature is nonlinear)
+Sᵤ, Sₗ = salinity
+S_range = range(Sᵤ, Sₗ, length = resolution.Nz)
+ΔS = diff(Array(salinity))[1]
+Δz = domain_extent.Lz - 0
+S_bf = BackgroundField(linear_background, parameters = (Cᵤ = Sᵤ, ΔC = ΔS, Δz = Δz, Lz = 0))
 
-# Tᵤ, Tₗ = temperature
+Tᵤ, Tₗ = temperature
 
-# z = znodes(model.grid, Center())
-# p = Array(gsw_p_from_z.(z, 60))
-# reverse!(p)
-# ρᵤ, ρₗ = gsw_rho(Sᵤ, Tᵤ, p[1]), gsw_rho(Sₗ, Tₗ, p[end])
-# ρ_range = range(ρᵤ, ρₗ, length = resolution.Nz)
+z = znodes(model.grid, Center())
+p = Array(gsw_p_from_z.(z, 60))
+reverse!(p)
+ρᵤ, ρₗ = gsw_rho(Sᵤ, Tᵤ, p[1]), gsw_rho(Sₗ, Tₗ, p[end])
+ρ_range = range(ρᵤ, ρₗ, length = resolution.Nz)
 
-# found_T = gsw_ct_from_rho.(ρ_range, S_range, p)
-# found_T = [found_T[i][1] for i ∈ eachindex(found_T)]
-# reverse!(found_T)
-# T_background_profile = reshape(found_T, (1, 1, resolution.Nz))
-# T_bf = similar(model.tracers.T)
-# set!(T_bf, T_background_profile)
+found_T = gsw_ct_from_rho.(ρ_range, S_range, p)
+found_T = [found_T[i][1] for i ∈ eachindex(found_T)]
+reverse!(found_T)
+T_background_profile = reshape(found_T, (1, 1, resolution.Nz))
+T_bf = similar(model.tracers.T)
+set!(T_bf, T_background_profile)
 
-# background_fields = (S = S_bf, T = T_bf)
-# interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
-#                                     background_state = background_fields)
-
+background_fields = (S = S_bf, T = T_bf)
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
-                                    background_state = BackgroundLinear())
+                                    background_state = background_fields)
+
+# interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature,
+#                                     background_state = BackgroundLinear())
 initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1e-2))
 
 ## setup model
