@@ -29,7 +29,7 @@ sdns = StaircaseDNS(model, staircase_ics; initial_noise)
 ## Build simulation
 stop_time = Int(4 * 60 * 60) # seconds
 initial_state = "step" # can update if smoothing is added
-output_path = joinpath(@__DIR__, "rundown_$(round(interface_ics.R_ρ, digits = 2))", initial_state)
+output_path = joinpath(@__DIR__, "rundown_$(round(interface_ics.R_ρ[2], digits = 2))", initial_state)
 save_schedule = 60
 checkpointer_time_interval = 60 * 60 # seconds
 Δt = 1e-3
