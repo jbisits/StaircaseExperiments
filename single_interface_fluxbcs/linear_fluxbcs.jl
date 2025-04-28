@@ -75,3 +75,18 @@ jldopen(R_ρ, "w") do f
     f["R_ρ"] = ds[:R_ρ][:]
 end
 close(ds)
+
+# local plot of figure
+# using JLD2, CairoMakie
+# output_path = joinpath(@__DIR__, "linear/")
+# data = joinpath(output_path, "R_rho.jld2")
+# f = jldopen(data)
+# R_ρ = f["R_ρ"]
+# close(f)
+
+# fig, ax = lines(R_ρ)
+# ax.title = "R_ρ with fluxbcs linear eos"
+# ax.xlabel = "time (mins)"
+# ax.ylabel = "R_ρ"
+# fig
+# save(joinpath(output_path, "R_rho.png"), fig)
