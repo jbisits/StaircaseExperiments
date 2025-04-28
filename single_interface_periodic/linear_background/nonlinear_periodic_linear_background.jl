@@ -13,7 +13,7 @@ resolution = (Nx=50, Ny=50, Nz=500)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
-dns_model = DNSModel(model_setup...; TD = VerticallyImplicitTimeDiscretization())
+model = DNSModel(model_setup...; TD = VerticallyImplicitTimeDiscretization())
 
 ## Initial conditions
 depth_of_interface = -0.5
