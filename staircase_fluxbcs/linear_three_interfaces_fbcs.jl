@@ -32,7 +32,7 @@ initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1
 sdns = StaircaseDNS(model, staircase_ics; initial_noise)
 
 ## Build simulation
-stop_time = Int(4 * 60 * 60) # seconds
+stop_time = Int(10 * 60 * 60) # seconds
 initial_state = "step" # can update if smoothing is added
 output_path = joinpath(@__DIR__, "fluxbcs_$(round(staircase_ics.R_ρ[2], digits = 2))", initial_state)
 save_schedule = 60
