@@ -65,4 +65,4 @@ cd(output_path)
 @info "Producing animations"
 using CairoMakie
 animate_density(simulation.output_writers[:computed_output].filepath, "σ", xslice = 25, yslice = 25)
-animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 25, yslice = 25)
+animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 25, yslice = 25, rundown = false)

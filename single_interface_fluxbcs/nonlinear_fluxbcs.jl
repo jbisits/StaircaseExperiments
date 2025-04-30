@@ -63,7 +63,7 @@ cd(animation_path)
 @info "Producing animations"
 using CairoMakie
 animate_density(simulation.output_writers[:computed_output].filepath, "σ", xslice = 17, yslice = 17)
-animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslice = 17)
+animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslice = 17, rundown = false)
 
 using JLD2, NCDatasets
 ds = NCDataset(simulation.output_writers[:computed_output].filepath)
