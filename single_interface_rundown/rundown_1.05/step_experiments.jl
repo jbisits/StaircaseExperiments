@@ -25,14 +25,14 @@ end
 
 # ╔═╡ 6301138c-fa0b-11ef-0f3b-39dac35db063
 begin
-initial_state = @bind is Select(["step", "tanh", "diff_initial_h"])
+# initial_state = @bind is Select(["step", "tanh", "diff_initial_h"])
+is = "step"
 md"""
 # Single interface experiments
 
 This notebook contains diagnostics computed from two single interface experiments.
 Both experiments have the same initial salinity and temperature within each layer and the two layers meet at a sharp interface.
 One has a linear equation of state the other uses 55 term non-linear eos.
-Initialy velocity noise ``\mathcal{O}(10^{-2})`` is used to kick off the simulation and they are then run for 18 hours.
 
 The diagnostics, from [McDougall (1981)](https://www.sciencedirect.com/science/article/abs/pii/0079661181900021) and [Carpenter el al (2012)](https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/abs/simulations-of-a-doublediffusive-interface-in-the-diffusive-convection-regime/63D2ECE2AA41439E01A01F9A0D76F2E2), are:
 - salinity, temperature and density in each layer
@@ -41,46 +41,39 @@ The diagnostics, from [McDougall (1981)](https://www.sciencedirect.com/science/a
 - salinity and temperature flux across interface
 - interface height
 - interface thickness
-
-I have two versions: one with an initial step change an one with `tanh` profiles that change at different rates over the interface to setup the interface.
-Can choose which one to view: $initial_state
 """
 end
 
-# ╔═╡ dc0440f3-b915-4974-9b3f-76b34e20b8e0
+# ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	linear_animation_path = joinpath(@__DIR__, is*"/lineareos")
-	nonlinear_animation_path = joinpath(@__DIR__, is*"/nonlineareos")
-	dims = load(joinpath(is, is*"_diagnostics.jld2"), "dims")
-	# leos = load(is*"_diagnostics.jld2", "lineareos")
-	# nleos = load(joinpath(is, is*"_diagnostics.jld2"), "nonlineareos")
-	@info "$is initial condition output loaded"
-end
-
-# ╔═╡ 38b12f7f-4d53-4302-a4ce-7e8c07d49ca9
-begin
-	eos_select = @bind eos Select(["Nonlinear", "Linear"])
+	eos_select = @bind eos Select(["nonlinear", "linear"])
 	md"""
 	# Equation of state
 	
-	I have the data saved for both linear and non linear equation of state. To save writing all the same code twice select the eos: $(eos_select)
+	I have the data saved for both linear and non linear equation of state. 
+	To save writing all the same code twice select the eos: $(eos_select)
 	"""
+end
+
+# ╔═╡ 087d2583-ee90-437a-97ec-0ab607337e30
+begin
+	expt_eos = eos*"eos"
+	output_path = joinpath(@__DIR__, is, expt_eos)
+	expt_data = load(joinpath(output_path, is*"_diagnostics.jld2"))
+	dims = load(joinpath(output_path, is*"_diagnostics.jld2"), "dims")
+	@info "$is initial condition with $(eos) eos output loaded"
 end
 
 # ╔═╡ e177c879-b7d0-4328-b5ad-776f8c64e050
 begin
-	# 	expt_data = eos == "Linear" ? leos : nleos
-	# animation_path = eos == "Linear" ? linear_animation_path : nonlinear_animation_path
-			expt_data = load(joinpath(is, is*"_diagnostics.jld2"))
-	# animation_path = eos == "Linear" ? linear_animation_path : nonlinear_animation_path
 	md"""
 	## Animations
 	
 	### Density
-	$(LocalResource(is*"/density.mp4"))
+	$(LocalResource(joinpath(output_path, "density.mp4")))
 	
 	### Salinity and temperature
-	$(LocalResource(is*"/tracers.mp4"))
+	$(LocalResource(joinpath(output_path,"tracers.mp4")))
 	"""
 end
 
@@ -241,8 +234,6 @@ end
 # ╔═╡ 6ce43b6e-c3fa-408f-8702-900eaeb17bf5
 md"""
 # Length scales
-
-## Batchelor length
 """
 
 # ╔═╡ 4538f159-01d9-45fd-9fa5-d7463c506a77
@@ -287,7 +278,7 @@ end
 
 # ╔═╡ 3c0e1dfd-e4ba-448f-8475-ada056c8b5fe
 md"""
-## Energy budget
+# Energy budget
 
 I am not quite sure why this is not closed -- could be resolution?
 *Update:* does not appear to be resolution as this is more or less at Batchelor scale.
@@ -353,8 +344,8 @@ TableOfContents()
 # ╔═╡ Cell order:
 # ╟─6301138c-fa0b-11ef-0f3b-39dac35db063
 # ╟─010ecdc3-51d6-41a6-9bc5-6efbba0723a6
-# ╟─dc0440f3-b915-4974-9b3f-76b34e20b8e0
-# ╟─38b12f7f-4d53-4302-a4ce-7e8c07d49ca9
+# ╟─68d31cca-3f29-4402-ac79-8deaef98ef50
+# ╟─087d2583-ee90-437a-97ec-0ab607337e30
 # ╟─e177c879-b7d0-4328-b5ad-776f8c64e050
 # ╟─07089057-5b2f-40e5-a485-0eeac1e9b348
 # ╟─c2dce901-8578-448c-8c6e-ec7bb3e6d71b
