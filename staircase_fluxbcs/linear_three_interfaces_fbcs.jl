@@ -22,8 +22,8 @@ model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTim
 
 number_of_interfaces = 3
 depth_of_interfaces = [-0.25, -0.5, -0.75]
-salinity = [34.58, 34.61, 34.65, 34.7]
-temperature = [-1.5, -1.0, -0.33, 0.5]
+salinity = [34.56, 34.594, 34.64, 34.7]
+temperature = [-1.5, -1.0, -0.33, 0.52]
 staircase_ics = StaircaseICs(model, number_of_interfaces, depth_of_interfaces, salinity, temperature)
 
 initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1e-2))

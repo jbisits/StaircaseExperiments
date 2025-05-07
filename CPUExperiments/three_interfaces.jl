@@ -10,7 +10,6 @@ domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=5, Ny=5, Nz=100)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
-ρ₀ = gsw_rho(34.57, 0.5, 0)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 model = DNSModel(model_setup...; TD = VerticallyImplicitTimeDiscretization())
@@ -18,11 +17,12 @@ model = DNSModel(model_setup...; TD = VerticallyImplicitTimeDiscretization())
 number_of_interfaces = 3
 depth_of_interfaces = [-0.25, -0.5, -0.75]
 #### nonlinear eos
-salinity = [34.58, 34.61, 34.65, 34.7]
-temperature = [-1.51, -0.87, -0.19, 0.51]
+# salinity = [34.56, 34.60, 34.64, 34.7]
+# temperature = [-1.45, -0.75, -0.19, 0.51]
 #### linear eos
-salinity = [34.58, 34.61, 34.65, 34.7]
-temperature = [-1.5, -1.0, -0.33, 0.5]
+salinity = [34.56, 34.594, 34.64, 34.7]
+temperature = [-1.5, -1.0, -0.33, 0.52]
+####
 staircase_ics = StaircaseICs(model, number_of_interfaces, depth_of_interfaces, salinity, temperature)
 
 initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1e-2))
