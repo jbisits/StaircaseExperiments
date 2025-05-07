@@ -24,7 +24,7 @@ dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplici
 
 ## Initial conditions
 depth_of_interface = -0.5
-salinity = [34.56, 34.70]
+salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
@@ -63,7 +63,7 @@ cd(animation_path)
 @info "Producing animations"
 using CairoMakie
 animate_density(simulation.output_writers[:computed_output].filepath, "σ", xslice = 17, yslice = 17)
-animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslice = 17, rundown = false)
+animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslice = 17)
 
 using JLD2, NCDatasets
 ds = NCDataset(simulation.output_writers[:computed_output].filepath)
