@@ -16,9 +16,9 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 # bcs from a rundown model and are an approximation/test to see if can simulate
 # effect of interfaces either side.
 Jᵀ = 1.5e-5
-T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.25*Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
+T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.5*Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
 Jˢ = 2e-7
-S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.25*Jˢ), bottom = FluxBoundaryCondition(Jˢ))
+S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.1*Jˢ), bottom = FluxBoundaryCondition(Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
 dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
 
@@ -62,8 +62,11 @@ animation_path = simulation.output_writers[:computed_output].filepath[1:(reduced
 cd(animation_path)
 @info "Producing animations"
 using CairoMakie
-animate_density(simulation.output_writers[:computed_output].filepath, "σ", xslice = 17, yslice = 17)
-animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslice = 17)
+animate_density(simulation.output_writers[:computed_output].filepath, "σ",
+                xslice = 17, yslice = 17, density_limit_adjustment = 0.04)
+animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslice = 17,
+                S_limit_adjustment = 0.025,
+                Θ_limit_adjustment = 0.5)
 
 using JLD2, NCDatasets
 ds = NCDataset(simulation.output_writers[:computed_output].filepath)

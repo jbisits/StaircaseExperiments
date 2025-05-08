@@ -14,7 +14,7 @@ resolution = (Nx=50, Ny=50, Nz=500)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 Jᵀ = 2.5e-5
-T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
+T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.5*Jᵀ), bottom = FluxBoundaryCondition(0.5*Jᵀ))
 Jˢ = 3.2e-7
 S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ), bottom = FluxBoundaryCondition(Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
@@ -62,5 +62,8 @@ output_path = simulation.output_writers[:computed_output].filepath[1:(reduced_pa
 cd(output_path)
 @info "Producing animations"
 using CairoMakie
-animate_density(simulation.output_writers[:computed_output].filepath, "σ", xslice = 25, yslice = 25)
-animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 25, yslice = 25, rundown = false)
+animate_density(simulation.output_writers[:computed_output].filepath, "σ",
+                xslice = 25, yslice = 25, density_limit_adjustment = 0.04)
+animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 25, yslice = 25,
+                S_limit_adjustment = 0.02,
+                Θ_limit_adjustment = 0.25)
