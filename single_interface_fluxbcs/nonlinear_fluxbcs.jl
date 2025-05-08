@@ -16,7 +16,7 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 # bcs from a rundown model and are an approximation/test to see if can simulate
 # effect of interfaces either side.
 Jᵀ = 1.5e-5
-T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.5*Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
+T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
 Jˢ = 2e-7
 S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.1*Jˢ), bottom = FluxBoundaryCondition(Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)

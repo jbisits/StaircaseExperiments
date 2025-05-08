@@ -16,7 +16,7 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 Jᵀ = 2.5e-5
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.5*Jᵀ), bottom = FluxBoundaryCondition(0.5*Jᵀ))
 Jˢ = 3.2e-7
-S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ), bottom = FluxBoundaryCondition(Jˢ))
+S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.5*Jˢ), bottom = FluxBoundaryCondition(0.5*Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
 model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
 
