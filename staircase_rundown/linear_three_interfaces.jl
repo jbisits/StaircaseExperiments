@@ -21,7 +21,8 @@ salinity = [34.58, 34.61, 34.65, 34.7]
 temperature = [-1.5, -1.0, -0.33, 0.5]
 staircase_ics = StaircaseICs(model, number_of_interfaces, depth_of_interfaces, salinity, temperature)
 
-initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1e-2))
+# initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1e-2))
+initial_noise = TracerNoise(2e-4, 0.0)
 
 ## setup model
 sdns = StaircaseDNS(model, staircase_ics; initial_noise)
