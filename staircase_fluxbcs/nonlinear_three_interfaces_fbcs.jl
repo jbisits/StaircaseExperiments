@@ -14,11 +14,11 @@ resolution = (Nx=50, Ny=50, Nz=500)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 Jᵀ = 2.5e-5
-T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.25*Jᵀ),
-                                bottom = FluxBoundaryCondition(Jᵀ))
+T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.15*Jᵀ),
+                                bottom = FluxBoundaryCondition(0.25*Jᵀ))
 Jˢ = 3.2e-7
-S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.25*Jˢ),
-                                bottom = FluxBoundaryCondition(Jˢ))
+S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.15*Jˢ),
+                                bottom = FluxBoundaryCondition(0.25*Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
 model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
 
@@ -34,7 +34,7 @@ initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1
 sdns = StaircaseDNS(model, staircase_ics; initial_noise)
 
 ## Build simulation
-stop_time = Int(4 * 60 * 60) # seconds
+stop_time = Int(16 * 60 * 60) # seconds
 initial_state = "step" # can update if smoothing is added
 output_path = joinpath(@__DIR__, "fluxbcs_$(round(staircase_ics.R_ρ[2], digits = 2))", initial_state)
 save_schedule = 60
