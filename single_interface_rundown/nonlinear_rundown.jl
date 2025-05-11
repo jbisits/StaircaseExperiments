@@ -7,7 +7,7 @@ Pr = 7   # Prandtl
 τ = 0.05 # diff ratio
 ν = 2.5e-6 # set this get the others
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
-domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
+domain_extent = (Lx=0.04, Ly=0.04, Lz=-0.8)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=80, Ny=80, Nz=1600)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
@@ -16,7 +16,7 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 dns_model = DNSModel(model_setup...; TD = VerticallyImplicitTimeDiscretization())
 
 ## Initial conditions
-depth_of_interface = -0.5
+depth_of_interface = -0.4
 salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
@@ -33,7 +33,7 @@ output_path = joinpath(@__DIR__, "dns_rundown_$(round(interface_ics.R_ρ, digits
 save_schedule = 60
 checkpointer_time_interval = 60 * 60 # seconds
 Δt = 1e-3
-max_Δt = 2.5e-2
+max_Δt = 2e-2
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    save_vertical_velocities!;
                                    output_path,
