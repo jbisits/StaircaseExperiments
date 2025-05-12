@@ -55,7 +55,7 @@ run!(simulation; pickup)
 
 ## Produce animations
 compute_R_ρ!(simulation.output_writers[:computed_output].filepath,
-             simulation.output_writers[:tracers].filepath, eos)
+             simulation.output_writers[:tracers].filepath, (-0.4, -0.2), (-0.8, -0.6), eos)
 
 reduced_path = findlast('/', simulation.output_writers[:computed_output].filepath)
 animation_path = simulation.output_writers[:computed_output].filepath[1:(reduced_path-1)]
