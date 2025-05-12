@@ -302,8 +302,8 @@ let
 	ax.ylabel = "Watts / ρ₀"
 	axislegend(ax, position = :rb)
 
-	ax2 = Axis(fig[2, 1], title = "Absolute error")
 	abs_err = abs.(dₜek .- RHS)
+	ax2 = Axis(fig[2, 1], title = "Absolute error, MAE = $(mean(abs_err))")
 	lines!(ax2, abs_err[2:end])
 	fig
 end
