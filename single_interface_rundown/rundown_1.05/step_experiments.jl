@@ -46,7 +46,7 @@ end
 
 # ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	eos_select = @bind eos Select(["nonlinear", "linear"])
+	eos_select = @bind eos Select(["smallerdt_nonlinear", "linear"])
 	md"""
 	# Equation of state
 	
@@ -161,13 +161,13 @@ let
 
 	fig = Figure(size = (800, 800))
 	axT = Axis(fig[1, 1], ylabel = "T flux")
-	T_interface_idx = expt_data["ha_T_interface_idx"]
-	T_flux_interface = [expt_data["ha_T_flux"][idx, i] for (i, idx) ∈ enumerate(T_interface_idx)]
+	T_interface_idx = expt_data["ha_T_ha_interface_idx"]
+	T_flux_interface = [expt_data["ha_T_ha_flux"][idx, i] for (i, idx) ∈ enumerate(T_interface_idx)]
 	lines!(axT, R_ρ_interp, T_flux_interface)
 	
 	axS = Axis(fig[2, 1], ylabel = "S flux")
-	S_interface_idx = expt_data["ha_S_interface_idx"]
-	S_flux_interface = [expt_data["ha_S_flux"][idx, i] for (i, idx) ∈ enumerate(S_interface_idx)]
+	S_interface_idx = expt_data["ha_S_ha_interface_idx"]
+	S_flux_interface = [expt_data["ha_S_ha_flux"][idx, i] for (i, idx) ∈ enumerate(S_interface_idx)]
 	lines!(axS, R_ρ_interp, S_flux_interface)
 	
 	R_f = S_flux_interface ./ T_flux_interface
@@ -310,8 +310,10 @@ end
 
 # ╔═╡ f200b8e0-2b14-4270-963b-6bb1b154d550
 let
-	fig, ax = lines(expt_data["∫wb"], label = "wb")
-	lines!(ax, -expt_data["∫gρw"], label = "∫gρw (post processing)", linestyle = :dash)
+	fig, ax = lines(log10.(expt_data["∫wb"]), label = "wb")
+	lines!(ax,  log10.(-expt_data["∫gρw"]), label = "∫gρw (post processing)", linestyle = :dash)
+	lines!(ax, log10.(expt_data["∫ε"]), label = "∫ε", linestyle = :dot)
+	ax.title = "Buoyancy flux and TKE dissipation (log10)"
 	axislegend(ax)
 	fig
 end

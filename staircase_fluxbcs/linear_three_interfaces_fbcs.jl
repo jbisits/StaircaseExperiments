@@ -79,6 +79,27 @@ if isfile(R_ρ)
     rm(R_ρ)
 end
 jldopen(R_ρ, "w") do f
-    f["R_ρ"] = ds[:R_ρ][:]
+    f["R_ρ1"] = ds[:R_ρ1][:]
+    f["R_ρ2"] = ds[:R_ρ2][:]
+    f["R_ρ3"] = ds[:R_ρ3][:]
 end
 close(ds)
+
+# using CairoMakie, JLD2
+# output_path = joinpath(@__DIR__, "nonlinear_weaker_top_fluxes")
+# data = joinpath(output_path, "R_rho.jld2")
+# f = jldopen(data)
+# R_ρ1 = f["R_ρ1"]
+# R_ρ2 = f["R_ρ2"]
+# R_ρ3 = f["R_ρ3"]
+# close(f)
+
+# fig, ax = lines(R_ρ1, label = "Interface 1")
+# lines!(ax, R_ρ2, label = "Interface 2")
+# lines!(ax, R_ρ3, label = "Interface 3")
+# ax.title = "R_ρ with fluxbcs nonlinear eos"
+# ax.xlabel = "time (mins)"
+# ax.ylabel = "R_ρ"
+# axislegend(ax)
+# fig
+# save(joinpath(output_path, "R_rho.png"), fig)
