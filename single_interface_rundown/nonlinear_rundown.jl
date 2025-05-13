@@ -1,4 +1,4 @@
-using StaircaseShenanigans, GibbsSeaWater
+using StaircaseShenanigans, GibbsSeaWater, CairoMakie
 
 restart = true
 
@@ -56,9 +56,11 @@ reduced_path = findlast('/', simulation.output_writers[:computed_output].filepat
 output_path = simulation.output_writers[:computed_output].filepath[1:(reduced_path-1)]
 cd(output_path)
 @info "Producing animations"
-using CairoMakie
-animate_density(simulation.output_writers[:computed_output].filepath, "σ", xslice = 25, yslice = 25)
-animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 25, yslice = 25)
+animate_density(simulation.output_writers[:computed_output].filepath, "σ",
+                xslice = 17, yslice = 17, density_limit_adjustment = 0.04)
+animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslice = 17,
+                S_limit_adjustment = 0.025,
+                Θ_limit_adjustment = 0.5)
 
 ## compute diagnostics
 diags = "diagnostics.jld2"

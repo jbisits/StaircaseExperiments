@@ -1,4 +1,4 @@
-using StaircaseShenanigans, GibbsSeaWater
+using StaircaseShenanigans, GibbsSeaWater, CairoMakie
 
 restart = true
 
@@ -61,7 +61,6 @@ reduced_path = findlast('/', simulation.output_writers[:computed_output].filepat
 animation_path = simulation.output_writers[:computed_output].filepath[1:(reduced_path-1)]
 cd(animation_path)
 @info "Producing animations"
-using CairoMakie
 animate_density(simulation.output_writers[:computed_output].filepath, "σ",
                 xslice = 17, yslice = 17, density_limit_adjustment = 0.04)
 animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslice = 17,
