@@ -71,3 +71,14 @@ animate_density(simulation.output_writers[:computed_output].filepath, "σ",
 animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 25, yslice = 25,
                 S_limit_adjustment = 0.02,
                 Θ_limit_adjustment = 0.25)
+
+using JLD2, NCDatasets
+ds = NCDataset(simulation.output_writers[:computed_output].filepath)
+R_ρ = "R_rho.jld2"
+if isfile(R_ρ)
+    rm(R_ρ)
+end
+jldopen(R_ρ, "w") do f
+    f["R_ρ"] = ds[:R_ρ][:]
+end
+close(ds)
