@@ -17,15 +17,15 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 # bcs from a rundown model and are an approximation/test to see if can simulate
 # effect of interfaces either side.
 Jᵀ = 1.5e-5
-T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.4*Jᵀ), bottom = FluxBoundaryCondition(0.6*Jᵀ))
+T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.5*Jᵀ), bottom = FluxBoundaryCondition(0.5*Jᵀ))
 Jˢ = 2e-7
-S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.4*Jˢ), bottom = FluxBoundaryCondition(0.6*Jˢ))
+S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.5*Jˢ), bottom = FluxBoundaryCondition(0.5*Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
 dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
 
 ## Initial conditions
 depth_of_interface = -0.5
-salinity = [34.58, 34.70]
+salinity = [34.56, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
