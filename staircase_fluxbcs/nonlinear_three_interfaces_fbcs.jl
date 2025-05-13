@@ -15,10 +15,10 @@ eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 Jᵀ = 2.5e-5
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.15*Jᵀ),
-                                bottom = FluxBoundaryCondition(0.75*Jᵀ))
+                                bottom = FluxBoundaryCondition(0.25*Jᵀ))
 Jˢ = 3.2e-7
 S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.15*Jˢ),
-                                bottom = FluxBoundaryCondition(0.75*Jˢ))
+                                bottom = FluxBoundaryCondition(0.25*Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
 model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
 
@@ -56,7 +56,10 @@ run!(simulation; pickup)
 
 ## Compute density ratio
 compute_R_ρ!(simulation.output_writers[:computed_output].filepath,
-             simulation.output_writers[:tracers].filepath, eos)
+             simulation.output_writers[:tracers].filepath,
+             [(-0.2, -0.1), (-0.45, -0.35), (-0.7, -0.6)],
+             [(-0.45, -0.35), (-0.7, -0.6), (-0.9, -0.8)],
+             eos)
 
 ## Produce animations
 reduced_path = findlast('/', simulation.output_writers[:computed_output].filepath)

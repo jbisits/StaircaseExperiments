@@ -56,7 +56,10 @@ run!(simulation; pickup)
 
 ## Compute density ratio
 compute_R_ρ!(simulation.output_writers[:computed_output].filepath,
-             simulation.output_writers[:tracers].filepath, eos)
+             simulation.output_writers[:tracers].filepath,
+             [(-0.2, -0.1), (-0.45, -0.35), (-0.7, -0.6)],
+             [(-0.45, -0.35), (-0.7, -0.6), (-0.9, -0.8)],
+             eos)
 
 ## Produce animations
 reduced_path = findlast('/', simulation.output_writers[:computed_output].filepath)
