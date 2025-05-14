@@ -25,7 +25,7 @@ dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplici
 
 ## Initial conditions
 depth_of_interface = -0.5
-salinity = [34.56, 34.70]
+salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
