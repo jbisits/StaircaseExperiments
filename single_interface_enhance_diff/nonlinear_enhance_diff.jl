@@ -1,6 +1,5 @@
 using StaircaseShenanigans, GibbsSeaWater, CairoMakie
 
-
 restart = true
 
 architecture = GPU()
