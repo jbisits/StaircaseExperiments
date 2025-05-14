@@ -81,7 +81,7 @@ close(ds)
 
 # local plot of figure
 # using JLD2, CairoMakie
-# output_path = joinpath(@__DIR__, "R_rho_1.23", "nonlineareos/")
+# output_path = joinpath(@__DIR__, "R_rho_1.05", "nonlineareos/")
 # data = joinpath(output_path, "R_rho.jld2")
 # f = jldopen(data)
 # R_ρ = f["R_ρ"]

@@ -13,10 +13,11 @@ resolution = (Nx=50, Ny=50, Nz=500)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
-Jᵀ = 1.5e-5
+scale_flux = 0.2
+Jᵀ = scale_flux * 1.5e-5
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ),
                                 bottom = FluxBoundaryCondition(Jᵀ))
-Jˢ = 2e-7
+Jˢ = scale_flux * 2e-7
 S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ),
                                 bottom = FluxBoundaryCondition(Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
@@ -86,7 +87,7 @@ end
 close(ds)
 
 # using CairoMakie, JLD2
-# output_path = joinpath(@__DIR__, "nonlinear_weaker_top_fluxes")
+# output_path = joinpath(@__DIR__, "nonlinear_equal_top_bottom_fluxes")
 # data = joinpath(output_path, "R_rho.jld2")
 # f = jldopen(data)
 # R_ρ1 = f["R_ρ1"]
