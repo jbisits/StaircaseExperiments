@@ -14,11 +14,11 @@ resolution = (Nx=50, Ny=50, Nz=500)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 Jᵀ = 1.5e-5
-T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.25*Jᵀ),
-                                bottom = FluxBoundaryCondition(0.35*Jᵀ))
+T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ),
+                                bottom = FluxBoundaryCondition(Jᵀ))
 Jˢ = 2e-7
-S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.25*Jˢ),
-                                bottom = FluxBoundaryCondition(0.35*Jˢ))
+S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ),
+                                bottom = FluxBoundaryCondition(Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
 model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
 
