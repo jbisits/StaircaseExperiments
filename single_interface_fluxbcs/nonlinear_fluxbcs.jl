@@ -17,9 +17,9 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 # bcs from a rundown model and are an approximation/test to see if can simulate
 # effect of interfaces either side.
 Jᵀ = 1.5e-5
-T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.5*Jᵀ), bottom = FluxBoundaryCondition(0.5*Jᵀ))
+T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
 Jˢ = 2e-7
-S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.5*Jˢ), bottom = FluxBoundaryCondition(0.5*Jˢ))
+S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ), bottom = FluxBoundaryCondition(Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
 dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
 
@@ -81,7 +81,7 @@ close(ds)
 
 # local plot of figure
 # using JLD2, CairoMakie
-# output_path = joinpath(@__DIR__, "R_rho_1.05", "nonlinear/")
+# output_path = joinpath(@__DIR__, "R_rho_1.23", "nonlineareos/")
 # data = joinpath(output_path, "R_rho.jld2")
 # f = jldopen(data)
 # R_ρ = f["R_ρ"]
