@@ -86,7 +86,7 @@ end
 close(ds)
 
 # using CairoMakie, JLD2
-# output_path = joinpath(@__DIR__, "nonlinear_weaker_top_fluxes")
+# output_path = joinpath(@__DIR__, "linear_weaker_top_fluxes")
 # data = joinpath(output_path, "R_rho.jld2")
 # f = jldopen(data)
 # R_ρ1 = f["R_ρ1"]
