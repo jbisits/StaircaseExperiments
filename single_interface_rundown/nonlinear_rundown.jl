@@ -71,3 +71,11 @@ save_diagnostics!(diags,
                   simulation.output_writers[:tracers].filepath,
                   simulation.output_writers[:computed_output].filepath,
                   simulation.output_writers[:velocities].filepath)
+
+# # check on the output
+# output_path = joinpath(@__DIR__, "rundown_1.05", "step", "smallerdt_nonlineareos")
+# output = jldopen(joinpath(output_path, "step_diagnostics.jld2"))
+# keys(output)
+# heatmap(output["T_ha"]', colormap = :thermal)
+# heatmap(output["σ_ha"]', colormap = :dense)
+# heatmap(output["N²_ha"]', colormap = :balance)
