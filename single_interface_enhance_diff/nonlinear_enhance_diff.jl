@@ -10,7 +10,7 @@ diffusivities = diffusivities_from_ν(ν; τ, Pr)
 diffusivities = (ν = diffusivities.ν, κ = (S = enhance_κₛ, T = enhance_κₜ),
                 parameters = (κₛ = diffusivities.κ.S, κₜ = diffusivities.κ.T,
                               start_enhance = 0, end_enhance = 60,
-                              enhance = 10, τ = τ),
+                              enhance = 1, τ = τ),
                 discrete_form = true)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
