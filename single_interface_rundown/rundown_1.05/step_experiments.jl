@@ -46,7 +46,7 @@ end
 
 # ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	eos_select = @bind eos Select(["smallerdt_nonlinear", "linear"])
+	eos_select = @bind eos Select(["largerdiffrationonlinear", "linear"])
 	md"""
 	# Equation of state
 	
@@ -161,13 +161,13 @@ let
 
 	fig = Figure(size = (800, 800))
 	axT = Axis(fig[1, 1], ylabel = "T flux")
-	T_interface_idx = expt_data["ha_T_ha_interface_idx"]
-	T_flux_interface = [expt_data["ha_T_ha_flux"][idx, i] for (i, idx) ∈ enumerate(T_interface_idx)]
+	T_interface_idx = expt_data["T_ha_interface_idx"]
+	T_flux_interface = [expt_data["T_ha_flux"][idx, i] for (i, idx) ∈ enumerate(T_interface_idx)]
 	lines!(axT, R_ρ_interp, T_flux_interface)
 	
 	axS = Axis(fig[2, 1], ylabel = "S flux")
-	S_interface_idx = expt_data["ha_S_ha_interface_idx"]
-	S_flux_interface = [expt_data["ha_S_ha_flux"][idx, i] for (i, idx) ∈ enumerate(S_interface_idx)]
+	S_interface_idx = expt_data["S_ha_interface_idx"]
+	S_flux_interface = [expt_data["S_ha_flux"][idx, i] for (i, idx) ∈ enumerate(S_interface_idx)]
 	lines!(axS, R_ρ_interp, S_flux_interface)
 	
 	R_f = S_flux_interface ./ T_flux_interface
@@ -205,8 +205,8 @@ let
 	mins = dims["time"] ./ 60
 	fig = Figure(size = (500, 500))
 	ax = Axis(fig[1, 1], xlabel = "time (mins)")
-	lines!(ax, mins, expt_data["ΔS"] ./ expt_data["ΔS"][1], color = :blue, label = "ΔS / ΔS₀")
-	lines!(ax, mins, expt_data["ΔT"] ./ expt_data["ΔT"][1], color = :red, label = "ΔT / ΔT₀")
+	lines!(ax, mins[2:end], expt_data["ΔS"] ./ expt_data["ΔS"][1], color = :blue, label = "ΔS / ΔS₀")
+	lines!(ax, mins[2:end], expt_data["ΔT"] ./ expt_data["ΔT"][1], color = :red, label = "ΔT / ΔT₀")
 	ylims!(ax, 0, 1.1)
 	ax2 = Axis(fig[1, 1], yaxisposition = :right,
 			    yticklabelcolor = :dodgerblue,
@@ -295,23 +295,23 @@ let
 	∫wb = 0.5 * (expt_data["∫wb"][1:end-1] .+ expt_data["∫wb"][2:end])
 	∫gρw = 0.5 * (expt_data["∫gρw"][1:end-1] .+ expt_data["∫gρw"][2:end])
 	RHS = ∫wb .- ε
-	fig, ax = lines(eachindex(Δt)[2:end], dₜek[2:end], label = "dₜek")
-	lines!(ax, eachindex(Δt)[2:end], RHS[2:end], label = "∫wb - ε")
+	fig, ax = lines(eachindex(Δt)[3:end], dₜek[3:end], label = "dₜek")
+	lines!(ax, eachindex(Δt)[3:end], RHS[3:end], label = "∫wb - ε")
 	ax.title = "Energy  budget"
 	ax.xlabel = "time (minutes)"
 	ax.ylabel = "Watts / ρ₀"
 	axislegend(ax, position = :rb)
 
-	abs_err = abs.(dₜek .- RHS)
+	abs_err = abs.(dₜek .- RHS)[3:end]
 	ax2 = Axis(fig[2, 1], title = "Absolute error, MAE = $(mean(abs_err))")
-	lines!(ax2, abs_err[2:end])
+	lines!(ax2, abs_err[3:end])
 	fig
 end
 
 # ╔═╡ f200b8e0-2b14-4270-963b-6bb1b154d550
 let
-	fig, ax = lines(log10.(expt_data["∫wb"]), label = "wb")
-	lines!(ax,  log10.(-expt_data["∫gρw"]), label = "∫gρw (post processing)", linestyle = :dash)
+	fig, ax = lines(log10.(abs.((expt_data["∫wb"]))), label = "wb")
+	lines!(ax,  log10.(abs.(-expt_data["∫gρw"])), label = "∫gρw (post processing)", linestyle = :dash)
 	lines!(ax, log10.(expt_data["∫ε"]), label = "∫ε", linestyle = :dot)
 	ax.title = "Buoyancy flux and TKE dissipation (log10)"
 	axislegend(ax)
@@ -332,8 +332,8 @@ Ideally we would use periodic or jump boundary conditions but nonlinear eos caus
 # ╔═╡ 68a0a47e-e919-4d9d-b1a5-090d69bf633e
 begin
 	find_Rᵨ = findfirst(expt_data["R_ρ"] .> Rᵨ_val)
-	Shaflux = expt_data["ha_S_flux"][expt_data["ha_S_interface_idx"][find_Rᵨ], find_Rᵨ]
-	Thaflux = expt_data["ha_T_flux"][expt_data["ha_T_interface_idx"][find_Rᵨ], find_Rᵨ]
+	Shaflux = expt_data["S_ha_flux"][expt_data["S_ha_interface_idx"][find_Rᵨ], find_Rᵨ]
+	Thaflux = expt_data["T_ha_flux"][expt_data["T_ha_interface_idx"][find_Rᵨ], find_Rᵨ]
 	md"""
 	Horizontally averaged salinity flux through interface for ``R_{\rho} = `` $(Rᵨ_val) is ``J_{S} = `` $(round(Shaflux, digits = 10)) with 
 	Horizontally averaged temperature flux through interface for ``R_{\rho} = `` $(Rᵨ_val) is ``J_{T} = `` $(round(Thaflux, digits = 7)).
@@ -358,13 +358,13 @@ TableOfContents()
 # ╟─baa37deb-ea5a-4437-afa0-0e30a755df9c
 # ╟─0a9d245d-8285-4a22-9edf-178d9e85addb
 # ╟─9a8041ad-6b12-4ef5-9f2f-44189de067f9
-# ╟─3e422d6d-912f-4119-a290-648dbe036dde
+# ╠═3e422d6d-912f-4119-a290-648dbe036dde
 # ╟─d0148931-4198-4bb3-893c-a9b73e1ec7a9
 # ╟─6ce43b6e-c3fa-408f-8702-900eaeb17bf5
 # ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013
 # ╟─3c0e1dfd-e4ba-448f-8475-ada056c8b5fe
-# ╟─c576c4cd-1101-46e2-b6fa-b574f0b13dfe
+# ╠═c576c4cd-1101-46e2-b6fa-b574f0b13dfe
 # ╟─f200b8e0-2b14-4270-963b-6bb1b154d550
 # ╟─50e87efc-a49c-4ffd-bfbd-cd5dfad40639
 # ╟─ee9c0edb-477b-4cc0-8c57-36845a90bbaf
