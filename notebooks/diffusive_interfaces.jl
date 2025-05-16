@@ -332,13 +332,13 @@ begin
 	eos = CustomLinearEquationOfState(-0.5, 34.6)
 	eos_vec = fill(eos, length(z))
     interface_location = -0.5
-	κₛ_range = range(1e-9, κₜ, length = 500)
+	κₛ_range = range(1e-9, κₜ, length = 100)
 	τ_range = κₛ_range ./ κₜ
 	σ₀_nonlinear_max = similar(κₛ_range)
 	σ₀_nonlinear_min = similar(κₛ_range)
 	σ₀_linear_max = similar(κₛ_range)
 	σ₀_linear_min = similar(κₛ_range)
-	t = 5000 # seconds, this value is not stricly important as maximum density does not increase
+	t = 10000 # seconds, this value is not stricly important as maximum density does not increase
 	for i ∈ eachindex(κₛ_range)
 		S = erf_tracer_solution.(z, S_star, ΔS, κₛ_range[i], t, interface_location)
 		T = erf_tracer_solution.(z, Θ_star, ΔΘ, κₜ, t, interface_location)
@@ -358,13 +358,17 @@ begin
 	Δσ_lower_linear = σ₀_linear_max .- total_density(Θ_star, S_star, 0, eos)
 	Δσ_upper_linear = abs.(σ₀_linear_min .- total_density(Θ_upper, S_upper, 0, eos))
 	Δσ_linear = Δσ_upper_linear ./ Δσ_lower_linear
+	
 	fig, ax = lines(τ_range, Δσ_nonlinear, label = "nonlinear eos")
 	lines!(ax, τ_range, Δσ_linear, label = "linear eos")
 	ax.xlabel = "τ"
 	ax.ylabel = "Δσ_upper/Δσ_lower"
-	axislegend(ax)
+	axislegend(ax, position = :rc)
 	fig
 end
+
+# ╔═╡ e73ee69f-3a47-42a7-acaa-0f3e50664b53
+Δσ_upper_nonlinear
 
 # ╔═╡ 7ad7693e-6f18-474a-89e8-b2d433aea261
 TableOfContents()
@@ -379,4 +383,5 @@ TableOfContents()
 # ╟─1e626657-a23c-42b5-bbae-056c6a61948b
 # ╟─d8e4ad73-b296-462b-a161-9666ba6322b6
 # ╠═48eb84eb-42bf-4938-9d9e-0c8794fa5a5c
+# ╠═e73ee69f-3a47-42a7-acaa-0f3e50664b53
 # ╟─7ad7693e-6f18-474a-89e8-b2d433aea261
