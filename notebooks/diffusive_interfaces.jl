@@ -367,9 +367,6 @@ begin
 	fig
 end
 
-# ╔═╡ e73ee69f-3a47-42a7-acaa-0f3e50664b53
-Δσ_upper_nonlinear
-
 # ╔═╡ 7ad7693e-6f18-474a-89e8-b2d433aea261
 TableOfContents()
 
@@ -382,6 +379,5 @@ TableOfContents()
 # ╟─5a8f995b-f45d-47f0-bcdf-8df553c21d17
 # ╟─1e626657-a23c-42b5-bbae-056c6a61948b
 # ╟─d8e4ad73-b296-462b-a161-9666ba6322b6
-# ╠═48eb84eb-42bf-4938-9d9e-0c8794fa5a5c
-# ╠═e73ee69f-3a47-42a7-acaa-0f3e50664b53
+# ╟─48eb84eb-42bf-4938-9d9e-0c8794fa5a5c
 # ╟─7ad7693e-6f18-474a-89e8-b2d433aea261
