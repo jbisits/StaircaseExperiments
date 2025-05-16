@@ -3,12 +3,12 @@ using StaircaseShenanigans
 architecture = CPU() # or GPU()
 Pr = 7   # Prandtl
 τ = 0.05 # diff ratio
-ν = 2.5e-6 # set this get the others
+ν = 1e-6 # set this get the others
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 diffusivities = (ν = diffusivities.ν, κ = (S = enhance_κₛ, T = enhance_κₜ),
                 parameters = (κₛ = diffusivities.κ.S, κₜ = diffusivities.κ.T,
                               start_enhance = 0, end_enhance = 1,
-                              enhance = 10, τ = τ),
+                              κ_turb = 1e-6),
                 discrete_form = true)
 domain_extent = (Lx = 0.01, Ly = 0.01, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
