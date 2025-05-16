@@ -3,9 +3,9 @@ using StaircaseShenanigans, GibbsSeaWater, CairoMakie
 restart = true
 
 architecture = GPU()
-Pr = 10   # Prandtl
+Pr = 7   # Prandtl
 τ = 0.05 # diff ratio
-ν = 1e-6 # set this get the others
+ν = 2.5e-6 # set this get the others
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 diffusivities = (ν = diffusivities.ν, κ = (S = enhance_κₛ, T = enhance_κₜ),
                 parameters = (κₛ = diffusivities.κ.S, κₜ = diffusivities.κ.T,
@@ -14,8 +14,8 @@ diffusivities = (ν = diffusivities.ν, κ = (S = enhance_κₛ, T = enhance_κ�
                 discrete_form = true)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-resolution = (Nx=50, Ny=50, Nz=500)
-ρ₀ = gsw_rho(34.7, 0.5, 0.5)
+resolution = (Nx=50, Ny=50, Nz=1000)
+ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 dns_model = DNSModel(model_setup...)
@@ -35,12 +35,12 @@ temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
 # initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1e-2))
-initial_noise = TracerNoise(2e-4, 0.0)
+initial_noise = TracerNoise(1e-4, 1e-2)
 ## setup model
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
 ## Build simulation
-stop_time = Int(8 * 60 * 60) # seconds
+stop_time = Int(3 * 60 * 60) # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
 output_path = joinpath(@__DIR__, "enhancediff_$(round(interface_ics.R_ρ, digits = 2))", initial_state)
 save_schedule = 60

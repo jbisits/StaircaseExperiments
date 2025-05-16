@@ -3,19 +3,19 @@ using StaircaseShenanigans, GibbsSeaWater, CairoMakie
 restart = true
 
 architecture = GPU()
-Pr = 10   # Prandtl
-τ = 0.01 # diff ratio
-ν = 1e-6 # set this get the others
+Pr = 7   # Prandtl
+τ = 0.05 # diff ratio
+ν = 2.5e-6 # set this get the others
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-resolution = (Nx=50, Ny=50, Nz=500)
+resolution = (Nx=50, Ny=50, Nz=1000)
 ρ₀ = gsw_rho(34.7, 0.5, 0.5)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 # bcs from a rundown model and are an approximation/test to see if can simulate
 # effect of interfaces either side.
-Jᵀ = 1.2 * 1.5e-5
+Jᵀ = 1.5 * 1.5e-5
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
 Jˢ = 2e-7
 S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ), bottom = FluxBoundaryCondition(Jˢ))
@@ -33,7 +33,7 @@ initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
 ## Build simulation
-stop_time = Int(16 * 60 * 60) # seconds
+stop_time = Int(4 * 60 * 60) # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
 output_path = joinpath(@__DIR__, "fluxbcs_$(round(interface_ics.R_ρ, digits = 2))", initial_state)
 save_schedule = 60
