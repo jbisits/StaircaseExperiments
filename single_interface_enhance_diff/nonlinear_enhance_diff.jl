@@ -3,14 +3,14 @@ using StaircaseShenanigans, GibbsSeaWater, CairoMakie
 restart = true
 
 architecture = GPU()
-Pr = 7   # Prandtl
+Pr = 10   # Prandtl
 τ = 0.05 # diff ratio
-ν = 2.5e-6 # set this get the others
+ν = 1e-6 # set this get the others
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 diffusivities = (ν = diffusivities.ν, κ = (S = enhance_κₛ, T = enhance_κₜ),
                 parameters = (κₛ = diffusivities.κ.S, κₜ = diffusivities.κ.T,
                               start_enhance = 0, end_enhance = 60,
-                              enhance = 1, τ = τ),
+                              κ_turb = 1e-6),
                 discrete_form = true)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
@@ -35,7 +35,7 @@ temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
 # initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1e-2))
-initial_noise = TracerNoise(1e-4, 1e-2)
+initial_noise = TracerNoise(2e-4, 0.0)
 ## setup model
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
