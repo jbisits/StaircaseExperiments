@@ -3,16 +3,16 @@ using StaircaseShenanigans, GibbsSeaWater, CairoMakie
 restart = true
 
 architecture = GPU()
-# Pr = 10   # Prandtl
-# τ = 0.05 # diff ratio
-# ν = 1e-6 # set this get the others
-# diffusivities = diffusivities_from_ν(ν; τ, Pr)
+Pr = 7   # Prandtl
+τ = 0.05 # diff ratio
+ν = 2.5e-6 # set this get the others
+diffusivities = diffusivities_from_ν(ν; τ, Pr)
 # diffusivities = (ν = diffusivities.ν, κ = (S = enhance_κₛ, T = enhance_κₜ),
 #                 parameters = (κₛ = diffusivities.κ.S, κₜ = diffusivities.κ.T,
 #                               start_enhance = 0, end_enhance = 60,
 #                               κ_turb = 1e-6),
 #                 discrete_form = true)
-diffusivities = (ν = 5e-6, κ = (S = 1e-6, T = 1e-6))
+diffusivities = (ν = ν, κ = (S = diffusivities.κ.T, T = diffusivities.κ.T))
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=50, Ny=50, Nz=1000)
