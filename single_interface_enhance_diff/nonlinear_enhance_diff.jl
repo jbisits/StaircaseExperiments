@@ -12,7 +12,7 @@ architecture = GPU()
 #                               start_enhance = 0, end_enhance = 60,
 #                               κ_turb = 1e-6),
 #                 discrete_form = true)
-diffusivities = (ν = 1e-6, κ = (S = 1e-6, T = 1e-6))
+diffusivities = (ν = 1e-5, κ = (S = 1e-6, T = 1e-6))
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=50, Ny=50, Nz=1000)
