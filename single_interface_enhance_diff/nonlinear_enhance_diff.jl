@@ -3,9 +3,9 @@ using StaircaseShenanigans, GibbsSeaWater, CairoMakie
 restart = true
 
 architecture = GPU()
-Pr = 7   # Prandtl
+Pr = 10   # Prandtl
 τ = 0.05 # diff ratio
-ν = 2.5e-6 # set this get the others
+ν = 1e-6 # set this get the others
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 diffusivities = (ν = diffusivities.ν, κ = (S = enhance_κₛ, T = enhance_κₜ),
                 parameters = (κₛ = diffusivities.κ.S, κₜ = diffusivities.κ.T,
@@ -54,7 +54,8 @@ simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    checkpointer_time_interval,
                                    overwrite_saved_output = restart,
                                    max_Δt,
-                                   Δt)
+                                   Δt,
+                                   time_average_stride = nothing)
 ## Run
 # simulation.stop_time = 6 * 60 * 60 # update to pickup from a checkpoint
 pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
