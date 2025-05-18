@@ -3,7 +3,7 @@ using StaircaseShenanigans, GibbsSeaWater, CairoMakie
 restart = true
 
 architecture = GPU()
-Pr = 7   # Prandtl
+Pr = 10   # Prandtl
 τ = 0.05 # diff ratio
 ν = 1.5e-6 # set this get the others
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
