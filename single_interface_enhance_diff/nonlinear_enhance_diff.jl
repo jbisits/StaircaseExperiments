@@ -5,7 +5,7 @@ restart = true
 architecture = GPU()
 Pr = 7   # Prandtl
 τ = 0.05 # diff ratio
-ν = 2.5e-6 # set this get the others
+ν = 1.5e-6 # set this get the others
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 # diffusivities = (ν = diffusivities.ν, κ = (S = enhance_κₛ, T = enhance_κₜ),
 #                 parameters = (κₛ = diffusivities.κ.S, κₜ = diffusivities.κ.T,
