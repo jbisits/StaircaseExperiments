@@ -26,7 +26,7 @@ Sᵤ, Sₗ = 34.58, 34.70
 S_top_bc = ValueBoundaryCondition(Sᵤ)
 S_bottom_bc = ValueBoundaryCondition(Sₗ)
 S_bcs = FieldBoundaryConditions(top = S_top_bc, bottom = S_bottom_bc)
-boundary_conditions = (u=no_slip_bcs, v=no_slip_bcs, w=no_slip_bcs, T=T_bcs, S=S_bcs)
+boundary_conditions = (u=no_slip_bcs, v=no_slip_bcs, T=T_bcs, S=S_bcs)
 dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
 
 ## Initial conditions
