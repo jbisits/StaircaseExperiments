@@ -82,15 +82,15 @@ close(ds)
 
 # local plot of figure
 # using JLD2, CairoMakie
-output_path = joinpath(@__DIR__, "R_rho_1.05", "nonlineareos", "equal_top_and_bottom_fluxes")
-data = joinpath(output_path, "R_rho.jld2")
-f = jldopen(data)
-R_ρ = f["R_ρ"]
-close(f)
+# output_path = joinpath(@__DIR__, "R_rho_1.05", "nonlineareos", "equal_top_and_bottom_fluxes")
+# data = joinpath(output_path, "R_rho.jld2")
+# f = jldopen(data)
+# R_ρ = f["R_ρ"]
+# close(f)
 
-fig, ax = lines(R_ρ)
-ax.title = "R_ρ with fluxbcs nonlinear eos"
-ax.xlabel = "time (mins)"
-ax.ylabel = "R_ρ"
-fig
-save(joinpath(output_path, "R_rho.png"), fig)
+# fig, ax = lines(R_ρ)
+# ax.title = "R_ρ with fluxbcs nonlinear eos"
+# ax.xlabel = "time (mins)"
+# ax.ylabel = "R_ρ"
+# fig
+# save(joinpath(output_path, "R_rho.png"), fig)

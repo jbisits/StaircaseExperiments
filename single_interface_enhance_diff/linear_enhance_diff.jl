@@ -15,7 +15,7 @@ diffusivities = (ν = diffusivities.ν, κ = (S = enhance_κₛ, T = enhance_κ�
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=50, Ny=50, Nz=500)
-ρ₀ = gsw_rho(34.7, 0.5, 0.5)
+ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 dns_model = DNSModel(model_setup...)

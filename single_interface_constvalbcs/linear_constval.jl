@@ -10,22 +10,29 @@ diffusivities = diffusivities_from_ν(ν; τ, Pr)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=50, Ny=50, Nz=1000)
-ρ₀ = gsw_rho(34.7, 0.5, 0.5)
+ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
-# bcs from a rundown model and are an approximation/test to see if can simulate
-# effect of interfaces either side.
-Jᵀ = 0.25 * 1.5e-5
-T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
-Jˢ = 2e-7
-S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ), bottom = FluxBoundaryCondition(Jˢ))
-boundary_conditions = (T=T_bcs, S=S_bcs)
+# no-slip velocities at top and bottom
+no_slip_bc = ValueBoundaryCondition(0.0)
+no_slip_bcs = FieldBoundaryConditions(top = no_slip_bc, bottom = no_slip_bc)
+# Dirichlet temperature
+Tᵤ, Tₗ = -1.5, 0.5
+T_top_bc = ValueBoundaryCondition(Tᵤ)
+T_bottom_bc = ValueBoundaryCondition(Tₗ)
+T_bcs = FieldBoundaryConditions(top = T_top_bc, bottom = T_bottom_bc)
+# Dirichlet salinity
+Sᵤ, Sₗ = 34.58, 34.70
+S_top_bc = ValueBoundaryCondition(Sᵤ)
+S_bottom_bc = ValueBoundaryCondition(Sₗ)
+S_bcs = FieldBoundaryConditions(top = S_top_bc, bottom = S_bottom_bc)
+boundary_conditions = (u=no_slip_bcs, v=no_slip_bcs, w=no_slip_bcs, T=T_bcs, S=S_bcs)
 dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
 
 ## Initial conditions
 depth_of_interface = -0.5
-salinity = [34.58, 34.70]
-temperature = [-1.5, 0.5]
+salinity = [Sᵤ, Sₗ]
+temperature = [Tᵤ, Tₗ]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
 initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1e-2))
