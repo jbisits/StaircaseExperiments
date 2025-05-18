@@ -46,7 +46,7 @@ end
 
 # ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	eos_select = @bind eos Select(["largerdiffrationonlinear", "linear"])
+	eos_select = @bind eos Select(["higher_res_nonlinear", "largerdiffrationonlinear", "linear"])
 	md"""
 	# Equation of state
 	
@@ -143,7 +143,8 @@ end
 
 # ╔═╡ c852e2d3-f489-4b98-a183-dae4c3594947
 let
-	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
+	# R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
+	R_ρ_interp = dims["time"][1:end-1]
 	fig = Figure(size = (800, 800))
 	axT = Axis(fig[1, 1], ylabel = "T flux")
 	lines!(axT, R_ρ_interp, expt_data["T_flux"][2, :])
@@ -158,7 +159,7 @@ end
 # ╔═╡ baa37deb-ea5a-4437-afa0-0e30a755df9c
 let
 	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
-
+	R_ρ_interp = dims["time"][1:end-1]
 	fig = Figure(size = (800, 800))
 	axT = Axis(fig[1, 1], ylabel = "T flux")
 	T_interface_idx = expt_data["T_ha_interface_idx"]
@@ -238,8 +239,8 @@ md"""
 
 # ╔═╡ 4538f159-01d9-45fd-9fa5-d7463c506a77
 begin
-	η = 1e3 * expt_data["η"][2:end]
-	Ba = 1e3 * expt_data["Ba"][2:end]
+	η = 1e3 * expt_data["η"][3:end]
+	Ba = 1e3 * expt_data["Ba"][3:end]
 	Ba_fig, Ba_ax = lines(log10.(η), label = "η")
 	lines!(Ba_ax, log10.(Ba), label = "Ba")
 	Ba_ax.xlabel = "time (mins)"
@@ -310,9 +311,9 @@ end
 
 # ╔═╡ f200b8e0-2b14-4270-963b-6bb1b154d550
 let
-	fig, ax = lines(log10.(abs.((expt_data["∫wb"]))), label = "wb")
-	lines!(ax,  log10.(abs.(-expt_data["∫gρw"])), label = "∫gρw (post processing)", linestyle = :dash)
-	lines!(ax, log10.(expt_data["∫ε"]), label = "∫ε", linestyle = :dot)
+	fig, ax = lines(log10.(abs.((expt_data["∫wb"][3:end]))), label = "wb")
+	lines!(ax,  log10.(abs.(-expt_data["∫gρw"][3:end])), label = "∫gρw (post processing)", linestyle = :dash)
+	lines!(ax, log10.(expt_data["∫ε"][3:end]), label = "∫ε", linestyle = :dot)
 	ax.title = "Buoyancy flux and TKE dissipation (log10)"
 	axislegend(ax)
 	fig
@@ -358,13 +359,13 @@ TableOfContents()
 # ╟─baa37deb-ea5a-4437-afa0-0e30a755df9c
 # ╟─0a9d245d-8285-4a22-9edf-178d9e85addb
 # ╟─9a8041ad-6b12-4ef5-9f2f-44189de067f9
-# ╠═3e422d6d-912f-4119-a290-648dbe036dde
+# ╟─3e422d6d-912f-4119-a290-648dbe036dde
 # ╟─d0148931-4198-4bb3-893c-a9b73e1ec7a9
 # ╟─6ce43b6e-c3fa-408f-8702-900eaeb17bf5
 # ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013
 # ╟─3c0e1dfd-e4ba-448f-8475-ada056c8b5fe
-# ╠═c576c4cd-1101-46e2-b6fa-b574f0b13dfe
+# ╟─c576c4cd-1101-46e2-b6fa-b574f0b13dfe
 # ╟─f200b8e0-2b14-4270-963b-6bb1b154d550
 # ╟─50e87efc-a49c-4ffd-bfbd-cd5dfad40639
 # ╟─ee9c0edb-477b-4cc0-8c57-36845a90bbaf
