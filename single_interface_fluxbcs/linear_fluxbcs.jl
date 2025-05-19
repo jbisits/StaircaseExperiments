@@ -7,7 +7,7 @@ Pr = 7   # Prandtl
 τ = 0.05 # diff ratio
 ν = 2.5e-6 # set this get the others
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
-domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
+domain_extent = (Lx=0.05, Ly=0.05, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=50, Ny=50, Nz=1000)
 ρ₀ = gsw_rho(34.7, 0.5, 0.5)
@@ -15,9 +15,9 @@ eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 # bcs from a rundown model and are an approximation/test to see if can simulate
 # effect of interfaces either side.
-Jᵀ = 0.9 * 1.5e-5
+Jᵀ = 2.5e-5
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
-Jˢ = 2e-7
+Jˢ = 5e-7
 S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ), bottom = FluxBoundaryCondition(Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
 dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
@@ -55,7 +55,7 @@ run!(simulation; pickup)
 
 ## Produce animations
 compute_R_ρ!(simulation.output_writers[:computed_output].filepath,
-             simulation.output_writers[:tracers].filepath, (-0.4, -0.2), (-0.8, -0.6), eos)
+             simulation.output_writers[:tracers].filepath, (-0.2, -0.1), (-0.4, -0.3), eos)
 
 reduced_path = findlast('/', simulation.output_writers[:computed_output].filepath)
 animation_path = simulation.output_writers[:computed_output].filepath[1:(reduced_path-1)]
