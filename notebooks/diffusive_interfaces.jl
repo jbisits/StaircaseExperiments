@@ -71,7 +71,7 @@ begin
 	S_star, Θ_star = 34.7, 0.5
 	ΔΘ = -2
 	Θ_upper = Θ_star + ΔΘ
-	S_stable, S_cab = 34.551, 34.58
+	S_stable, S_cab = 34, 34.58
 	ΔSₛ = S_stable - S_star
 	ΔS_c= S_cab - S_star
 	select_upper_layer = @bind upper_layer Select(["Stable", "Cabbeling"])
@@ -375,6 +375,8 @@ This plot shows:
 - asymmetry becomes more apparent as the once less than around 0.1 or so
 - almost linear dependence
 - could I confirm this relationship using a model run with various $\tau$ values? I think could get away with five here but would you just show diffusion or include turbulence?
+- at $\tau = 1$ the lower layer reduces to the cabbeling density difference from paper 2
+- I think from these figure plus the salinity-temperature plots above we can say double diffusion will always win out over cabbeling at a diffusive interface but cabbeling has the potential to distrupt an interface when turbulent mixing overrides the double diffusive effect and depending on the whether the overall profile is unstable to cabbeling this will have an influence on the staircase.
 """
 
 # ╔═╡ 7ad7693e-6f18-474a-89e8-b2d433aea261
