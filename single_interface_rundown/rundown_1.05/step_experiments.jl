@@ -356,8 +356,8 @@ let
 	∫wb = 0.5 * (expt_data["∫wb"][1:end-1] .+ expt_data["∫wb"][2:end])
 	∫gρw = 0.5 * (expt_data["∫gρw"][1:end-1] .+ expt_data["∫gρw"][2:end])
 	RHS = ∫wb .- ε
-	fig, ax = lines(eachindex(Δt)[3:end], dₜek[3:end], label = "dₜek")
-	lines!(ax, eachindex(Δt)[3:end], RHS[3:end], label = "∫wb - ε")
+	fig, ax = lines(eachindex(Δt)[1:end], dₜek[1:end], label = "dₜek")
+	lines!(ax, eachindex(Δt)[1:end], RHS[1:end], label = "∫wb - ε")
 	ax.title = "Energy  budget"
 	ax.xlabel = "time (minutes)"
 	ax.ylabel = "Watts / ρ₀"
@@ -401,6 +401,9 @@ begin
 	"""
 end
 
+# ╔═╡ 63c3aa72-f1c5-4a61-b377-85de03961836
+0.5 / 1300
+
 # ╔═╡ 963fa274-2d8f-47fd-b227-4d7b3275d7ad
 TableOfContents()
 
@@ -436,4 +439,5 @@ TableOfContents()
 # ╟─50e87efc-a49c-4ffd-bfbd-cd5dfad40639
 # ╟─ee9c0edb-477b-4cc0-8c57-36845a90bbaf
 # ╟─68a0a47e-e919-4d9d-b1a5-090d69bf633e
+# ╠═63c3aa72-f1c5-4a61-b377-85de03961836
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad
