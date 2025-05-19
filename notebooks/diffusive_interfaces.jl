@@ -367,6 +367,16 @@ begin
 	fig
 end
 
+# ╔═╡ 9695b41b-4dd0-429b-a3c5-c37c2a6dbaf8
+md"""
+This plot shows:
+
+- asymmetry in density difference increases (lower density difference is the denomiator) as the diffusivity ratio decreases
+- asymmetry becomes more apparent as the once less than around 0.1 or so
+- almost linear dependence
+- could I confirm this relationship using a model run with various $\tau$ values? I think could get away with five here but would you just show diffusion or include turbulence?
+"""
+
 # ╔═╡ 7ad7693e-6f18-474a-89e8-b2d433aea261
 TableOfContents()
 
@@ -380,4 +390,5 @@ TableOfContents()
 # ╟─1e626657-a23c-42b5-bbae-056c6a61948b
 # ╟─d8e4ad73-b296-462b-a161-9666ba6322b6
 # ╟─48eb84eb-42bf-4938-9d9e-0c8794fa5a5c
+# ╟─9695b41b-4dd0-429b-a3c5-c37c2a6dbaf8
 # ╟─7ad7693e-6f18-474a-89e8-b2d433aea261

@@ -287,6 +287,11 @@ let
 	fig
 end
 
+# ╔═╡ 6e7d38ab-2824-474b-b90c-75a3a5a05e57
+md"""
+This is the rundown case here but can see the not well mixed layers here I think with the less vertical S-T relationship at the start and end of the curves.
+"""
+
 # ╔═╡ 6ce43b6e-c3fa-408f-8702-900eaeb17bf5
 md"""
 # Length scales
@@ -421,6 +426,7 @@ TableOfContents()
 # ╟─ca6991b4-ac76-435e-bcff-82103b6abdc7
 # ╟─b1fd4a61-796e-4b39-b175-971311c9c62a
 # ╟─8711fdef-0da7-46bf-aa82-2f32b0590f7b
+# ╟─6e7d38ab-2824-474b-b90c-75a3a5a05e57
 # ╟─6ce43b6e-c3fa-408f-8702-900eaeb17bf5
 # ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013
