@@ -4,13 +4,13 @@ restart = true
 
 architecture = GPU()
 Pr = 10   # Prandtl
-τ = 0.1 # diff ratio
+τ = 0.05 # diff ratio
 ν = 1.5e-6 # set this get the others
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 @inline alt_enhance_κₛ(i, j, k, grid, clock, fields, p) = p.start_enhance * 60 < clock.time < p.end_enhance * 60 ? p.κₜ : p.κₛ
 diffusivities = (ν = diffusivities.ν, κ = (S = alt_enhance_κₛ, T = diffusivities.κ.T),
                 parameters = (κₛ = diffusivities.κ.S, κₜ = diffusivities.κ.T,
-                              start_enhance = 0, end_enhance = 30,
+                              start_enhance = 30, end_enhance = 120,
                               κ_turb = 1e-6),
                 discrete_form = true)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
