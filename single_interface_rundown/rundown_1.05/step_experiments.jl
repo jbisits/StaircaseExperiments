@@ -21,6 +21,7 @@ begin
 	using Pkg
 	Pkg.activate("../..")
 	using JLD2, CairoMakie, PlutoUI, Dates, Statistics, TimeSeries
+	using SpecialFunctions: erf
 end
 
 # ╔═╡ 6301138c-fa0b-11ef-0f3b-39dac35db063
@@ -224,11 +225,65 @@ end
 let
 	fig = Figure(size = (500, 500))
 	ax = Axis(fig[1, 1], xlabel = "Rᵨ", ylabel = "z✶")
-	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["S_interface_idx"]], label = "salinity")
-	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "temperature", linestyle = :dot)
+	lines!(ax, dims["time"][2:end], dims["z✶"][expt_data["S_interface_idx"]], label = "salinity")
+	lines!(ax, dims["time"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "temperature", linestyle = :dot)
 	# ylims!(ax, 0.49, 0.54)
-	vlines!(ax, 1.6, color = :red, linestyle = :dash)
+	# vlines!(ax, 1.6, color = :red, linestyle = :dash)
 	axislegend(ax, position = :rb)
+	fig
+end
+
+# ╔═╡ 82964820-7220-4e21-b263-20754b6a3a33
+md"""
+# Salinity-temperature space
+
+**Note:** the below will only run with later experiments where the horizontal average salinity and temperature profiles are saved.
+
+This is trying to capture asymmetry in density difference and compare it to theory (most of which can be found in the `diffusive_interfaces` Pluto notebook).
+"""
+
+# ╔═╡ 2536f46d-bbe8-4f85-a16a-82afef16fef5
+let
+	fig = Figure(size = (1000, 1000))
+	t, z = dims["time"] / 60, dims["z_aac"]
+	axS = Axis(fig[1, 1], title = "Hovmoller for saliniy and temperature (ha profile)", ylabel = "z (m)")
+	hmS = heatmap!(axS, t, z, expt_data["S_ha"]', colormap = :haline)
+	Colorbar(fig[1, 2], hmS)
+	axT = Axis(fig[2, 1], xlabel = "time (mins)", ylabel = "z (m)")
+	hmT = heatmap!(axT, t, z, expt_data["T_ha"]', colormap = :thermal)
+	Colorbar(fig[2, 2], hmT)
+	fig
+end
+
+# ╔═╡ ca6991b4-ac76-435e-bcff-82103b6abdc7
+erf_tracer_solution(z, Cₗ::Number, ΔC::Number, κ::Number, time, interface_location) =
+    Cₗ + 0.5 * ΔC * (1 + erf((z - interface_location) / sqrt(4 * κ * time)))
+
+# ╔═╡ b1fd4a61-796e-4b39-b175-971311c9c62a
+@bind t PlutoUI.Slider(eachindex(dims["time"]))
+
+# ╔═╡ 8711fdef-0da7-46bf-aa82-2f32b0590f7b
+let
+	Sₜ, Tₜ = expt_data["S_ha"][:, t], expt_data["T_ha"][:, t]
+	fig, ax = lines(Sₜ, Tₜ, label = "Model output")
+	Slims = extrema(expt_data["S_ha"][:, 1]) .+ [-0.01, 0.01]
+	Tlims = extrema(expt_data["T_ha"][:, 1]) .+ [-0.1, 0.1]
+	xlims!(Slims...)
+	ylims!(Tlims...)
+	ax.xlabel = "Salinity (gkg⁻¹)"
+	ax.ylabel = "Temperature (°C)"
+	ax.title = "Ha S and T profiles at time t = $(dims["time"][t] / 60)min"
+
+	κₛ, κₜ = expt_data["attrib/κₛ (m²s⁻¹)"], expt_data["attrib/κₜ (m²s⁻¹)"]
+	z = dims["z_aac"]
+	ΔS = Sₜ[end] - Sₜ[1]
+	ΔT = Tₜ[end] - Tₜ[1]
+	id = expt_data["attrib/interface_depth"]
+	S = erf_tracer_solution.(z, Sₜ[1], ΔS, κₛ, t, id)
+	T = erf_tracer_solution.(z, Tₜ[1], ΔT, κₜ, t, id)
+	lines!(ax, S, T, color = :orange, label = "Theoretical model")
+
+	axislegend(ax, position = :lt)
 	fig
 end
 
@@ -361,6 +416,11 @@ TableOfContents()
 # ╟─9a8041ad-6b12-4ef5-9f2f-44189de067f9
 # ╟─3e422d6d-912f-4119-a290-648dbe036dde
 # ╟─d0148931-4198-4bb3-893c-a9b73e1ec7a9
+# ╟─82964820-7220-4e21-b263-20754b6a3a33
+# ╟─2536f46d-bbe8-4f85-a16a-82afef16fef5
+# ╟─ca6991b4-ac76-435e-bcff-82103b6abdc7
+# ╟─b1fd4a61-796e-4b39-b175-971311c9c62a
+# ╟─8711fdef-0da7-46bf-aa82-2f32b0590f7b
 # ╟─6ce43b6e-c3fa-408f-8702-900eaeb17bf5
 # ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013

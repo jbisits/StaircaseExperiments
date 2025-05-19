@@ -15,7 +15,7 @@ eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 # bcs from a rundown model and are an approximation/test to see if can simulate
 # effect of interfaces either side.
-Jᵀ = 0.25 * 1.5e-5
+Jᵀ = 0.9 * 1.5e-5
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
 Jˢ = 2e-7
 S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ), bottom = FluxBoundaryCondition(Jˢ))
@@ -66,6 +66,16 @@ animate_density(simulation.output_writers[:computed_output].filepath, "σ",
 animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslice = 17,
                 S_limit_adjustment = 0.025,
                 Θ_limit_adjustment = 0.5)
+
+## compute diagnostics
+diags = "diagnostics.jld2"
+if isfile(diags)
+    rm(diags)
+end
+save_diagnostics!(diags,
+                  simulation.output_writers[:tracers].filepath,
+                  simulation.output_writers[:computed_output].filepath,
+                  simulation.output_writers[:velocities].filepath)
 
 using JLD2, NCDatasets
 ds = NCDataset(simulation.output_writers[:computed_output].filepath)
