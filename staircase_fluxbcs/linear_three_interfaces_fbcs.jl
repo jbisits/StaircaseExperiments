@@ -7,29 +7,44 @@ Pr = 7   # Prandtl
 τ = 0.05 # diff ratio
 ν = 2.5e-6 # set this get the others
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
-domain_extent = (Lx=0.05, Ly=0.05, Lz=-1.0)
+domain_extent = (Lx=0.05, Ly=0.05, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=50, Ny=50, Nz=500)
 ρ₀ = gsw_rho(34.57, 0.5, 0)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
-scale_flux = 0.2
-Jᵀ = scale_flux * 1.5e-5
-T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ),
-                                bottom = FluxBoundaryCondition(Jᵀ))
-Jˢ = scale_flux * 2e-7
-S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ),
-                                bottom = FluxBoundaryCondition(Jˢ))
-boundary_conditions = (T=T_bcs, S=S_bcs)
+# scale_flux = 0.2
+# Jᵀ = scale_flux * 1.5e-5
+# T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ),
+#                                 bottom = FluxBoundaryCondition(Jᵀ))
+# Jˢ = scale_flux * 2e-7
+# S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ),
+#                                 bottom = FluxBoundaryCondition(Jˢ))
+# boundary_conditions = (T=T_bcs, S=S_bcs)
+# no-slip velocities at top and bottom
+no_slip_bc = ValueBoundaryCondition(0.0)
+no_slip_bcs = FieldBoundaryConditions(top = no_slip_bc, bottom = no_slip_bc)
+# Dirichlet temperature
+Tᵤ, Tₗ = -1.8, 0.8
+T_top_bc = ValueBoundaryCondition(Tᵤ)
+T_bottom_bc = ValueBoundaryCondition(Tₗ)
+T_bcs = FieldBoundaryConditions(top = T_top_bc, bottom = T_bottom_bc)
+# Dirichlet salinity
+Sᵤ, Sₗ = 34.56, 34.72
+S_top_bc = ValueBoundaryCondition(Sᵤ)
+S_bottom_bc = ValueBoundaryCondition(Sₗ)
+S_bcs = FieldBoundaryConditions(top = S_top_bc, bottom = S_bottom_bc)
+boundary_conditions = (u=no_slip_bcs, v=no_slip_bcs, T=T_bcs, S=S_bcs)
 model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
 
 number_of_interfaces = 3
-depth_of_interfaces = [-0.25, -0.5, -0.75]
-salinity = [34.56, 34.594, 34.64, 34.7]
-temperature = [-1.5, -1.0, -0.33, 0.52]
+depth_of_interfaces = [-0.01, -0.25, -0.49]
+salinity = [Sᵤ, 34.58, 34.7, Sₗ]
+temperature = [Tᵤ, -1.5, 0.5, Tₗ]
 staircase_ics = StaircaseICs(model, number_of_interfaces, depth_of_interfaces, salinity, temperature)
 
-initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1e-2))
+# initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1e-2))
+initial_noise = TracerNoise(1e-4, 1e-2)
 
 ## setup model
 sdns = StaircaseDNS(model, staircase_ics; initial_noise)
@@ -58,8 +73,7 @@ run!(simulation; pickup)
 ## Compute density ratio
 compute_R_ρ!(simulation.output_writers[:computed_output].filepath,
              simulation.output_writers[:tracers].filepath,
-             [(-0.2, -0.1), (-0.45, -0.35), (-0.7, -0.6)],
-             [(-0.45, -0.35), (-0.7, -0.6), (-0.9, -0.8)],
+             (-0.2, -0.1), (-0.4, -0.3),
              eos)
 
 ## Produce animations

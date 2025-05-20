@@ -24,11 +24,13 @@ dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplici
 
 ## Initial conditions
 depth_of_interface = -0.25
-salinity = [34.58, 34.70]
-temperature = [-1.5, 0.5]
+salinity = [34.58, 34.82]
+temperature = [-1.5, 2.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
-initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1e-2))
+# initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1e-2))
+initial_noise = tracers = TracerNoise(1e-4, 1e-2)
+
 ## setup model
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
