@@ -13,30 +13,29 @@ resolution = (Nx=50, Ny=50, Nz=500)
 ρ₀ = gsw_rho(34.57, 0.5, 0)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
-# scale_flux = 0.2
-# Jᵀ = scale_flux * 1.5e-5
-# T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ),
-#                                 bottom = FluxBoundaryCondition(Jᵀ))
-# Jˢ = scale_flux * 2e-7
-# S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ),
-#                                 bottom = FluxBoundaryCondition(Jˢ))
-# boundary_conditions = (T=T_bcs, S=S_bcs)
-# no-slip velocities at top and bottom
-no_slip_bc = ValueBoundaryCondition(0.0)
-no_slip_bcs = FieldBoundaryConditions(top = no_slip_bc, bottom = no_slip_bc)
-# Dirichlet temperature
-Tᵤ, Tₗ = -1.8, 1.8
-T_top_bc = ValueBoundaryCondition(Tᵤ)
-T_bottom_bc = ValueBoundaryCondition(Tₗ)
-T_bcs = FieldBoundaryConditions(top = T_top_bc, bottom = T_bottom_bc)
-# Dirichlet salinity
-Sᵤ, Sₗ = 34.505, 34.755
-S_top_bc = ValueBoundaryCondition(Sᵤ)
-S_bottom_bc = ValueBoundaryCondition(Sₗ)
-S_bcs = FieldBoundaryConditions(top = S_top_bc, bottom = S_bottom_bc)
-boundary_conditions = (u=no_slip_bcs, v=no_slip_bcs, T=T_bcs, S=S_bcs)
+Jᵀ = 1.2 * 2.5e-5
+T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
+Jˢ = 5e-7
+S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ), bottom = FluxBoundaryCondition(Jˢ))
+boundary_conditions = (T=T_bcs, S=S_bcs)
+# # no-slip velocities at top and bottom
+# no_slip_bc = ValueBoundaryCondition(0.0)
+# no_slip_bcs = FieldBoundaryConditions(top = no_slip_bc, bottom = no_slip_bc)
+# # Dirichlet temperature
+# Tᵤ, Tₗ = -1.8, 1.8
+# T_top_bc = ValueBoundaryCondition(Tᵤ)
+# T_bottom_bc = ValueBoundaryCondition(Tₗ)
+# T_bcs = FieldBoundaryConditions(top = T_top_bc, bottom = T_bottom_bc)
+# # Dirichlet salinity
+# Sᵤ, Sₗ = 34.505, 34.755
+# S_top_bc = ValueBoundaryCondition(Sᵤ)
+# S_bottom_bc = ValueBoundaryCondition(Sₗ)
+# S_bcs = FieldBoundaryConditions(top = S_top_bc, bottom = S_bottom_bc)
+# boundary_conditions = (u=no_slip_bcs, v=no_slip_bcs, T=T_bcs, S=S_bcs)
 model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
 
+Tᵤ_outer, Tₗ_outer = -1.8, 1.8
+Sᵤ_outer, Sₗ_outer = 34.505, 34.755
 number_of_interfaces = 3
 depth_of_interfaces = [-0.01, -0.25, -0.49]
 salinity = [Sᵤ, 34.56, 34.7, Sₗ]
@@ -50,7 +49,7 @@ initial_noise = TracerNoise(1e-4, 1e-2)
 sdns = StaircaseDNS(model, staircase_ics; initial_noise)
 
 ## Build simulation
-stop_time = Int(16 * 60 * 60) # seconds
+stop_time = Int(4 * 60 * 60) # seconds
 initial_state = "step" # can update if smoothing is added
 output_path = joinpath(@__DIR__, "fluxbcs_$(round(staircase_ics.R_ρ[2], digits = 2))", initial_state)
 save_schedule = 60
