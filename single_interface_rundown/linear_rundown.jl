@@ -33,7 +33,7 @@ output_path = joinpath(@__DIR__, "dns_rundown_$(round(interface_ics.R_ρ, digits
 save_schedule = 60
 checkpointer_time_interval = 60 * 60 # seconds
 Δt = 1e-3
-max_Δt = 2e-2
+max_Δt = 1.75e-2
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    save_vertical_velocities!;
                                    output_path,

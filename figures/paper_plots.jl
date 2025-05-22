@@ -23,6 +23,7 @@ leos_vec = fill(leos, Nz)
 nleos_vec = fill(nleos, Nz)
 interface_depth = -0.25
 t = 5000
+
 ## Load output
 # when done..
 
@@ -180,22 +181,6 @@ Legend(fig[3, :], ax[2], orientation = :horizontal, nbanks = 2)
 fig
 ##
 save("S_T_sigma_ST_space_2panel.png", fig)
-##
-# Possible single panel?
-fig, ax, cn = contour(S_range, Θ_range, (nlinear_σ₀_grid .- mean(nlinear_σ₀_grid))';
-              levels = [nlinear_σ₀_min, nlinear_σ₀_upper, nlinear_σ₀_lower, nlinear_σ₀_max] .- mean(nlinear_σ₀_grid),
-              colormap = :dense,
-              color = σ_grad,
-              linewidth = 0.5,
-              label = "Isopycnals")
-contour!(ax, S_range, Θ_range, (linear_σ₀_grid .- mean(linear_σ₀_grid))';
-        levels = [linear_σ₀_min, linear_σ₀_upper, linear_σ₀_lower, linear_σ₀_max] .- mean(linear_σ₀_grid),
-        colormap = :dense,
-        color = σ_grad,
-        linewidth = 0.5,
-        label = "Isopycnals")
-lines!(ax, S, T, nlinear_σ₀; label = "S-T profile", color = Makie.wong_colors()[2], linestyle = :dash)
-fig
 
 ## Figure
 # Density asymmetry
@@ -231,17 +216,19 @@ end
 Δσ_upper_linear = abs.(σ₀_linear_min .- σ₀ᵘ_leos)
 Δσ_linear = Δσ_upper_linear ./ Δσ_lower_linear
 
+Rᵨ_leos = compute_R_ρ([Sᵤ, Sₗ], temperature, interface_depth, leos)
+Rᵨ_nleos = compute_R_ρ([Sᵤ, Sₗ], temperature, interface_depth, nleos)
 fig = Figure(size = (800, 700))
-ax = Axis(fig[1, 1], xlabel = L"τ", ylabel = L"Δσ_{\mathrm{upper}}/Δσ_{\mathrm{lower}}")
-lines!(ax, τ_range, Δσ_linear, label = L"\rho_{\mathrm{linear}}")
-lines!(ax, τ_range, Δσ_nonlinear, label = L"\rho_{\mathrm{nonlinear}}")
-axislegend(ax, position = :rc)
+ax1 = Axis(fig[1, 1], xlabel = L"τ", ylabel = L"Δσ_{\mathrm{upper}}/Δσ_{\mathrm{lower}}")
+lines!(ax1, τ_range, Δσ_linear, label = "ρ_linear, Rᵨ = $(round(Rᵨ_leos, digits = 2))")
+lines!(ax1, τ_range, Δσ_nonlinear, label = "ρ_nonlinear, Rᵨ = $(round(Rᵨ_nleos, digits = 2))")
+axislegend(ax1)
 fig
 
 # Figure
 # density ratio vs Δρ in each layer for different τ
-τ = (0.01, 0.05, 0.1)
-Sᵤ_range = range(34.4, 34.59, length = 100)
+τ = (0.01)
+Sᵤ_range = range(34.5, 34.61, length = 100)
 temperature = [Θᵤ, Θₗ]
 Rᵨ_leos = Array{Float64}(undef, length(Sᵤ_range), length(τ))
 Rᵨ_nleos = similar(Rᵨ_leos)
@@ -286,12 +273,15 @@ end
 
 Rᵨ_cab = compute_R_ρ([34.551, Sₗ], temperature, interface_depth, nleos)
 # fig = Figure(size = (500, 500))
-ax = Axis(fig[1, 2], xlabel = L"R_{\rho}", ylabel =  L"Δσ_{\mathrm{upper}}/Δσ_{\mathrm{lower}}")
+ax2 = Axis(fig[1, 2], xlabel = L"R_{\rho}", ylabel =  L"Δσ_{\mathrm{upper}}/Δσ_{\mathrm{lower}}")
 linestyle = [:solid, :dash, :dot, :dashdot]
 for i ∈ eachindex(τ)
-    lines!(ax, Rᵨ_leos[:, i], Δσ_linear[:, i]; linestyle = linestyle[i], label = "leos, τ = $(τ[i])")
-    lines!(ax, Rᵨ_nleos[:, i], Δσ_nonlinear[:, i]; linestyle = linestyle[i], label = "nleos, τ = $(τ[i])")
+    lines!(ax2, Rᵨ_leos[:, i], Δσ_linear[:, i]; linestyle = linestyle[i], label = "leos, τ = $(τ[i])")
+    lines!(ax2, Rᵨ_nleos[:, i], Δσ_nonlinear[:, i]; linestyle = linestyle[i], label = "nleos, τ = $(τ[i])")
 end
-vlines!(ax, Rᵨ_cab, label = "Rᵨ_cab", linestyle = :dash, color = :red)
-axislegend(ax, position = :lt)
+vlines!(ax2, Rᵨ_cab, label = "Rᵨ_cab", linestyle = :dash, color = :red)
+vlines!(ax2, 1.22, linestyle = :dash)
+vlines!(ax2, 1.23, linestyle = :dash)
+linkyaxes!(ax1, ax2)
+axislegend(ax2, position = :lt)
 fig
