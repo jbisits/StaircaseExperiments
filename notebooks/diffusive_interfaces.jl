@@ -475,7 +475,6 @@ let
 	
 	``R_{\rho} = `` $(R_ρ), ``\tau = `` $(τ), ``R_{\Delta\sigma} = `` $(R_Δσ)
 	"""
-	ρ_upper
 end
 
 # ╔═╡ 7ad7693e-6f18-474a-89e8-b2d433aea261
@@ -493,5 +492,5 @@ TableOfContents()
 # ╟─48eb84eb-42bf-4938-9d9e-0c8794fa5a5c
 # ╟─9695b41b-4dd0-429b-a3c5-c37c2a6dbaf8
 # ╟─155f335e-4246-497a-b8de-7ccd2c2f4bf2
-# ╠═c691e741-bc82-4a1b-b576-420521146004
+# ╟─c691e741-bc82-4a1b-b576-420521146004
 # ╟─7ad7693e-6f18-474a-89e8-b2d433aea261

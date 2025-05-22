@@ -47,7 +47,7 @@ end
 
 # ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	eos_select = @bind eos Select(["higher_res_nonlinear", "largerdiffrationonlinear", "linear"])
+	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "largerdiffrationonlinear"])
 	md"""
 	# Equation of state
 	
@@ -497,6 +497,6 @@ TableOfContents()
 # ╟─f200b8e0-2b14-4270-963b-6bb1b154d550
 # ╟─50e87efc-a49c-4ffd-bfbd-cd5dfad40639
 # ╟─ee9c0edb-477b-4cc0-8c57-36845a90bbaf
-# ╠═68a0a47e-e919-4d9d-b1a5-090d69bf633e
+# ╟─68a0a47e-e919-4d9d-b1a5-090d69bf633e
 # ╠═63c3aa72-f1c5-4a61-b377-85de03961836
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad
