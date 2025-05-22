@@ -386,8 +386,8 @@ This plot shows:
 
 # ╔═╡ 155f335e-4246-497a-b8de-7ccd2c2f4bf2
 begin
-	Sᵤ_slider = @bind Sᵤ PlutoUI.Slider(range(34.2, 34.59, length = 50), show_value=true)
-	κₛ_slider = @bind _κₛ PlutoUI.Slider(range(1e-9, 1e-7, length = 5), show_value=true)
+	Sᵤ_slider = @bind Sᵤ PlutoUI.Slider(range(33.7, 34.59, length = 50))
+	κₛ_slider = @bind _κₛ PlutoUI.Slider(range(1e-9, 1e-7, length = 5))
 	eos_select = @bind _eos PlutoUI.Select(["nonlinear", "linear"])
 	nothing
 end
@@ -453,10 +453,10 @@ let
 	scatter!(ax2, S_minmax[1], T_minmax[1], label = "Minimum density", color = :orange)
 	scatter!(ax2, S_minmax[2], T_minmax[2], label = "Maximum density", color = :magenta)
 
-	ρ_min = total_density(T[min_idx], S[min_idx], 0, use_eos)
-	ρ_max = total_density(T[max_idx], S[max_idx], 0, use_eos)
+	# ρ_min = total_density(T[min_idx], S[min_idx], 0, use_eos)
+	# ρ_max = total_density(T[max_idx], S[max_idx], 0, use_eos)
 	ρ_diff = abs(z[max_idx] - z[min_idx])
-	contour!(ax2, S_range, Θ_range, ρ'; levels = [ρ_min, ρ_upper, ρ_star, ρ_max], colormap = :dense, label = "Isopycnals")
+	contour!(ax2, S_range, Θ_range, ρ'; levels = [σ₀_min, ρ_upper, ρ_star, σ₀_max], colormap = :dense, label = "Isopycnals")
 
 	scatter!(ax[2], σ₀_min, z[min_idx], label = "Minimum density", color = :orange)
 	scatter!(ax[2], σ₀_max, z[max_idx], label = "Maximum density", color = :magenta)
@@ -470,11 +470,12 @@ let
 	R_Δσ = Δσ_upper / Δσ_lower
 	md"""
 	$(fig)
-	EOS: $(eos_select) ``S_{u} = `` $(Sᵤ_slider),    
-	``\kappa_{S} = `` $(κₛ_slider)
+	EOS: $(eos_select), ``S_{u} = `` $(round(Sᵤ, digits = 4)) $(Sᵤ_slider),    
+	``\kappa_{S} = `` $(_κₛ) $(κₛ_slider)
 	
 	``R_{\rho} = `` $(R_ρ), ``\tau = `` $(τ), ``R_{\Delta\sigma} = `` $(R_Δσ)
 	"""
+	ρ_upper
 end
 
 # ╔═╡ 7ad7693e-6f18-474a-89e8-b2d433aea261
@@ -491,6 +492,6 @@ TableOfContents()
 # ╟─d8e4ad73-b296-462b-a161-9666ba6322b6
 # ╟─48eb84eb-42bf-4938-9d9e-0c8794fa5a5c
 # ╟─9695b41b-4dd0-429b-a3c5-c37c2a6dbaf8
-# ╠═155f335e-4246-497a-b8de-7ccd2c2f4bf2
+# ╟─155f335e-4246-497a-b8de-7ccd2c2f4bf2
 # ╠═c691e741-bc82-4a1b-b576-420521146004
 # ╟─7ad7693e-6f18-474a-89e8-b2d433aea261

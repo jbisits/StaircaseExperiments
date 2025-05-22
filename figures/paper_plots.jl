@@ -227,8 +227,8 @@ fig
 
 # Figure
 # density ratio vs Δρ in each layer for different τ
-τ = (0.01)
-Sᵤ_range = range(34.5, 34.61, length = 100)
+τ = (0.01, 0.05, 0.1, 0.5)
+Sᵤ_range = range(33.7, 34.59, length = 100)
 temperature = [Θᵤ, Θₗ]
 Rᵨ_leos = Array{Float64}(undef, length(Sᵤ_range), length(τ))
 Rᵨ_nleos = similar(Rᵨ_leos)
@@ -236,20 +236,20 @@ Rᵨ_nleos = similar(Rᵨ_leos)
 σ₀_nonlinear_min = similar(Rᵨ_leos)
 σ₀_linear_max = similar(Rᵨ_leos)
 σ₀_linear_min = similar(Rᵨ_leos)
+σ₀ᵘ_leos = similar(Rᵨ_leos)
+σ₀ᵘ_nleos = similar(Rᵨ_leos)
 σ₀ˡ_nleos = gsw_rho(Sₗ, Θₗ, 0)
-σ₀ᵘ_nleos = gsw_rho(Sᵤ, Θᵤ, 0)
 σ₀ˡ_leos = total_density(Θₗ, Sₗ, 0, leos)
-σ₀ᵘ_leos = total_density(Θᵤ, Sᵤ, 0, leos)
 for j ∈ eachindex(τ)
 
+    _κₛ = τ[j] * κₜ
     for (i, _Sᵤ) ∈ enumerate(Sᵤ_range)
+
         salinity = [_Sᵤ, Sₗ]
+        _ΔS = _Sᵤ - Sₗ
 
         Rᵨ_leos[i, j] = compute_R_ρ(salinity, temperature, interface_depth, leos)
         Rᵨ_nleos[i, j] = compute_R_ρ(salinity, temperature, interface_depth, nleos)
-
-        _ΔS = _Sᵤ - Sₗ
-        _κₛ = τ[j] * κₜ
 
         S = erf_tracer_solution.(z, Sₗ, _ΔS, _κₛ, t, interface_depth)
         T = erf_tracer_solution.(z, Θₗ, ΔΘ, κₜ, t, interface_depth)
@@ -260,6 +260,9 @@ for j ∈ eachindex(τ)
         σ₀_linear = total_density.(T, S, 0, leos_vec)
         σ₀_linear_max[i, j] = maximum(σ₀_linear)
         σ₀_linear_min[i, j] = minimum(σ₀_linear)
+
+        σ₀ᵘ_nleos[i, j] = gsw_rho(_Sᵤ, Θᵤ, 0)
+        σ₀ᵘ_leos[i, j] = total_density(Θᵤ, _Sᵤ, 0, leos)
     end
 
 end
@@ -279,9 +282,9 @@ for i ∈ eachindex(τ)
     lines!(ax2, Rᵨ_leos[:, i], Δσ_linear[:, i]; linestyle = linestyle[i], label = "leos, τ = $(τ[i])")
     lines!(ax2, Rᵨ_nleos[:, i], Δσ_nonlinear[:, i]; linestyle = linestyle[i], label = "nleos, τ = $(τ[i])")
 end
-vlines!(ax2, Rᵨ_cab, label = "Rᵨ_cab", linestyle = :dash, color = :red)
-vlines!(ax2, 1.22, linestyle = :dash)
-vlines!(ax2, 1.23, linestyle = :dash)
+# vlines!(ax2, Rᵨ_cab, label = "Rᵨ_cab", linestyle = :dash, color = :red)
+# vlines!(ax2, 1.22, linestyle = :dash)
+# vlines!(ax2, 1.23, linestyle = :dash)
 linkyaxes!(ax1, ax2)
 axislegend(ax2, position = :lt)
 fig
