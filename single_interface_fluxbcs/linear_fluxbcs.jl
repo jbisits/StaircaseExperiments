@@ -9,15 +9,15 @@ Pr = 7   # Prandtl
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-resolution = (Nx=50, Ny=50, Nz=1000)
+resolution = (Nx=50, Ny=50, Nz=750)
 ρ₀ = gsw_rho(34.7, 0.5, 0.5)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 # bcs from a rundown model and are an approximation/test to see if can simulate
 # effect of interfaces either side.
-Jᵀ = 1.2 * 2.5e-5
+Jᵀ = 2.3e-5
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
-Jˢ = 5e-7
+Jˢ = 4.3e-7
 S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ), bottom = FluxBoundaryCondition(Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
 dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
@@ -35,7 +35,7 @@ initial_noise = tracers = TracerNoise(1e-4, 1e-2)
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
 ## Build simulation
-stop_time = Int(4 * 60 * 60) # seconds
+stop_time = Int(6 * 60 * 60) # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
 output_path = joinpath(@__DIR__, "fluxbcs_$(round(interface_ics.R_ρ, digits = 2))", initial_state)
 save_schedule = 60
@@ -68,6 +68,7 @@ animate_density(simulation.output_writers[:computed_output].filepath, "σ",
 animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslice = 17,
                 S_limit_adjustment = 0.025,
                 Θ_limit_adjustment = 0.5)
+animate_vertical_velocity(simulation.output_writers[:velocities].filepath, xslice = 17, yslice = 17)
 
 ## compute diagnostics
 diags = "diagnostics.jld2"

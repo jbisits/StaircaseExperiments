@@ -157,27 +157,46 @@ let
 	fig
 end
 
-# ╔═╡ baa37deb-ea5a-4437-afa0-0e30a755df9c
-let
+# ╔═╡ c3f03eaf-0c45-477a-ba2b-c411be6d07c8
+begin
 	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
-	R_ρ_interp = dims["time"][1:end-1]
-	fig = Figure(size = (800, 800))
-	axT = Axis(fig[1, 1], ylabel = "T flux")
+	
 	T_interface_idx = expt_data["T_ha_interface_idx"]
 	T_flux_interface = [expt_data["T_ha_flux"][idx, i] for (i, idx) ∈ enumerate(T_interface_idx)]
-	lines!(axT, R_ρ_interp, T_flux_interface)
+	a_T, b_T = [R_ρ_interp[12:end].^0 R_ρ_interp[12:end]] \ T_flux_interface[12:end]
 	
-	axS = Axis(fig[2, 1], ylabel = "S flux")
 	S_interface_idx = expt_data["S_ha_interface_idx"]
 	S_flux_interface = [expt_data["S_ha_flux"][idx, i] for (i, idx) ∈ enumerate(S_interface_idx)]
+	lfit_T_flux = a_T .+ b_T .* R_ρ_interp[12:end]
+	a_S, b_S = [R_ρ_interp[12:end].^0 R_ρ_interp[12:end]] \ S_flux_interface[12:end]
+	lfit_S_flux = a_S .+ b_S .* R_ρ_interp[12:end]
+	
+	nothing
+end
+
+# ╔═╡ baa37deb-ea5a-4437-afa0-0e30a755df9c
+let
+	# R_ρ_interp = dims["time"][1:end-1] ./ 60
+	fig = Figure(size = (800, 800))
+	axT = Axis(fig[1, 1], ylabel = "T flux")
+	lines!(axT, R_ρ_interp, T_flux_interface)
+
+	lines!(axT, R_ρ_interp[12:end], lfit_T_flux, label = "Linear fit, slope = $(b_T)")
+	axislegend(axT, position = :rb)
+	
+	axS = Axis(fig[2, 1], ylabel = "S flux")
 	lines!(axS, R_ρ_interp, S_flux_interface)
+
+	lines!(axS, R_ρ_interp[12:end], lfit_S_flux, label = "Linear fit, slope = $(b_S)")
+	axislegend(axS, position = :rb)
 	
 	R_f = S_flux_interface ./ T_flux_interface
 	axf = Axis(fig[3, 1], xlabel = "Rᵨ",ylabel = "R_f")
 	lines!(axf, R_ρ_interp, R_f)
 
-	a, b = [R_ρ_interp.^0 R_ρ_interp] \ R_f
-	lines!(axf, R_ρ_interp, a .+ b .* R_ρ_interp, label = "Linear fit, slope = $(b)")
+	a, b = [R_ρ_interp[12:end].^0 R_ρ_interp[12:end]] \ R_f[12:end]
+	lines!(axf, R_ρ_interp[12:end], a .+ b .* R_ρ_interp[12:end], label = "Linear fit, slope = $(b)")
+	lines!(axf, R_ρ_interp[12:end], lfit_S_flux ./ lfit_T_flux, linestyle = :dash, label = "Ratio of linear fits")
 	axislegend(axf, position = :rb)
 	
 	Label(fig[0, 1], "Horizontally averaged flux through interface", tellwidth = false, font = :bold)
@@ -225,12 +244,31 @@ end
 let
 	fig = Figure(size = (500, 500))
 	ax = Axis(fig[1, 1], xlabel = "Rᵨ", ylabel = "z✶")
-	lines!(ax, dims["time"][2:end], dims["z✶"][expt_data["S_interface_idx"]], label = "salinity")
-	lines!(ax, dims["time"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "temperature", linestyle = :dot)
+	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["S_interface_idx"]], label = "salinity")
+	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "temperature", linestyle = :dot)
 	# ylims!(ax, 0.49, 0.54)
 	# vlines!(ax, 1.6, color = :red, linestyle = :dash)
 	axislegend(ax, position = :rb)
 	fig
+end
+
+# ╔═╡ 26776c6e-2864-4b0f-8ddd-d3fb16aa8779
+begin
+	figinterface = Figure(size = (500, 500))
+	axinterface = Axis(figinterface[1, 1], xlabel = "Rᵨ", ylabel = "z")
+	
+	findS = [findfirst(expt_data["S_ha"][:, i] .≤ 0.5 * (34.58 + 34.7)) for i in eachindex(expt_data["S_ha"][1, 2:end])]
+	S_interface = dims["z_aac"][findS]
+	lines!(axinterface, expt_data["R_ρ"][2:end], S_interface, label = "salinity")
+	
+	findT = [findfirst(expt_data["T_ha"][:, i] .≤ 0.5 * (-1.5 + 0.5)) for i in eachindex(expt_data["T_ha"][1, 2:end])]
+	T_interface = dims["z_aac"][findT]
+	lines!(axinterface, expt_data["R_ρ"][2:end], T_interface, label = "temperature", linestyle = :dot)
+	
+	ylims!(axinterface, -0.25, -0.24)
+	# vlines!(ax, 1.6, color = :red, linestyle = :dash)
+	axislegend(axinterface, position = :rb)
+	figinterface
 end
 
 # ╔═╡ 82964820-7220-4e21-b263-20754b6a3a33
@@ -251,6 +289,19 @@ let
 	Colorbar(fig[1, 2], hmS)
 	axT = Axis(fig[2, 1], xlabel = "time (mins)", ylabel = "z (m)")
 	hmT = heatmap!(axT, t, z, expt_data["T_ha"]', colormap = :thermal)
+	Colorbar(fig[2, 2], hmT)
+	fig
+end
+
+# ╔═╡ 3130c878-fda2-4d11-a658-748d6a15b2b8
+let
+	fig = Figure(size = (1000, 1000))
+	t, z = dims["time"] / 60, dims["z_aac"]
+	axS = Axis(fig[1, 1], title = "Hovmoller for anomaly saliniy and temperature (ha profile)", ylabel = "z (m)")
+	hmS = heatmap!(axS, t, z, (expt_data["S_ha"] .- expt_data["S_ha"][:, 1])', colormap = :curl, colorrange = (-0.09, 0.09))
+	Colorbar(fig[1, 2], hmS)
+	axT = Axis(fig[2, 1], xlabel = "time (mins)", ylabel = "z (m)")
+	hmT = heatmap!(axT, t, z, (expt_data["T_ha"] .- expt_data["T_ha"][:, 1])', colormap = :delta, colorrange = (-1.5, 1.5))
 	Colorbar(fig[2, 2], hmT)
 	fig
 end
@@ -279,8 +330,10 @@ let
 	ΔS = Sₜ[end] - Sₜ[1]
 	ΔT = Tₜ[end] - Tₜ[1]
 	id = expt_data["attrib/interface_depth"]
-	S = erf_tracer_solution.(z, Sₜ[1], ΔS, κₛ, t, id)
-	T = erf_tracer_solution.(z, Tₜ[1], ΔT, κₜ, t, id)
+	interfaceS = vcat(id, S_interface)
+	interfaceT = vcat(id, T_interface)
+	S = erf_tracer_solution.(z, Sₜ[1], ΔS, κₛ, t, interfaceS[t])
+	T = erf_tracer_solution.(z, Tₜ[1], ΔT, κₜ, t, interfaceT[t])
 	lines!(ax, S, T, color = :orange, label = "Theoretical model")
 
 	axislegend(ax, position = :lt)
@@ -356,6 +409,7 @@ let
 	∫wb = 0.5 * (expt_data["∫wb"][1:end-1] .+ expt_data["∫wb"][2:end])
 	∫gρw = 0.5 * (expt_data["∫gρw"][1:end-1] .+ expt_data["∫gρw"][2:end])
 	RHS = ∫wb .- ε
+	# RHS =-∫gρw .- ε
 	fig, ax = lines(eachindex(Δt)[1:end], dₜek[1:end], label = "dₜek")
 	lines!(ax, eachindex(Δt)[1:end], RHS[1:end], label = "∫wb - ε")
 	ax.title = "Energy  budget"
@@ -392,9 +446,11 @@ Ideally we would use periodic or jump boundary conditions but nonlinear eos caus
 
 # ╔═╡ 68a0a47e-e919-4d9d-b1a5-090d69bf633e
 begin
-	find_Rᵨ = findfirst(expt_data["R_ρ"] .> Rᵨ_val)
-	Shaflux = expt_data["S_ha_flux"][expt_data["S_ha_interface_idx"][find_Rᵨ], find_Rᵨ]
-	Thaflux = expt_data["T_ha_flux"][expt_data["T_ha_interface_idx"][find_Rᵨ], find_Rᵨ]
+	# find_Rᵨ = findfirst(expt_data["R_ρ"] .> Rᵨ_val)
+	# Shaflux = expt_data["S_ha_flux"][expt_data["S_ha_interface_idx"][find_Rᵨ], find_Rᵨ]
+	# Thaflux = expt_data["T_ha_flux"][expt_data["T_ha_interface_idx"][find_Rᵨ], find_Rᵨ]
+	Shaflux = a_S + b_S * Rᵨ_val
+	Thaflux = a_T + b_T * Rᵨ_val
 	md"""
 	Horizontally averaged salinity flux through interface for ``R_{\rho} = `` $(Rᵨ_val) is ``J_{S} = `` $(round(Shaflux, digits = 10)) with 
 	Horizontally averaged temperature flux through interface for ``R_{\rho} = `` $(Rᵨ_val) is ``J_{T} = `` $(round(Thaflux, digits = 7)).
@@ -419,13 +475,16 @@ TableOfContents()
 # ╟─a6403686-dc8a-480d-9d77-82a0562e4665
 # ╟─bbdef33d-6493-4f95-ba92-92d08e75c69a
 # ╟─c852e2d3-f489-4b98-a183-dae4c3594947
+# ╟─c3f03eaf-0c45-477a-ba2b-c411be6d07c8
 # ╟─baa37deb-ea5a-4437-afa0-0e30a755df9c
 # ╟─0a9d245d-8285-4a22-9edf-178d9e85addb
 # ╟─9a8041ad-6b12-4ef5-9f2f-44189de067f9
 # ╟─3e422d6d-912f-4119-a290-648dbe036dde
 # ╟─d0148931-4198-4bb3-893c-a9b73e1ec7a9
+# ╟─26776c6e-2864-4b0f-8ddd-d3fb16aa8779
 # ╟─82964820-7220-4e21-b263-20754b6a3a33
 # ╟─2536f46d-bbe8-4f85-a16a-82afef16fef5
+# ╟─3130c878-fda2-4d11-a658-748d6a15b2b8
 # ╟─ca6991b4-ac76-435e-bcff-82103b6abdc7
 # ╟─b1fd4a61-796e-4b39-b175-971311c9c62a
 # ╟─8711fdef-0da7-46bf-aa82-2f32b0590f7b
