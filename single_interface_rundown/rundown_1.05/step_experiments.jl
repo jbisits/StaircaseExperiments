@@ -446,11 +446,11 @@ Ideally we would use periodic or jump boundary conditions but nonlinear eos caus
 
 # ╔═╡ 68a0a47e-e919-4d9d-b1a5-090d69bf633e
 begin
-	# find_Rᵨ = findfirst(expt_data["R_ρ"] .> Rᵨ_val)
-	# Shaflux = expt_data["S_ha_flux"][expt_data["S_ha_interface_idx"][find_Rᵨ], find_Rᵨ]
-	# Thaflux = expt_data["T_ha_flux"][expt_data["T_ha_interface_idx"][find_Rᵨ], find_Rᵨ]
-	Shaflux = a_S + b_S * Rᵨ_val
-	Thaflux = a_T + b_T * Rᵨ_val
+	find_Rᵨ = findfirst(expt_data["R_ρ"] .> Rᵨ_val)
+	Shaflux = expt_data["S_ha_flux"][expt_data["S_ha_interface_idx"][find_Rᵨ], find_Rᵨ]
+	Thaflux = expt_data["T_ha_flux"][expt_data["T_ha_interface_idx"][find_Rᵨ], find_Rᵨ]
+	# Shaflux = a_S + b_S * Rᵨ_val
+	# Thaflux = a_T + b_T * Rᵨ_val
 	md"""
 	Horizontally averaged salinity flux through interface for ``R_{\rho} = `` $(Rᵨ_val) is ``J_{S} = `` $(round(Shaflux, digits = 10)) with 
 	Horizontally averaged temperature flux through interface for ``R_{\rho} = `` $(Rᵨ_val) is ``J_{T} = `` $(round(Thaflux, digits = 7)).
@@ -497,6 +497,6 @@ TableOfContents()
 # ╟─f200b8e0-2b14-4270-963b-6bb1b154d550
 # ╟─50e87efc-a49c-4ffd-bfbd-cd5dfad40639
 # ╟─ee9c0edb-477b-4cc0-8c57-36845a90bbaf
-# ╟─68a0a47e-e919-4d9d-b1a5-090d69bf633e
+# ╠═68a0a47e-e919-4d9d-b1a5-090d69bf633e
 # ╠═63c3aa72-f1c5-4a61-b377-85de03961836
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad

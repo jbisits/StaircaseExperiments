@@ -22,7 +22,8 @@ begin
 	Pkg.activate("..")
 	using CairoMakie, GibbsSeaWater, PlutoUI, Statistics, JLD2
 	using SpecialFunctions: erf
-	using StaircaseShenanigans: total_density, CustomLinearEquationOfState
+	using StaircaseShenanigans: total_density, CustomLinearEquationOfState, compute_R_ρ
+	using SeawaterPolynomials: TEOS10EquationOfState
 end
 
 # ╔═╡ b51bd896-64f6-11ef-3b2b-3d362d0c3f8a
@@ -71,11 +72,15 @@ begin
 	S_star, Θ_star = 34.7, 0.5
 	ΔΘ = -2
 	Θ_upper = Θ_star + ΔΘ
-	S_stable, S_cab = 34, 34.58
+	S_stable, S_cab = 34.551, 34.58
 	ΔSₛ = S_stable - S_star
 	ΔS_c= S_cab - S_star
 	select_upper_layer = @bind upper_layer Select(["Stable", "Cabbeling"])
 
+	ρ₀ = gsw_rho(34.7, 0.5, 0)
+	leos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
+	nleos = TEOS10EquationOfState(reference_density = ρ₀)
+	
 	τ = κₛ / κₜ
 	md"""
 	# Non-linear equation of state 
@@ -379,6 +384,99 @@ This plot shows:
 - I think from these figure plus the salinity-temperature plots above we can say double diffusion will always win out over cabbeling at a diffusive interface but cabbeling has the potential to distrupt an interface when turbulent mixing overrides the double diffusive effect and depending on the whether the overall profile is unstable to cabbeling this will have an influence on the staircase.
 """
 
+# ╔═╡ 155f335e-4246-497a-b8de-7ccd2c2f4bf2
+begin
+	Sᵤ_slider = @bind Sᵤ PlutoUI.Slider(range(34.2, 34.59, length = 50), show_value=true)
+	κₛ_slider = @bind _κₛ PlutoUI.Slider(range(1e-9, 1e-7, length = 5), show_value=true)
+	eos_select = @bind _eos PlutoUI.Select(["nonlinear", "linear"])
+	nothing
+end
+
+# ╔═╡ c691e741-bc82-4a1b-b576-420521146004
+let
+	use_eos = _eos == "nonlinear" ? nleos : leos
+	ΔS = Sᵤ - S_star
+
+	z = range(-1, 0, length = 1400)
+    interface_location = -0.5
+	R_ρ = compute_R_ρ([Sᵤ, S_star], [Θ_upper, Θ_star], interface_location, use_eos)
+	R_ρ = round(R_ρ, digits = 2)
+	τ = _κₛ / κₜ
+	S = erf_tracer_solution.(z, S_star, ΔS, _κₛ, time, interface_location)
+	T = erf_tracer_solution.(z, Θ_star, ΔΘ, κₜ, time, interface_location)
+	σ₀ = total_density.(T, S, 0, fill(use_eos, length(z)))
+
+	fontsize = 22
+	labelsize = 16
+	fig = Figure(size = (900, 1000); fontsize)
+	ax = [Axis(fig[1, i]) for i ∈ 1:2]
+	lines!(ax[1], S, z; color = (:blue, 0.5), label = "Salinity")
+	xlims!(ax[1], Sᵤ-0.02, 34.72)
+	ax[1].xlabel = "Salinity (gkg⁻¹)"
+	ax[1].xlabelcolor = :blue
+	ax[1].xticklabelcolor = :blue
+	ax[1].ylabel = "z (m)"
+	axT = Axis(fig[1, 1];
+	           xaxisposition = :top,
+	           xticklabelcolor = :red,
+	           xlabel = "Θ (°C)",
+	           xlabelcolor = :red,
+	           title = "Temperature and salinity profiles\nat t = $(round(time/60; digits = 4)) mins")
+	lines!(axT, T, z; color = (:red, 0.5), label = "Temeperature")
+	lines!(ax[2], σ₀, z; color = (:black, 0.5))
+	ax[2].title = "Density at t = $(round(time/60; digits = 4)) mins."
+	ax[2].xlabel = "σ₀ (kgm⁻³)"
+	ax[2].xticklabelrotation = π/4
+	axislegend(axT; labelsize)
+	axislegend(ax[1], position = :lb; labelsize)
+	hideydecorations!(ax[2], grid = false)
+
+	linkyaxes!(ax[1], ax[2])
+	colsize!(fig.layout, 1, Relative(3/5))
+	fig
+
+	ax2 = Axis(fig[2, :], title = "S-T evolution. τ = $(τ)", xlabel = "Absolute salinity (gkg⁻¹)", ylabel = "Conservative temperature (°C)")
+	N = 2000
+	S_range, Θ_range = range(minimum(S), maximum(S), length = N), range(minimum(T), maximum(T), length = N)
+	S_grid, Θ_grid = ones(N) .* S_range', ones(N)' .* Θ_range
+	ρ = total_density.(Θ_grid, S_grid, 0, fill(use_eos, size(S_grid)))
+	ρ_star = total_density(Θ_star, S_star, 0, use_eos)
+	ρ_upper = total_density(Θ_upper, Sᵤ, 0, use_eos)
+
+	lines!(ax2, S, T, σ₀, label = "S-T profile", color = :tomato)
+	σ₀_max, max_idx = findmax(σ₀)
+	σ₀_min, min_idx = findmin(σ₀)
+
+	S_minmax = [S[min_idx], S[max_idx]]
+	T_minmax = [T[min_idx], T[max_idx]]
+
+	scatter!(ax2, S_minmax[1], T_minmax[1], label = "Minimum density", color = :orange)
+	scatter!(ax2, S_minmax[2], T_minmax[2], label = "Maximum density", color = :magenta)
+
+	ρ_min = total_density(T[min_idx], S[min_idx], 0, use_eos)
+	ρ_max = total_density(T[max_idx], S[max_idx], 0, use_eos)
+	ρ_diff = abs(z[max_idx] - z[min_idx])
+	contour!(ax2, S_range, Θ_range, ρ'; levels = [ρ_min, ρ_upper, ρ_star, ρ_max], colormap = :dense, label = "Isopycnals")
+
+	scatter!(ax[2], σ₀_min, z[min_idx], label = "Minimum density", color = :orange)
+	scatter!(ax[2], σ₀_max, z[max_idx], label = "Maximum density", color = :magenta)
+
+	# lines!(ax2, S_minmax, T_minmax, color = :red, linestyle = :dash)
+
+	axislegend(ax2, position = :lt)
+
+	Δσ_upper = abs(σ₀_min - ρ_upper)
+	Δσ_lower = abs(σ₀_max - ρ_star)
+	R_Δσ = Δσ_upper / Δσ_lower
+	md"""
+	$(fig)
+	EOS: $(eos_select) ``S_{u} = `` $(Sᵤ_slider),    
+	``\kappa_{S} = `` $(κₛ_slider)
+	
+	``R_{\rho} = `` $(R_ρ), ``\tau = `` $(τ), ``R_{\Delta\sigma} = `` $(R_Δσ)
+	"""
+end
+
 # ╔═╡ 7ad7693e-6f18-474a-89e8-b2d433aea261
 TableOfContents()
 
@@ -393,4 +491,6 @@ TableOfContents()
 # ╟─d8e4ad73-b296-462b-a161-9666ba6322b6
 # ╟─48eb84eb-42bf-4938-9d9e-0c8794fa5a5c
 # ╟─9695b41b-4dd0-429b-a3c5-c37c2a6dbaf8
+# ╠═155f335e-4246-497a-b8de-7ccd2c2f4bf2
+# ╠═c691e741-bc82-4a1b-b576-420521146004
 # ╟─7ad7693e-6f18-474a-89e8-b2d433aea261
