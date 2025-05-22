@@ -61,6 +61,7 @@ animate_density(simulation.output_writers[:computed_output].filepath, "σ",
 animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslice = 17,
                 S_limit_adjustment = 0.025,
                 Θ_limit_adjustment = 0.5)
+animate_vertical_velocity(simulation.output_writers[:velocities].filepath, xslice = 17, yslice = 17)
 
 ## compute diagnostics
 diags = "diagnostics.jld2"
