@@ -313,6 +313,28 @@ erf_tracer_solution(z, Cₗ::Number, ΔC::Number, κ::Number, time, interface_lo
 # ╔═╡ b1fd4a61-796e-4b39-b175-971311c9c62a
 @bind t PlutoUI.Slider(eachindex(dims["time"]))
 
+# ╔═╡ 6e7d38ab-2824-474b-b90c-75a3a5a05e57
+md"""
+This is the rundown case here but can see the not well mixed layers here I think with the less vertical S-T relationship at the start and end of the curves.
+I can still look at the ratio between lower and upper layer density differences by taking maximum, minimum and the top and bottom values.
+From theory, for linear equation of state this should be around 1 and for non-linear equation of state this is around 0.6.
+"""
+
+# ╔═╡ e972f242-3b58-4581-87ae-437533b9fba1
+begin
+	σ_ha = expt_data["σ_ha"]
+	R_Δσ = Array{Float64}(undef, length(σ_ha[1, :]))
+	for (i, col) ∈ enumerate(eachcol(σ_ha))
+		σ_min = minimum(col)
+		σ_top = col[end]
+		Δσ_upper = abs(σ_min - σ_top)
+		σ_max = maximum(col)
+		σ_bottom = col[1]
+		Δσ_lower = abs(σ_max - σ_bottom)
+		R_Δσ[i] = Δσ_upper / Δσ_lower
+	end
+end
+
 # ╔═╡ 8711fdef-0da7-46bf-aa82-2f32b0590f7b
 let
 	Sₜ, Tₜ = expt_data["S_ha"][:, t], expt_data["T_ha"][:, t]
@@ -324,6 +346,7 @@ let
 	ax.xlabel = "Salinity (gkg⁻¹)"
 	ax.ylabel = "Temperature (°C)"
 	ax.title = "Ha S and T profiles at time t = $(dims["time"][t] / 60)min"
+	ax.subtitle = "R_Δσ = $(round(R_Δσ[t], digits = 1))"
 
 	κₛ, κₜ = expt_data["attrib/κₛ (m²s⁻¹)"], expt_data["attrib/κₜ (m²s⁻¹)"]
 	z = dims["z_aac"]
@@ -337,13 +360,26 @@ let
 	lines!(ax, S, T, color = :orange, label = "Theoretical model")
 
 	axislegend(ax, position = :lt)
+
+	σₜ = expt_data["σ_ha"][:, t] .- mean(expt_data["σ_ha"][:, t])
+	ax2 = Axis(fig[1, 2], 
+			   title = "Ha σ′ profile at time t = $(dims["time"][t] / 60)min", 
+			   subtitle = "Anomaly from mean",
+			   xlabel = "σ₀′", 
+			   ylabel = "z (m)")
+	lines!(ax2, σₜ, z)
+	xlims!(ax2, (-0.03, 0.03))
 	fig
 end
 
-# ╔═╡ 6e7d38ab-2824-474b-b90c-75a3a5a05e57
-md"""
-This is the rundown case here but can see the not well mixed layers here I think with the less vertical S-T relationship at the start and end of the curves.
-"""
+# ╔═╡ d2e81b8b-4a1c-4330-8f2a-14a502390bcd
+let
+	fig, ax = lines(dims["time"] ./ 60, R_Δσ)
+	ax.title = "Raito of density difference between upper and lower layer"
+	ax.xlabel = "time (mins)"
+	ax.ylabel = "R_Δσ"
+	fig
+end
 
 # ╔═╡ 6ce43b6e-c3fa-408f-8702-900eaeb17bf5
 md"""
@@ -449,16 +485,22 @@ begin
 	find_Rᵨ = findfirst(expt_data["R_ρ"] .> Rᵨ_val)
 	Shaflux = expt_data["S_ha_flux"][expt_data["S_ha_interface_idx"][find_Rᵨ], find_Rᵨ]
 	Thaflux = expt_data["T_ha_flux"][expt_data["T_ha_interface_idx"][find_Rᵨ], find_Rᵨ]
-	# Shaflux = a_S + b_S * Rᵨ_val
-	# Thaflux = a_T + b_T * Rᵨ_val
+	int_R_f = Shaflux / Thaflux
+	Shaflux_fit = a_S + b_S * Rᵨ_val
+	Thaflux_fit = a_T + b_T * Rᵨ_val
+	int_R_f_fit = Shaflux_fit / Thaflux_fit
 	md"""
-	Horizontally averaged salinity flux through interface for ``R_{\rho} = `` $(Rᵨ_val) is ``J_{S} = `` $(round(Shaflux, digits = 10)) with 
-	Horizontally averaged temperature flux through interface for ``R_{\rho} = `` $(Rᵨ_val) is ``J_{T} = `` $(round(Thaflux, digits = 7)).
+	Horizontally averaged fluxes through interface for ``R_{\rho} = `` $(Rᵨ_val): 
+	- ``J_{S} = `` $(round(Shaflux, digits = 10)); and
+	- ``J_{T} = `` $(round(Thaflux, digits = 7)).
+	with flux ratio: $(int_R_f).
+
+	Fluxes through interface from linear fit:
+	- ``J_{S} = `` $(round(Shaflux_fit, digits = 10)); and
+	- ``J_{T} = `` $(round(Thaflux_fit, digits = 7)).
+	with flux ratio: $(int_R_f_fit).
 	"""
 end
-
-# ╔═╡ 63c3aa72-f1c5-4a61-b377-85de03961836
-0.5 / 1300
 
 # ╔═╡ 963fa274-2d8f-47fd-b227-4d7b3275d7ad
 TableOfContents()
@@ -489,6 +531,8 @@ TableOfContents()
 # ╟─b1fd4a61-796e-4b39-b175-971311c9c62a
 # ╟─8711fdef-0da7-46bf-aa82-2f32b0590f7b
 # ╟─6e7d38ab-2824-474b-b90c-75a3a5a05e57
+# ╟─e972f242-3b58-4581-87ae-437533b9fba1
+# ╟─d2e81b8b-4a1c-4330-8f2a-14a502390bcd
 # ╟─6ce43b6e-c3fa-408f-8702-900eaeb17bf5
 # ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013
@@ -498,5 +542,4 @@ TableOfContents()
 # ╟─50e87efc-a49c-4ffd-bfbd-cd5dfad40639
 # ╟─ee9c0edb-477b-4cc0-8c57-36845a90bbaf
 # ╟─68a0a47e-e919-4d9d-b1a5-090d69bf633e
-# ╠═63c3aa72-f1c5-4a61-b377-85de03961836
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad
