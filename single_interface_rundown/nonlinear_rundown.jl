@@ -1,6 +1,6 @@
 using StaircaseShenanigans, GibbsSeaWater, CairoMakie
 
-restart = true
+restart = false
 
 architecture = GPU()
 Pr = 7   # Prandtl
@@ -9,8 +9,8 @@ Pr = 7   # Prandtl
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-# resolution = (Nx=130, Ny=130, Nz=1300) # DNS resolution
-resolution = (Nx=50, Ny=50, Nz=500)
+resolution = (Nx=130, Ny=130, Nz=1300) # DNS resolution
+# resolution = (Nx=50, Ny=50, Nz=500)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
@@ -28,14 +28,14 @@ initial_noise = TracerNoise(1e-4, 1e-2)
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
 ## Build simulation
-stop_time = Int(3 * 60 * 60) # seconds
+stop_time = Int(1 * 60 * 60) # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
 output_path = joinpath(@__DIR__, "rundown_$(round(interface_ics.R_ρ, digits = 2))", initial_state)
 save_schedule = 60
 checkpointer_time_interval = 60 * 60 # seconds
 Δt = 1e-3
-# max_Δt = 1.75e-2 # DNS timesetp
-max_Δt = 7e-2
+max_Δt = 1.75e-2 # DNS timesetp
+# max_Δt = 7e-2
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    save_vertical_velocities!;
                                    output_path,
@@ -45,7 +45,7 @@ simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    max_Δt,
                                    Δt)
 ## Run
-restart ? nothing : simulation.stop_time = Int(10 * 60 * 60) # update to pickup from a checkpoint
+restart ? nothing : simulation.stop_time = Int(3 * 60 * 60) # update to pickup from a checkpoint
 pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
 run!(simulation; pickup)
 
@@ -66,7 +66,7 @@ animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslic
 animate_vertical_velocity(simulation.output_writers[:velocities].filepath, xslice = 17, yslice = 17)
 
 ## compute diagnostics
-diags = "diagnostics.jld2"
+diags = initial_state*"_diagnostics.jld2"
 if isfile(diags)
     rm(diags)
 end

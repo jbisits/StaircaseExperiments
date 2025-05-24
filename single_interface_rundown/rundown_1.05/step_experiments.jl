@@ -355,7 +355,7 @@ let
 	id = expt_data["attrib/interface_depth"]
 	interfaceS = vcat(id, S_interface)
 	interfaceT = vcat(id, T_interface)
-	S = erf_tracer_solution.(z, Sₜ[1], ΔS, κₛ, t, interfaceT[t])
+	S = erf_tracer_solution.(z, Sₜ[1], ΔS, κₛ, t, interfaceS[t])
 	T = erf_tracer_solution.(z, Tₜ[1], ΔT, κₜ, t, interfaceT[t])
 	lines!(ax, S, T, color = :orange, label = "Theoretical model")
 
@@ -368,6 +368,7 @@ let
 			   xlabel = "σ₀′", 
 			   ylabel = "z (m)")
 	lines!(ax2, σₜ, z)
+	hlines!(ax2, -0.25, linestyle = :dash, color = :red)
 	σ_lims = extrema(expt_data["σ_ha"])
 	xlims!(ax2, (-0.05, 0.05))
 	fig
