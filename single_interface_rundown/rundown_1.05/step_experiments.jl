@@ -47,7 +47,7 @@ end
 
 # ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "largerdiffrationonlinear"])
+	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "R_rho_1.4_nonlinear", "largerdiffrationonlinear"])
 	md"""
 	# Equation of state
 	
@@ -355,7 +355,7 @@ let
 	id = expt_data["attrib/interface_depth"]
 	interfaceS = vcat(id, S_interface)
 	interfaceT = vcat(id, T_interface)
-	S = erf_tracer_solution.(z, Sₜ[1], ΔS, κₛ, t, interfaceS[t])
+	S = erf_tracer_solution.(z, Sₜ[1], ΔS, κₛ, t, interfaceT[t])
 	T = erf_tracer_solution.(z, Tₜ[1], ΔT, κₜ, t, interfaceT[t])
 	lines!(ax, S, T, color = :orange, label = "Theoretical model")
 
@@ -368,7 +368,8 @@ let
 			   xlabel = "σ₀′", 
 			   ylabel = "z (m)")
 	lines!(ax2, σₜ, z)
-	xlims!(ax2, (-0.03, 0.03))
+	σ_lims = extrema(expt_data["σ_ha"])
+	xlims!(ax2, (-0.05, 0.05))
 	fig
 end
 

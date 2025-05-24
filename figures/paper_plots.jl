@@ -184,8 +184,9 @@ save("S_T_sigma_ST_space_2panel.png", fig)
 
 ## Figure
 # Density asymmetry
-
-κₛ_range = range(1e-9, κₜ, length = 100)
+# Sᵤ = 34.54
+# ΔS = Sᵤ - Sₗ
+κₛ_range = range(1e-9, 5e-8, length = 100)
 τ_range = κₛ_range ./ κₜ
 σ₀_nonlinear_max = similar(κₛ_range)
 σ₀_nonlinear_min = similar(κₛ_range)
@@ -227,7 +228,7 @@ fig
 
 # Figure
 # density ratio vs Δρ in each layer for different τ
-τ = (0.01)#, 0.05, 0.1, 0.5)
+τ = (0.01, 0.05, 0.1)
 Sᵤ_range = range(33.7, 34.59, length = 100)
 temperature = [Θᵤ, Θₗ]
 Rᵨ_leos = Array{Float64}(undef, length(Sᵤ_range), length(τ))

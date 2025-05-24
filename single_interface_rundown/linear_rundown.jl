@@ -4,7 +4,7 @@ restart = true
 
 architecture = GPU()
 Pr = 7   # Prandtl
-τ = 0.05 # diff ratio
+τ = 0.1 # diff ratio
 ν = 2.5e-6 # set this get the others
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-0.5)
