@@ -1,25 +1,23 @@
 using StaircaseShenanigans, GibbsSeaWater, CairoMakie
 
-
 restart = true
 
 architecture = GPU()
 Pr = 7   # Prandtl
-τ = 0.05 # diff ratio
+τ = 0.1 # diff ratio
 ν = 2.5e-6 # set this get the others
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-resolution = (Nx=50, Ny=50, Nz=500)
+resolution = (Nx=50, Ny=50, Nz=750)
 ρ₀ = gsw_rho(34.7, 0.5, 0.0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 # bcs from a rundown model and are an approximation/test to see if can simulate
 # effect of interfaces either side.
-scale_flux = 0.4
-Jᵀ = scale_flux * 1.5e-5
+Jᵀ = 2.2e-5
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
-Jˢ = scale_flux * 2e-7
+Jˢ = 4.9e-7
 S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ), bottom = FluxBoundaryCondition(Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
 dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
@@ -58,7 +56,7 @@ run!(simulation; pickup)
 
 ## Produce animations
 compute_R_ρ!(simulation.output_writers[:computed_output].filepath,
-             simulation.output_writers[:tracers].filepath, (-0.4, -0.2), (-0.8, -0.6), eos)
+             simulation.output_writers[:tracers].filepath, (-0.2, -0.1), (-0.4, -0.3), eos)
 
 reduced_path = findlast('/', simulation.output_writers[:computed_output].filepath)
 animation_path = simulation.output_writers[:computed_output].filepath[1:(reduced_path-1)]
@@ -69,17 +67,31 @@ animate_density(simulation.output_writers[:computed_output].filepath, "σ",
 animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslice = 17,
                 S_limit_adjustment = 0.025,
                 Θ_limit_adjustment = 0.5)
+animate_vertical_velocity(simulation.output_writers[:velocities].filepath, xslice = 17, yslice = 17)
 
-using JLD2, NCDatasets
-ds = NCDataset(simulation.output_writers[:computed_output].filepath)
-R_ρ = "R_rho.jld2"
-if isfile(R_ρ)
-    rm(R_ρ)
+diags = initial_state*"_diagnostics.jld2"
+if isfile(diags)
+    rm(diags)
 end
-jldopen(R_ρ, "w") do f
-    f["R_ρ"] = ds[:R_ρ][:]
+save_diagnostics!(diags,
+                  simulation.output_writers[:tracers].filepath,
+                  simulation.output_writers[:computed_output].filepath,
+                  simulation.output_writers[:velocities].filepath)
+jldopen(diags, "a+") do f
+    f["FluxesBCs/Jˢ"] = Jˢ
+    f["FluxBCs/Jᵀ"] = Jᵀ
 end
-close(ds)
+
+# using JLD2, NCDatasets
+# ds = NCDataset(simulation.output_writers[:computed_output].filepath)
+# R_ρ = "R_rho.jld2"
+# if isfile(R_ρ)
+#     rm(R_ρ)
+# end
+# jldopen(R_ρ, "w") do f
+#     f["R_ρ"] = ds[:R_ρ][:]
+# end
+# close(ds)
 
 # local plot of figure
 # using JLD2, CairoMakie
