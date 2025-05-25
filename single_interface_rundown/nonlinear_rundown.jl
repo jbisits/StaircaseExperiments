@@ -18,7 +18,7 @@ dns_model = DNSModel(model_setup...; TD = VerticallyImplicitTimeDiscretization()
 
 ## Initial conditions
 depth_of_interface = -0.25
-salinity = [34.51, 34.70]
+salinity = [34.58, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
@@ -30,7 +30,7 @@ sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 ## Build simulation
 stop_time = Int(1 * 60 * 60) # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
-output_path = joinpath(@__DIR__, "rundown_$(round(interface_ics.R_ρ, digits = 2))", initial_state)
+output_path = joinpath(@__DIR__, "dns_rundown_$(round(interface_ics.R_ρ, digits = 2))", initial_state)
 save_schedule = 60
 checkpointer_time_interval = 60 * 60 # seconds
 Δt = 1e-3
