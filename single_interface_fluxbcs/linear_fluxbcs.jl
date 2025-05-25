@@ -15,7 +15,7 @@ eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 # bcs from a rundown model and are an approximation/test to see if can simulate
 # effect of interfaces either side.
-Jᵀ = 1.5e-5
+Jᵀ = 1.2 * 1.5e-5
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
 Jˢ = 1.75e-7
 S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ), bottom = FluxBoundaryCondition(Jˢ))
@@ -71,7 +71,7 @@ animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslic
 animate_vertical_velocity(simulation.output_writers[:velocities].filepath, xslice = 17, yslice = 17)
 
 ## compute diagnostics
-diags = "diagnostics.jld2"
+diags = initial_state*"_diagnostics.jld2"
 if isfile(diags)
     rm(diags)
 end
@@ -79,17 +79,21 @@ save_diagnostics!(diags,
                   simulation.output_writers[:tracers].filepath,
                   simulation.output_writers[:computed_output].filepath,
                   simulation.output_writers[:velocities].filepath)
+jldopen(diags, "a+") do f
+    f["FluxesBCs/Jˢ"] = Jˢ
+    f["FluxBCs/Jᵀ"] = Jᵀ
+end
 
-using JLD2, NCDatasets
-ds = NCDataset(simulation.output_writers[:computed_output].filepath)
-R_ρ = "R_rho.jld2"
-if isfile(R_ρ)
-    rm(R_ρ)
-end
-jldopen(R_ρ, "w") do f
-    f["R_ρ"] = ds[:R_ρ][:]
-end
-close(ds)
+# using JLD2, NCDatasets
+# ds = NCDataset(simulation.output_writers[:computed_output].filepath)
+# R_ρ = "R_rho.jld2"
+# if isfile(R_ρ)
+#     rm(R_ρ)
+# end
+# jldopen(R_ρ, "w") do f
+#     f["R_ρ"] = ds[:R_ρ][:]
+# end
+# close(ds)
 
 ## local plot of figure
 # using JLD2, CairoMakie
