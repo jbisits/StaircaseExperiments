@@ -15,10 +15,8 @@ eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 # bcs from a rundown model and are an approximation/test to see if can simulate
 # effect of interfaces either side.
-# Jᵀ = 1.5e-5 Rᵨ = 1.75
-# Jˢ = 1.8e-7 Rᵨ = 1.75
-Jᵀ = 2.2e-5
-Jˢ = 4.9e-7
+Jᵀ = 1.5e-5 # Rᵨ = 1.75, unscaled
+Jˢ = 0.8 * 1.8e-7 # Rᵨ = 1.75, unscaled
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
 S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ), bottom = FluxBoundaryCondition(Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
