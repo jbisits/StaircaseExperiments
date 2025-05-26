@@ -265,7 +265,7 @@ begin
 	T_interface = dims["z_aac"][findT]
 	lines!(axinterface, expt_data["R_ρ"][2:end], T_interface, label = "temperature", linestyle = :dot)
 	
-	ylims!(axinterface, -0.25, -0.24)
+	ylims!(axinterface, -0.25, -0.235)
 	# vlines!(ax, 1.6, color = :red, linestyle = :dash)
 	axislegend(axinterface, position = :rb)
 	figinterface
@@ -355,7 +355,7 @@ let
 	id = expt_data["attrib/interface_depth"]
 	interfaceS = vcat(id, S_interface)
 	interfaceT = vcat(id, T_interface)
-	S = erf_tracer_solution.(z, Sₜ[1], ΔS, κₛ, t, interfaceS[t])
+	S = erf_tracer_solution.(z, Sₜ[1], ΔS, κₛ, t, interfaceT[t])
 	T = erf_tracer_solution.(z, Tₜ[1], ΔT, κₜ, t, interfaceT[t])
 	lines!(ax, S, T, color = :orange, label = "Theoretical model")
 
