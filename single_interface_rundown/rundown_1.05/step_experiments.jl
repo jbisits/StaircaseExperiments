@@ -29,7 +29,7 @@ begin
 # initial_state = @bind is Select(["step", "tanh", "diff_initial_h"])
 is = "step"
 md"""
-# Single interface experiments
+# Single interface rundown experiments
 
 This notebook contains diagnostics computed from two single interface experiments.
 Both experiments have the same initial salinity and temperature within each layer and the two layers meet at a sharp interface.
@@ -42,6 +42,8 @@ The diagnostics, from [McDougall (1981)](https://www.sciencedirect.com/science/a
 - salinity and temperature flux across interface
 - interface height
 - interface thickness
+
+Since starting this work new parts/diagnostics have been added which are documented below.
 """
 end
 
@@ -235,7 +237,7 @@ let
 				ylabelcolor = :dodgerblue,
 			    ytickcolor = :dodgerblue,
 				ylabel = "Rᵨ")
-	lines!(ax2, mins, expt_data["R_ρ"], color = :dodgerblue, label = "Rᵨ")
+	lines!(ax2, expt_data["R_ρ"], color = :dodgerblue, label = "Rᵨ")
 	axislegend(ax, merge = true, position = :rc)
 	fig
 end
@@ -245,7 +247,15 @@ let
 	fig = Figure(size = (500, 500))
 	ax = Axis(fig[1, 1], xlabel = "Rᵨ", ylabel = "z✶")
 	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["S_interface_idx"]], label = "salinity")
-	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "temperature", linestyle = :dot)
+	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "temperature")
+	
+	findS = [findfirst(reverse(expt_data["S_ha"][:, i]) .≥ 0.5 * (34.58 + 34.7)) for i in eachindex(expt_data["S_ha"][1, 2:end])]
+	S_interface = abs.(dims["z_aac"][findS])
+	lines!(ax, expt_data["R_ρ"][2:end], S_interface, label = "salinity (ha profile)", linestyle  = :dash)
+	
+	findT = [findfirst(reverse(expt_data["T_ha"][:, i]) .≥ 0.5 * (-1.5 + 0.5)) for i in eachindex(expt_data["T_ha"][1, 2:end])]
+	T_interface = abs.(dims["z_aac"][findT])
+	lines!(ax, expt_data["R_ρ"][2:end], T_interface, label = "temperature (ha profile)", linestyle = :dash)
 	# ylims!(ax, 0.49, 0.54)
 	# vlines!(ax, 1.6, color = :red, linestyle = :dash)
 	axislegend(ax, position = :rb)
@@ -504,6 +514,38 @@ begin
 	"""
 end
 
+# ╔═╡ 9e6998c4-6cca-49d5-9fff-2c697296849b
+md"""
+# Further diagnostics
+
+Connected to the asymmetry in density anomalies across the interface is the more turbulent activity in the lower layer.
+Two diagnostics can help here:
+- interface height; and
+- potential energy budget.
+
+## Interface migration
+
+The interface height I am going to define as the initial median ``S`` and ``\Theta`` values.
+I can then find this in both the sorted 3D fields and the horizontally averaged fields to track layer thickness.
+
+## Potential energy budget
+
+This will be computed in the same way as project two.
+My thought here is to break up the ``E_{p}`` integral into either lower layer, interface and upper layer or just use the interface as defined by the interface migration 
+```math
+E_{p} = \int_{z < z_{*}}g\rho z \mathrm{d}V + \int_{z > z_{*}}g\rho z \mathrm{d}V.
+```
+This might be the best place to start.
+Otherwise can use something like
+```math
+E_{p} = \int_{z < z(\rho_{max})}g\rho z \mathrm{d}V + \int_{z(\rho_{max}) < z < z(\rho_{min})}g\rho z \mathrm{d}V + \int_{z > z(\rho_{min})}g\rho z \mathrm{d}V.
+```
+which then sums to total PE.
+For the BPE we would then just use the sorted 1D density field but integrate to the same limits as ``E_{p}`` above.
+
+Ideally this would be done by returning a 1D profile that is the horizontally integrated PE but I do not think this will work for APE so just have to choose the heights to integrate to.
+"""
+
 # ╔═╡ 963fa274-2d8f-47fd-b227-4d7b3275d7ad
 TableOfContents()
 
@@ -544,4 +586,5 @@ TableOfContents()
 # ╟─50e87efc-a49c-4ffd-bfbd-cd5dfad40639
 # ╟─ee9c0edb-477b-4cc0-8c57-36845a90bbaf
 # ╟─68a0a47e-e919-4d9d-b1a5-090d69bf633e
+# ╟─9e6998c4-6cca-49d5-9fff-2c697296849b
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad
