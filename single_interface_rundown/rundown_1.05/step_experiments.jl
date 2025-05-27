@@ -20,8 +20,10 @@ end
 begin
 	using Pkg
 	Pkg.activate("../..")
-	using JLD2, CairoMakie, PlutoUI, Dates, Statistics, TimeSeries
+	using JLD2, CairoMakie, PlutoUI, Dates, Statistics, TimeSeries, GibbsSeaWater
 	using SpecialFunctions: erf
+	using SeawaterPolynomials:  total_density, TEOS10EquationOfState
+	using StaircaseShenanigans: CustomLinearEquationOfState, compute_R_ρ
 end
 
 # ╔═╡ 6301138c-fa0b-11ef-0f3b-39dac35db063
@@ -162,16 +164,16 @@ end
 # ╔═╡ c3f03eaf-0c45-477a-ba2b-c411be6d07c8
 begin
 	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
-	
+	start_flux = 90
 	T_interface_idx = expt_data["T_ha_interface_idx"]
 	T_flux_interface = [expt_data["T_ha_flux"][idx, i] for (i, idx) ∈ enumerate(T_interface_idx)]
-	a_T, b_T = [R_ρ_interp[12:end].^0 R_ρ_interp[12:end]] \ T_flux_interface[12:end]
+	a_T, b_T = [R_ρ_interp[start_flux:end].^0 R_ρ_interp[start_flux:end]] \ T_flux_interface[start_flux:end]
 	
 	S_interface_idx = expt_data["S_ha_interface_idx"]
 	S_flux_interface = [expt_data["S_ha_flux"][idx, i] for (i, idx) ∈ enumerate(S_interface_idx)]
-	lfit_T_flux = a_T .+ b_T .* R_ρ_interp[12:end]
-	a_S, b_S = [R_ρ_interp[12:end].^0 R_ρ_interp[12:end]] \ S_flux_interface[12:end]
-	lfit_S_flux = a_S .+ b_S .* R_ρ_interp[12:end]
+	lfit_T_flux = a_T .+ b_T .* R_ρ_interp[start_flux:end]
+	a_S, b_S = [R_ρ_interp[start_flux:end].^0 R_ρ_interp[start_flux:end]] \ S_flux_interface[start_flux:end]
+	lfit_S_flux = a_S .+ b_S .* R_ρ_interp[start_flux:end]
 	
 	nothing
 end
@@ -183,22 +185,22 @@ let
 	axT = Axis(fig[1, 1], ylabel = "T flux")
 	lines!(axT, R_ρ_interp, T_flux_interface)
 
-	lines!(axT, R_ρ_interp[12:end], lfit_T_flux, label = "Linear fit, slope = $(b_T)")
+	lines!(axT, R_ρ_interp[start_flux:end], lfit_T_flux, label = "Linear fit, slope = $(b_T)")
 	axislegend(axT, position = :rb)
 	
 	axS = Axis(fig[2, 1], ylabel = "S flux")
 	lines!(axS, R_ρ_interp, S_flux_interface)
 
-	lines!(axS, R_ρ_interp[12:end], lfit_S_flux, label = "Linear fit, slope = $(b_S)")
+	lines!(axS, R_ρ_interp[start_flux:end], lfit_S_flux, label = "Linear fit, slope = $(b_S)")
 	axislegend(axS, position = :rb)
 	
 	R_f = S_flux_interface ./ T_flux_interface
 	axf = Axis(fig[3, 1], xlabel = "Rᵨ",ylabel = "R_f")
 	lines!(axf, R_ρ_interp, R_f)
 
-	a, b = [R_ρ_interp[12:end].^0 R_ρ_interp[12:end]] \ R_f[12:end]
-	lines!(axf, R_ρ_interp[12:end], a .+ b .* R_ρ_interp[12:end], label = "Linear fit, slope = $(b)")
-	lines!(axf, R_ρ_interp[12:end], lfit_S_flux ./ lfit_T_flux, linestyle = :dash, label = "Ratio of linear fits")
+	a, b = [R_ρ_interp[start_flux:end].^0 R_ρ_interp[start_flux:end]] \ R_f[start_flux:end]
+	lines!(axf, R_ρ_interp[start_flux:end], a .+ b .* R_ρ_interp[start_flux:end], label = "Linear fit, slope = $(b)")
+	lines!(axf, R_ρ_interp[start_flux:end], lfit_S_flux ./ lfit_T_flux, linestyle = :dash, label = "Ratio of linear fits")
 	axislegend(axf, position = :rb)
 	
 	Label(fig[0, 1], "Horizontally averaged flux through interface", tellwidth = false, font = :bold)
@@ -283,11 +285,13 @@ end
 
 # ╔═╡ 82964820-7220-4e21-b263-20754b6a3a33
 md"""
-# Salinity-temperature space
+# Salinity-temperature evolution
 
 **Note:** the below will only run with later experiments where the horizontal average salinity and temperature profiles are saved.
 
 This is trying to capture asymmetry in density difference and compare it to theory (most of which can be found in the `diffusive_interfaces` Pluto notebook).
+
+## Hovmollers
 """
 
 # ╔═╡ 2536f46d-bbe8-4f85-a16a-82afef16fef5
@@ -320,7 +324,12 @@ end
 erf_tracer_solution(z, Cₗ::Number, ΔC::Number, κ::Number, time, interface_location) =
     Cₗ + 0.5 * ΔC * (1 + erf((z - interface_location) / sqrt(4 * κ * time)))
 
-# ╔═╡ b1fd4a61-796e-4b39-b175-971311c9c62a
+# ╔═╡ 616f02b0-5958-4e43-b747-4fb277460b55
+md"""
+## ``S-\Theta`` space evolution
+"""
+
+# ╔═╡ 18edf87f-fc2b-4e32-969b-eba0e2a813c1
 @bind t PlutoUI.Slider(eachindex(dims["time"]))
 
 # ╔═╡ 6e7d38ab-2824-474b-b90c-75a3a5a05e57
@@ -391,6 +400,95 @@ let
 	ax.xlabel = "time (mins)"
 	ax.ylabel = "R_Δσ"
 	fig
+end
+
+# ╔═╡ cd15821a-c5ad-4199-b0d8-f8944175f61d
+let
+	ρ₀ = gsw_rho(34.7, 0.5, 0.5)
+leos = CustomLinearEquationOfState(-0.5, 34.64, reference_density = ρ₀)
+nleos = TEOS10EquationOfState(reference_density = ρ₀)
+erf_tracer_solution(z, Cₗ::Number, ΔC::Number, κ::Number, t, interface_depth) =
+    Cₗ + 0.5 * ΔC * (1 + erf((z - interface_depth) / sqrt(4 * κ * t)))
+
+Sᵤ, Θᵤ = 34.56, -1.5 # cabbeling expt from project two
+Sₗ, Θₗ = 34.7, 0.5
+ΔS = Sᵤ - Sₗ
+ΔΘ = Θᵤ - Θₗ
+κₛ, κₜ = 1e-9, 1e-7
+Nz = 1400
+z = range(-0.5, 0, length = Nz) # range for density profile
+leos_vec = fill(leos, Nz)
+nleos_vec = fill(nleos, Nz)
+interface_depth = -0.25
+t = 5000
+	τ = (0.01, 0.05, 0.1)
+Sᵤ_range = range(33.52, 34.59, length = 100)
+	Sₗ = 34.7
+	Θᵤ, Θₗ = -1.5, 0.5
+temperature = [Θᵤ, Θₗ]
+Rᵨ_leos = Array{Float64}(undef, length(Sᵤ_range), length(τ))
+Rᵨ_nleos = similar(Rᵨ_leos)
+σ₀_nonlinear_max = similar(Rᵨ_leos)
+σ₀_nonlinear_min = similar(Rᵨ_leos)
+σ₀_linear_max = similar(Rᵨ_leos)
+σ₀_linear_min = similar(Rᵨ_leos)
+σ₀ᵘ_leos = similar(Rᵨ_leos)
+σ₀ᵘ_nleos = similar(Rᵨ_leos)
+σ₀ˡ_nleos = gsw_rho(Sₗ, Θₗ, 0)
+σ₀ˡ_leos = total_density(Θₗ, Sₗ, 0, leos)
+for j ∈ eachindex(τ)
+
+    _κₛ = τ[j] * κₜ
+    for (i, _Sᵤ) ∈ enumerate(Sᵤ_range)
+
+        salinity = [_Sᵤ, Sₗ]
+        _ΔS = _Sᵤ - Sₗ
+
+        Rᵨ_leos[i, j] = compute_R_ρ(salinity, temperature, interface_depth, leos)
+        Rᵨ_nleos[i, j] = compute_R_ρ(salinity, temperature, interface_depth, nleos)
+
+        S = erf_tracer_solution.(z, Sₗ, _ΔS, _κₛ, t, interface_depth)
+        T = erf_tracer_solution.(z, Θₗ, ΔΘ, κₜ, t, interface_depth)
+        σ₀_nonlinear = gsw_rho.(S, T, 0)
+        σ₀_nonlinear_max[i, j] = maximum(σ₀_nonlinear)
+        σ₀_nonlinear_min[i, j] = minimum(σ₀_nonlinear)
+
+        σ₀_linear = total_density.(T, S, 0, leos_vec)
+        σ₀_linear_max[i, j] = maximum(σ₀_linear)
+        σ₀_linear_min[i, j] = minimum(σ₀_linear)
+
+        σ₀ᵘ_nleos[i, j] = gsw_rho(_Sᵤ, Θᵤ, 0)
+        σ₀ᵘ_leos[i, j] = total_density(Θᵤ, _Sᵤ, 0, leos)
+    end
+
+end
+Δσ_lower_nonlinear = abs.(σ₀_nonlinear_max .- σ₀ˡ_nleos)
+Δσ_upper_nonlinear = abs.(σ₀_nonlinear_min .- σ₀ᵘ_nleos)
+Δσ_nonlinear = Δσ_upper_nonlinear ./ Δσ_lower_nonlinear
+
+Δσ_lower_linear = abs.(σ₀_linear_max .- σ₀ˡ_leos)
+Δσ_upper_linear = abs.(σ₀_linear_min .- σ₀ᵘ_leos)
+Δσ_linear = Δσ_upper_linear ./ Δσ_lower_linear
+
+Rᵨ_cab = compute_R_ρ([34.551, Sₗ], temperature, interface_depth, nleos)
+fig = Figure(size = (500, 500))
+ax2 = Axis(fig[1, 1], title = L"(b) Asymmetry due to $R_{\rho}$", xlabel = L"R_{\rho}", ylabel =  L"R_{\Delta\rho}")
+linestyle = [:solid, :dash, :dot, :dashdot]
+for i ∈ eachindex(τ)
+    lines!(ax2, Rᵨ_leos[:, i], Δσ_linear[:, i]; color = Makie.wong_colors()[1], linestyle = linestyle[i], label = L"$ρ_{\mathrm{linear}}\text{, }\tau =$ %$(round((τ[i]), digits = 2))")
+end
+for i ∈ eachindex(τ)
+    lines!(ax2, Rᵨ_nleos[:, i], Δσ_nonlinear[:, i]; color = Makie.wong_colors()[2], linestyle = linestyle[i], label = L"$ρ_{\mathrm{nonlinear}}\text{, }\tau =$ %$(round((τ[i]), digits = 2))")
+end
+# vlines!(ax2, Rᵨ_cab, label = "Rᵨ_cab", linestyle = :dash, color = :red)
+# vlines!(ax2, 1.22, linestyle = :dash)
+# vlines!(ax2, 1.23, linestyle = :dash)
+# linkyaxes!(ax1, ax2)
+hideydecorations!(ax2, grid = false, ticks = false)
+# axislegend(ax2, position = :rb, orientation = :horizontal, nbanks = 3)
+Legend(fig[2, 1], ax2, orientation = :horizontal, nbanks = 3)
+	scatter!(ax2, expt_data["R_ρ"][3], R_Δσ[3], color = :red)
+fig
 end
 
 # ╔═╡ 6ce43b6e-c3fa-408f-8702-900eaeb17bf5
@@ -572,11 +670,13 @@ TableOfContents()
 # ╟─2536f46d-bbe8-4f85-a16a-82afef16fef5
 # ╟─3130c878-fda2-4d11-a658-748d6a15b2b8
 # ╟─ca6991b4-ac76-435e-bcff-82103b6abdc7
-# ╟─b1fd4a61-796e-4b39-b175-971311c9c62a
+# ╟─616f02b0-5958-4e43-b747-4fb277460b55
+# ╟─18edf87f-fc2b-4e32-969b-eba0e2a813c1
 # ╟─8711fdef-0da7-46bf-aa82-2f32b0590f7b
 # ╟─6e7d38ab-2824-474b-b90c-75a3a5a05e57
 # ╟─e972f242-3b58-4581-87ae-437533b9fba1
 # ╟─d2e81b8b-4a1c-4330-8f2a-14a502390bcd
+# ╟─cd15821a-c5ad-4199-b0d8-f8944175f61d
 # ╟─6ce43b6e-c3fa-408f-8702-900eaeb17bf5
 # ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013

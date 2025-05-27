@@ -16,9 +16,9 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 # bcs from a rundown model and are an approximation/test to see if can simulate
 # effect of interfaces either side.
 Jᵀ = 2.2e-5
-Jˢ = 4.9e-7
-T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.1*Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
-S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.1*Jˢ), bottom = FluxBoundaryCondition(Jˢ))
+Jˢ = -4.9e-7
+T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.4*Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
+S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.4*Jˢ), bottom = FluxBoundaryCondition(Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
 dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
 
