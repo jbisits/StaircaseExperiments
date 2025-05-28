@@ -301,9 +301,12 @@ let
 	axS = Axis(fig[1, 1], title = "Hovmoller for saliniy and temperature (ha profile)", ylabel = "z (m)")
 	hmS = heatmap!(axS, t, z, expt_data["S_ha"]', colormap = :haline)
 	Colorbar(fig[1, 2], hmS)
-	axT = Axis(fig[2, 1], xlabel = "time (mins)", ylabel = "z (m)")
+	axT = Axis(fig[2, 1], ylabel = "z (m)")
 	hmT = heatmap!(axT, t, z, expt_data["T_ha"]', colormap = :thermal)
 	Colorbar(fig[2, 2], hmT)
+	axσ = Axis(fig[3, 1], xlabel = "time (mins)", ylabel = "z (m)")
+	hmσ = heatmap!(axσ, t, z, expt_data["σ_ha"]', colormap = :dense)
+	Colorbar(fig[3, 2], hmσ)
 	fig
 end
 
@@ -313,11 +316,15 @@ let
 	t, z = dims["time"] / 60, dims["z_aac"]
 	axS = Axis(fig[1, 1], title = "Hovmoller for anomaly saliniy and temperature (ha profile)", ylabel = "z (m)")
 	hmS = heatmap!(axS, t, z, (expt_data["S_ha"] .- expt_data["S_ha"][:, 1])', colormap = :curl, colorrange = (-0.09, 0.09))
-	Colorbar(fig[1, 2], hmS)
-	axT = Axis(fig[2, 1], xlabel = "time (mins)", ylabel = "z (m)")
+	Colorbar(fig[1, 2], hmS, label = "S′ (gkg⁻¹)")
+	axT = Axis(fig[2, 1], ylabel = "z (m)")
 	hmT = heatmap!(axT, t, z, (expt_data["T_ha"] .- expt_data["T_ha"][:, 1])', colormap = :delta, colorrange = (-1.5, 1.5))
-	Colorbar(fig[2, 2], hmT)
+	Colorbar(fig[2, 2], hmT, label = "Θ′ (°C)")
+	axσ = Axis(fig[3, 1], xlabel = "time (mins)", ylabel = "z (m)")
+	hmσ = heatmap!(axσ, t, z, (expt_data["σ_ha"] .- expt_data["σ_ha"][:, 1])', colormap = :diff, colorrange = (-0.025, 0.025))
+	Colorbar(fig[3, 2], hmσ, label = "σ′ kgm⁻³")
 	fig
+	# save("S_and_T_l_hov.png", fig)
 end
 
 # ╔═╡ ca6991b4-ac76-435e-bcff-82103b6abdc7
@@ -484,7 +491,7 @@ end
 # vlines!(ax2, 1.22, linestyle = :dash)
 # vlines!(ax2, 1.23, linestyle = :dash)
 # linkyaxes!(ax1, ax2)
-hideydecorations!(ax2, grid = false, ticks = false)
+# hideydecorations!(ax2, grid = false, ticks = false)
 # axislegend(ax2, position = :rb, orientation = :horizontal, nbanks = 3)
 Legend(fig[2, 1], ax2, orientation = :horizontal, nbanks = 3)
 	scatter!(ax2, expt_data["R_ρ"][3], R_Δσ[3], color = :red)

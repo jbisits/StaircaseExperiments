@@ -15,8 +15,8 @@ eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 # bcs from a rundown model and are an approximation/test to see if can simulate
 # effect of interfaces either side.
-Jᵀ = 2.2e-5
-Jˢ = -4.9e-7
+Jᵀ = 8.6e-5
+Jˢ = 1.7e-7
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
 S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ), bottom = FluxBoundaryCondition(Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
@@ -24,7 +24,7 @@ dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplici
 
 ## Initial conditions
 depth_of_interface = -0.25
-salinity = [34.58, 34.70]
+salinity = [34.50, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 

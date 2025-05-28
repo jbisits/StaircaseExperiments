@@ -314,3 +314,83 @@ Legend(fig[2, 2], ax2, orientation = :horizontal, nbanks = 3)
 fig
 ##
 save("density_asymmetry.png", fig)
+
+
+## Figure
+# staricase asymmetry
+S₀_range = [34.585, 34.62, 34.66, 34.705]
+Θ₀_range = [-1.5, -1.0, -0.5, 0.0]
+interfaces = [-0.5, -1, -1.5]
+
+Nz = 1000
+z_ranges = [(-1.0, 0), (-1.5, -0.5), (-2.0, -1.0)]
+leos_vec = fill(leos, Nz)
+fig = Figure(size = (800, 600))
+ax = [Axis(fig[1, i]) for i ∈ 1:2]
+for i ∈ 1:3
+
+    _z = range(z_ranges[i][1], z_ranges[i][2], length = Nz)
+    S₀ᵘ, S₀ˡ = fill(S₀_range[i], Int(Nz / 2)), fill(S₀_range[i+1], Int(Nz / 2))
+    ΔS = S₀_range[i] - S₀_range[i+1]
+    Θ₀ᵘ, Θ₀ˡ = fill(Θ₀_range[i], Int(Nz / 2)), fill(Θ₀_range[i+1], Int(Nz / 2))
+    ΔΘ = Θ₀_range[i] - Θ₀_range[i+1]
+    linear_σ₀ᵘ = total_density.(Θ₀ᵘ, S₀ᵘ, 0, leos_vec[1:Int(Nz / 2)])
+    linear_σ₀ˡ = total_density.(Θ₀ˡ, S₀ˡ, 0, leos_vec[Int(Nz / 2)+1:end])
+    nlinear_σ₀ᵘ = gsw_rho.(S₀ᵘ, Θ₀ᵘ, 0)
+    nlinear_σ₀ˡ = gsw_rho.(S₀ˡ, Θ₀ˡ, 0)
+    S = erf_tracer_solution.(_z, S₀_range[i+1], ΔS, κₛ, t, interfaces[i])
+    T = erf_tracer_solution.(_z, Θ₀_range[i+1], ΔΘ, κₜ, t, interfaces[i])
+    τ = κₛ / κₜ
+    linear_σ₀ = total_density.(T, S, 0, leos_vec)
+    linear_σ₀′ = linear_σ₀ #.- mean(vcat(linear_σ₀ᵘ, linear_σ₀ˡ))
+    max_linear_σ₀′, max_linear_idx = findmax(linear_σ₀′)
+    min_linear_σ₀′, min_linear_idx = findmin(linear_σ₀′)
+    # linear_σ₀′_norm = 2 * (linear_σ₀′ .- min_linear_σ₀′) ./ (max_linear_σ₀′ - min_linear_σ₀′) .- 1
+    linear_σ₀ᵘ′ = linear_σ₀ᵘ #.- mean(vcat(linear_σ₀ᵘ, linear_σ₀ˡ))
+    linear_σ₀ˡ′ = linear_σ₀ˡ #.- mean(vcat(linear_σ₀ᵘ, linear_σ₀ˡ))
+    # nlinear_σ₀ = total_density.(T, S, 0, nleos_vec)
+    nlinear_σ₀ = gsw_rho.(S, T, 0)
+    nlinear_σ₀′ = nlinear_σ₀ #.- mean(vcat(nlinear_σ₀ᵘ, nlinear_σ₀ˡ))
+    max_nlinear_σ₀′, max_nlinear_idx = findmax(nlinear_σ₀′)
+    min_nlinear_σ₀′, min_nlinear_idx = findmin(nlinear_σ₀′)
+    nlinear_σ₀ᵘ′ = nlinear_σ₀ᵘ #.- mean(vcat(nlinear_σ₀ᵘ, nlinear_σ₀ˡ))
+    nlinear_σ₀ˡ′ = nlinear_σ₀ˡ #.- mean(vcat(nlinear_σ₀ᵘ, nlinear_σ₀ˡ))
+
+    lines!(ax[1], S₀ˡ, _z[1:Int(Nz / 2)]; color = (:blue, 0.5), label = "Initial salinity")
+    lines!(ax[1], S₀ᵘ, _z[Int(Nz / 2)+1:end]; color = (:blue, 0.5))
+    lines!(ax[1], S, _z; color = :blue, linestyle = :dash, label = L"Salinity, $t = t^{*}$")
+    xlims!(ax[1], 34.54, 34.72)
+    ax[1].xlabel = "Salinity (gkg⁻¹)"
+    ax[1].xlabelcolor = :blue
+    ax[1].xticklabelcolor = :blue
+    ax[1].ylabel = "z (m)"
+    ylims!(ax[1], -2, 0)
+    axT = Axis(fig[1, 1];
+                xaxisposition = :top,
+                xticklabelcolor = :red,
+                xlabel = "Θ (°C)",
+                xlabelcolor = :red,
+                title = "(a) Temperature and salinity profiles")
+    lines!(axT, Θ₀ˡ, _z[1:Int(Nz / 2)]; color = (:red, 0.5), label = "Initial temperature")
+    lines!(axT, Θ₀ᵘ, _z[Int(Nz / 2)+1:end]; color = (:red, 0.5))
+    lines!(axT, T, _z; color = :red, linestyle = :dash, label = L"Temperature, $t = t^{*}$")
+    xlims!(axT, -2, 0.6)
+    linkyaxes!(axT, ax[1])
+
+    # lines!(ax[2], linear_σ₀ˡ′, _z[1:Int(Nz/2)]; color = (:black, 0.5))#, label = "Initial density")
+    # lines!(ax[2], linear_σ₀ᵘ′, _z[Int(Nz/2)+1:end]; color = (:black, 0.5))
+    # lines!(ax[2], linear_σ₀′, _z; linestyle = :dash, label = L"$\rho_{\mathrm{linear}}$, $t = t^{*}$")
+    lines!(ax[2], nlinear_σ₀ˡ′, _z[1:Int(Nz/2)]; color = (:black, 0.5), label = L"$\rho_{\mathrm{nonlinear}}, t = 83$")
+    lines!(ax[2], nlinear_σ₀ᵘ′, _z[Int(Nz/2)+1:end]; color = (:black, 0.5))
+    lines!(ax[2], nlinear_σ₀′, _z; linestyle = :dash, label = L"$\rho_{\mathrm{nonlinear}}$, $t = t^{*}$")
+    ax[2].title = "(b) Density profiles"
+    ax[2].xlabel = L"$σ_{0}'$ (kgm⁻³)"
+    # scatter!(ax[2], max_linear_σ₀′, z[max_linear_idx])
+    # scatter!(ax[2], min_linear_σ₀′, z[min_linear_idx])
+    # scatter!(ax[2], max_nlinear_σ₀′, z[max_linear_idx])
+    # scatter!(ax[2], min_nlinear_σ₀′, z[min_linear_idx])
+    hideydecorations!(ax[2], grid = false)
+    # Legend(fig[1, 3], ax[2])
+    linkyaxes!(ax[1], ax[2])
+end
+fig
