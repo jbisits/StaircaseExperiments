@@ -51,7 +51,7 @@ end
 
 # ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "R_rho_1.4_nonlinear", "R_rho_1.67_nonlinear", "largerdiffrationonlinear"])
+	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "R_rho_1.4_nonlinear", "R_rho_1.67_nonlinear", "R_rho_1.76_nonlinear", "largerdiffrationonlinear"])
 	md"""
 	# Equation of state
 	
