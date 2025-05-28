@@ -1,6 +1,6 @@
 using StaircaseShenanigans, GibbsSeaWater, CairoMakie
 
-restart = false
+restart = true
 
 architecture = GPU()
 Pr = 7   # Prandtl
