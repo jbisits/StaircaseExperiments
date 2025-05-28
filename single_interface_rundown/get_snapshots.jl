@@ -8,6 +8,7 @@ snapshots = 1:25
 jldopen(ps, "w") do file
     NCDataset(tracers) do ds
 
+        t = ds["time"][:]
         for i ∈ snapshots
             file["S/xzslice_$(t[i])"] = ds[:S][:, 1, :, i]
             file["T/yzslice_$(t[i])"] = ds[:T][1, :, :, i]
