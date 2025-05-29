@@ -28,6 +28,7 @@ t = 5000
 ## Load output
 # when done..
 nl_R_ρ_105 = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_nonlineareos/plotting_snapshots.jld2")
+l_R_ρ_105 = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_lineareos/plotting_snapshots.jld2")
 nl_R_ρ_105_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_nonlineareos/step_diagnostics.jld2")
 ## Figure theme
 markersize = 10
@@ -319,16 +320,7 @@ save("density_asymmetry.png", fig)
 
 ## Figure
 # DNS flow evolution
-file = jldopen(nl_R_ρ_105)
-
-snapshots = [180.00000000000003, 60.0 * 6, 60 * 12, 60.0 * 24]
-initial_S = file["S"]["xzslice_0.0"]
-initial_T = file["T"]["yzslice_0.0"]
-slices = [(S_xz = file["S"]["xzslice_$(snapshot)"],
-          T_yz = file["T"]["yzslice_$(snapshot)"],
-          velocity_zmean = file["w"]["w_zmean_$(snapshot)"][:, :, 1]) for snapshot ∈ snapshots]
-close(file)
-
+# file = jldopen(nl_R_ρ_105)
 file = jldopen(nl_R_ρ_105_diagnostics)
 x = file["dims/x_caa"]
 y = file["dims/y_aca"]
@@ -348,61 +340,80 @@ y_xz_density = y[1] * ones(length(x), length(z))
 y_xz_density_end = y[end] * ones(length(x), length(z))
 
 z_xy_top = z[end] * ones(length(x), length(y))
+
 ## One row
-fig = Figure(size = (1300, 700))#, px_per_unit = 16)
-
-ax = [Axis3(fig[1, i],
-           aspect=(1/3, 1/3, 1),
-           titlefont = :regular,
-           xlabel = "x (m)",
-           ylabel = "y (m)",
-           zlabel = "z (m)",
-           xlabeloffset = 50,
-           ylabeloffset = 50,
-           zlabeloffset = 50,
-           xlabelsize = 16,
-           ylabelsize = 16,
-           zlabelsize = 16,
-           xticklabelsize = 14,
-           yticklabelsize = 14,
-           zticklabelsize = 16,
-           zlabelrotation = π / 2,
-           limits = ((x[1], x[end]), (y[1], y[end]), (z[1], z[end])),
-           elevation = π / 6.5,
-           azimuth = 1.25π,
-           xspinesvisible = false,
-           yspinesvisible = false,
-           zspinesvisible = false,
-           zgridvisible = false,
-           protrusions = 20
-           ) for i ∈ 1:4]
-
+horizontal_ticks = LinRange(-0.025, 0.025, 5)
 T_colorrange = (-1.5, 1.5)
 S_colorrange = (-0.09, 0.09)
-w_colorrnage =  (-0.001, 0.001)
+w_colorrnage =  (-0.0005, 0.0005)
+files = (nl_R_ρ_105, l_R_ρ_105)
+fig = Figure(size = (1300, 1300))#, px_per_unit = 16)
+snapshots = [[180.00000000000003, 60.0 * 6, 60 * 12, 60.0 * 24],
+                [60.0 * 3, 60.0 * 6, 60 * 12, 60.0 * 24]]
+for (j, path) ∈ enumerate(files)
 
-for i ∈ eachindex(snapshots)
-    sf_S = surface!(ax[i], x_xz, y_xz_density, z_xz; color = slices[i].S_xz .- initial_S,
-                    colormap = :curl,
-                    colorrange = S_colorrange)
-    sf_T = surface!(ax[i], x_xz_velocity, y_xz, z_yz; color = slices[i].T_yz .- initial_T,
-                    colormap = :delta, colorrange = T_colorrange,
-                    backlight = 1f0, shading = FastShading)
-    surface!(ax[i], x, y, z_xy_top; color = slices[i].velocity_zmean, colormap = :balance,
-            colorrange = w_colorrnage
-            )
-    ax[i].title = "t = $(round(snapshots[i] / 60)) minutes"
-    if i == 1
-        Colorbar(fig[2, 1:2], sf_S, label = "S′ (gkg⁻¹)", vertical = false, flipaxis = false)
-        Colorbar(fig[2, 3:4], sf_T, label = "Θ′ (°C)", vertical = false, flipaxis = false)
-    end
-    if i > 1
-        hidezdecorations!(ax[i], ticks = false)
+    file = jldopen(path)
+
+    initial_S = file["S"]["xzslice_0.0"]
+    initial_T = file["T"]["yzslice_0.0"]
+    slices = [(S_xz = file["S"]["xzslice_$(snapshot)"],
+            T_yz = file["T"]["yzslice_$(snapshot)"],
+            velocity_zmean = file["w"]["w_zmean_$(snapshot)"][:, :, 1]) for snapshot ∈ snapshots[j]]
+    close(file)
+
+    ax = [Axis3(fig[j, i],
+            aspect=(1/3, 1/3, 1),
+            titlefont = :regular,
+            xlabel = "x (cm)",
+            ylabel = "y (cm)",
+            zlabel = "z (m)",
+            xticks = (horizontal_ticks, string.(horizontal_ticks .* 100)),
+            yticks = (horizontal_ticks, string.(horizontal_ticks .* 100)),
+            xlabeloffset = 40,
+            ylabeloffset = 40,
+            zlabeloffset = 50,
+            xlabelsize = 14,
+            ylabelsize = 14,
+            zlabelsize = 16,
+            xticklabelsize = 12,
+            yticklabelsize = 12,
+            zticklabelsize = 16,
+            zlabelrotation = π / 2,
+            limits = ((x[1], x[end]), (y[1], y[end]), (z[1], z[end])),
+            elevation = π / 6.5,
+            azimuth = 1.25π,
+            xspinesvisible = false,
+            yspinesvisible = false,
+            zspinesvisible = false,
+            zgridvisible = false,
+            protrusions = 20
+            ) for i ∈ 1:4]
+
+    for i ∈ eachindex(snapshots[j])
+        sf_S = surface!(ax[i], x_xz, y_xz_density, z_xz; color = slices[i].S_xz .- initial_S,
+                        colormap = :curl,
+                        colorrange = S_colorrange)
+        sf_T = surface!(ax[i], x_xz_velocity, y_xz, z_yz; color = slices[i].T_yz .- initial_T,
+                        colormap = :delta, colorrange = T_colorrange,
+                        backlight = 5f0, shading = FastShading)
+        sf_w = surface!(ax[i], x, y, z_xy_top; color = slices[i].velocity_zmean, colormap = :balance,
+                        colorrange = w_colorrnage)
+        ax[i].title = "t = $(round(snapshots[j][i] / 60)) minutes"
+        if j == 2
+            if i == 1
+                Colorbar(fig[j+1, 1:2], sf_S, label = "S′ (gkg⁻¹)", vertical = false, flipaxis = false)
+                Colorbar(fig[j+1, 3:4], sf_T, label = "Θ′ (°C)", vertical = false, flipaxis = false)
+                Colorbar(fig[:, 5], sf_w, label = "w (ms⁻¹)")
+            end
+        end
+        if i > 1
+            hidezdecorations!(ax[i], ticks = false)
+        end
     end
 end
-Label(fig[0, :], "Salinity and temperature evolution - nonlinear eos Rᵨ = 1.05", fontsize = 22, font = :bold)
-rowgap!(fig.layout, 1, Relative(0.04))
-rowgap!(fig.layout, 2, Relative(0.08))
+Label(fig[0, :], "Salinity and temperature evolution - Rᵨ = 1.05", fontsize = 22, font = :bold)
+rowgap!(fig.layout, 2, Relative(0.05))
+rowgap!(fig.layout, 3, Relative(0.05))
 fig
 ##
 save("S_and_T_dns_evolution.png", fig)
