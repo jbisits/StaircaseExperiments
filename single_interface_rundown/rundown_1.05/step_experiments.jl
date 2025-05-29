@@ -51,7 +51,7 @@ end
 
 # ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "R_rho_1.4_nonlinear", "R_rho_1.67_nonlinear", "R_rho_1.76_nonlinear", "R_rho_2.2_nonlinear"])
+	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "R_rho_1.4_nonlinear", "R_rho_1.67_nonlinear", "R_rho_1.76_nonlinear", "R_rho_2.2_nonlinear", "R_rho_2.2_linear"])
 	md"""
 	# Equation of state
 	
@@ -257,7 +257,7 @@ begin
 	lines!(ax_interface, expt_data["R_ρ"][2:end], abs.(S_interface), label = "salinity (ha profile)", linestyle  = :dash)
 
 	T_mid = 0.5 * (expt_data["T_ha"][1, 1] + expt_data["T_ha"][end, 1])
-	findT = [findfirst(reverse(expt_data["T_ha"][:, i]) .≥ T_mid) for i in eachindex(expt_data["T_ha"][1, 2:end])]	
+	findT = [findfirst(reverse(expt_data["T_ha"][:, i]) .≥ T_mid) for i in eachindex(expt_data["T_ha"][1, 2:end])]
 	T_interface = dims["z_aac"][findT]
 	lines!(ax_interface, expt_data["R_ρ"][2:end], abs.(T_interface), label = "temperature (ha profile)", linestyle = :dash)
 	# ylims!(ax_interface, 0.49, 0.54)

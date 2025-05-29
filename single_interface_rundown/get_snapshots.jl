@@ -1,6 +1,6 @@
 using NCDatasets, JLD2, Statistics
 
-output_path = joinpath(@__DIR__, "dns_rundown_1.05/step/nonlineareos_single_interface_60min")
+output_path = joinpath(@__DIR__, "dns_rundown_1.05/step/lineareos_single_interface_120min")
 tracers = joinpath(output_path, "tracers.nc")
 velocities = joinpath(output_path, "velocities.nc")
 ps = joinpath(output_path, "plotting_snapshots.jld2")
