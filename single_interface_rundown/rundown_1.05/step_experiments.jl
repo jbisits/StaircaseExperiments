@@ -51,7 +51,7 @@ end
 
 # ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "R_rho_1.4_nonlinear", "R_rho_1.67_nonlinear", "R_rho_1.76_nonlinear", "largerdiffrationonlinear"])
+	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "R_rho_1.4_nonlinear", "R_rho_1.67_nonlinear", "R_rho_1.76_nonlinear", "R_rho_2.2_nonlinear"])
 	md"""
 	# Equation of state
 	
@@ -245,42 +245,25 @@ let
 end
 
 # ╔═╡ d0148931-4198-4bb3-893c-a9b73e1ec7a9
-let
-	fig = Figure(size = (500, 500))
-	ax = Axis(fig[1, 1], xlabel = "Rᵨ", ylabel = "z✶")
-	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["S_interface_idx"]], label = "salinity")
-	lines!(ax, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "temperature")
-	
-	findS = [findfirst(reverse(expt_data["S_ha"][:, i]) .≥ 0.5 * (34.58 + 34.7)) for i in eachindex(expt_data["S_ha"][1, 2:end])]
-	S_interface = abs.(dims["z_aac"][findS])
-	lines!(ax, expt_data["R_ρ"][2:end], S_interface, label = "salinity (ha profile)", linestyle  = :dash)
-	
-	findT = [findfirst(reverse(expt_data["T_ha"][:, i]) .≥ 0.5 * (-1.5 + 0.5)) for i in eachindex(expt_data["T_ha"][1, 2:end])]
-	T_interface = abs.(dims["z_aac"][findT])
-	lines!(ax, expt_data["R_ρ"][2:end], T_interface, label = "temperature (ha profile)", linestyle = :dash)
-	# ylims!(ax, 0.49, 0.54)
-	# vlines!(ax, 1.6, color = :red, linestyle = :dash)
-	axislegend(ax, position = :rb)
-	fig
-end
-
-# ╔═╡ 26776c6e-2864-4b0f-8ddd-d3fb16aa8779
 begin
-	figinterface = Figure(size = (500, 500))
-	axinterface = Axis(figinterface[1, 1], xlabel = "Rᵨ", ylabel = "z")
-	
-	findS = [findfirst(expt_data["S_ha"][:, i] .≤ 0.5 * (34.58 + 34.7)) for i in eachindex(expt_data["S_ha"][1, 2:end])]
+	fig_interface = Figure(size = (500, 500))
+	ax_interface = Axis(fig_interface[1, 1], xlabel = "Rᵨ", ylabel = "z✶")
+	lines!(ax_interface, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["S_interface_idx"]], label = "salinity")
+	lines!(ax_interface, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "temperature")
+
+	S_mid = 0.5 * (expt_data["S_ha"][1, 1] + expt_data["S_ha"][end, 1])
+	findS = [findfirst(reverse(expt_data["S_ha"][:, i]) .≥ S_mid) for i in eachindex(expt_data["S_ha"][1, 2:end])]
 	S_interface = dims["z_aac"][findS]
-	lines!(axinterface, expt_data["R_ρ"][2:end], S_interface, label = "salinity")
-	
-	findT = [findfirst(expt_data["T_ha"][:, i] .≤ 0.5 * (-1.5 + 0.5)) for i in eachindex(expt_data["T_ha"][1, 2:end])]
+	lines!(ax_interface, expt_data["R_ρ"][2:end], abs.(S_interface), label = "salinity (ha profile)", linestyle  = :dash)
+
+	T_mid = 0.5 * (expt_data["T_ha"][1, 1] + expt_data["T_ha"][end, 1])
+	findT = [findfirst(reverse(expt_data["T_ha"][:, i]) .≥ T_mid) for i in eachindex(expt_data["T_ha"][1, 2:end])]	
 	T_interface = dims["z_aac"][findT]
-	lines!(axinterface, expt_data["R_ρ"][2:end], T_interface, label = "temperature", linestyle = :dot)
-	
-	ylims!(axinterface, -0.25, -0.235)
-	# vlines!(ax, 1.6, color = :red, linestyle = :dash)
-	axislegend(axinterface, position = :rb)
-	figinterface
+	lines!(ax_interface, expt_data["R_ρ"][2:end], abs.(T_interface), label = "temperature (ha profile)", linestyle = :dash)
+	# ylims!(ax_interface, 0.49, 0.54)
+	# vlines!(ax_interface, 1.6, color = :red, linestyle = :dash)
+	axislegend(ax_interface, position = :rb)
+	fig_interface
 end
 
 # ╔═╡ 82964820-7220-4e21-b263-20754b6a3a33
@@ -395,8 +378,8 @@ let
 			   ylabel = "z (m)")
 	lines!(ax2, σₜ, z)
 	hlines!(ax2, -0.25, linestyle = :dash, color = :red)
-	σ_lims = extrema(expt_data["σ_ha"])
-	xlims!(ax2, (-0.05, 0.05))
+	σ_lims = extrema(expt_data["σ_ha"][:, end]) .- mean(expt_data["σ_ha"][:, end]) .+ [-0.01, 0.01]
+	xlims!(ax2, σ_lims)
 	fig
 end
 
@@ -651,6 +634,80 @@ For the BPE we would then just use the sorted 1D density field but integrate to 
 Ideally this would be done by returning a 1D profile that is the horizontally integrated PE but I do not think this will work for APE so just have to choose the heights to integrate to.
 """
 
+# ╔═╡ 31bed7ce-49d4-4009-be36-efd6531c979d
+let
+	fig = Figure(size = (600, 600))
+	ax = Axis(fig[1, 1], xlabel = "time (mins)", ylabel = "Potential energy")
+	
+	Ep₀, Eb₀ = expt_data["∫Ep"][1], expt_data["∫Eb"][1]
+	Ep, Eb = expt_data["∫Ep"], expt_data["∫Eb"]
+	# Ep, Eb = (expt_data["∫Ep"] .- Eb₀) ./ Eb₀, (expt_data["∫Eb"] .- Eb₀) / Eb₀
+	Ea = Ep .- Eb
+
+	Ep_comp = expt_data["∫Ep_lower"] .+ expt_data["∫Ep_upper"]
+	Eb_comp = expt_data["∫Eb_lower"] .+ expt_data["∫Eb_upper"]
+	# Ep_comp = (expt_data["∫Ep_lower"] .+ expt_data["∫Ep_upper"] .- Ep₀) ./ Ep₀
+	# Eb_comp = (expt_data["∫Eb_lower"] .+ expt_data["∫Eb_upper"] .- Eb₀) ./ Eb₀
+	
+	lines!(ax, dims["time"] ./ 60, Ep, label = "Ep")
+	lines!(ax, dims["time"] ./ 60, Eb, label = "Eb")
+	# lines!(ax, dims["time"] ./ 60, Ea, label = "Ea")
+	lines!(ax, dims["time"] ./ 60, Ep_comp, label = "Ep upper + lower", linestyle = :dash)
+	lines!(ax, dims["time"] ./ 60, Eb_comp, label = "Eb upper + lower", linestyle = :dash)
+	axislegend(ax)
+	Δt = diff(dims["time"])
+	dₜEp = diff(Ep) ./ Δt
+	dₜEb = diff(Eb) ./ Δt
+	dₜEa = diff(Ea) ./ Δt
+	ax2 = Axis(fig[2, 1], xlabel = "time (mins)", ylabel = "Potential energy")
+	lines!(ax2, dims["time"][2:end] ./ 60, dₜEp, label = "dₜEp")
+	lines!(ax2, dims["time"][2:end] ./ 60, dₜEb, label = "dₜEb")
+	lines!(ax2, dims["time"][2:end] ./ 60, dₜEa, label = "dₜEa")
+	axislegend(ax2)
+	fig
+end
+
+# ╔═╡ 72353d1c-855b-463d-9bdb-b33bafc426d2
+let
+	fig = Figure(size = (600, 500))
+	ax = Axis(fig[1, 1], xlabel = "time (mins)", ylabel = "Potential energy")
+	
+	Ep₀_upper = expt_data["∫Ep_upper"][1]
+	# Ep_upper, Eb_upper = (expt_data["∫Ep_upper"] .- Ep₀_upper) ./ Ep₀_upper, (expt_data["∫Eb_upper"] .- Ep₀_upper) / Ep₀_upper
+	Ep_upper, Eb_upper = expt_data["∫Ep_upper"], expt_data["∫Eb_upper"]
+	Ea_upper = Ep_upper .- Eb_upper
+	
+	# lines!(ax, dims["time"] ./ 60, Ep_upper, label = "Ep_upper")
+	# lines!(ax, dims["time"] ./ 60, Eb_upper, label = "Eb_upper")
+	# lines!(ax, dims["time"] ./ 60, Ea_upper, label = "Ea_upper")
+
+	Ep₀_lower = expt_data["∫Ep_lower"][1]
+	# Ep_lower, Eb_lower = (expt_data["∫Ep_lower"] .- Ep₀_lower) ./ Ep₀_upper, (expt_data["∫Eb_lower"] .- Ep₀_lower) / Ep₀_upper
+	Ep_lower, Eb_lower = expt_data["∫Ep_lower"], expt_data["∫Eb_lower"]
+	Ea_lower = Ep_lower .- Eb_lower
+	
+	lines!(ax, dims["time"] ./ 60, Ep_lower, label = "Ep_lower", linestyle = :dash)
+	lines!(ax, dims["time"] ./ 60, Eb_lower, label = "Eb_lower", linestyle = :dash)
+	# lines!(ax, dims["time"] ./ 60, Ea_lower, label = "Ea_lower", linestyle = :dash)
+	
+	axislegend(ax)
+	fig
+	# Δt = diff(dims["time"])
+	# dₜEp = diff(Ep) ./ Δt
+	# dₜEb = diff(Eb) ./ Δt
+	# dₜEa = diff(Ea) ./ Δt
+	# ax2 = Axis(fig[2, 1], xlabel = "time (mins)", ylabel = "Potential energy")
+	# lines!(ax2, dims["time"][2:end] ./ 60, dₜEp, label = "dₜEp")
+	# lines!(ax2, dims["time"][2:end] ./ 60, dₜEb, label = "dₜEb")
+	# lines!(ax2, dims["time"][2:end] ./ 60, dₜEa, label = "dₜEa")
+	# axislegend(ax2)
+end
+
+# ╔═╡ 280579ad-c109-40fc-b73b-d34edca8d8bf
+md"""
+**Check the PE computation -- it looks like the interface indexing might need to go the other way**
+"""
+
 # ╔═╡ 963fa274-2d8f-47fd-b227-4d7b3275d7ad
 TableOfContents()
 
@@ -672,7 +729,6 @@ TableOfContents()
 # ╟─9a8041ad-6b12-4ef5-9f2f-44189de067f9
 # ╟─3e422d6d-912f-4119-a290-648dbe036dde
 # ╟─d0148931-4198-4bb3-893c-a9b73e1ec7a9
-# ╟─26776c6e-2864-4b0f-8ddd-d3fb16aa8779
 # ╟─82964820-7220-4e21-b263-20754b6a3a33
 # ╟─2536f46d-bbe8-4f85-a16a-82afef16fef5
 # ╟─3130c878-fda2-4d11-a658-748d6a15b2b8
@@ -694,4 +750,7 @@ TableOfContents()
 # ╟─ee9c0edb-477b-4cc0-8c57-36845a90bbaf
 # ╟─68a0a47e-e919-4d9d-b1a5-090d69bf633e
 # ╟─9e6998c4-6cca-49d5-9fff-2c697296849b
+# ╟─31bed7ce-49d4-4009-be36-efd6531c979d
+# ╟─72353d1c-855b-463d-9bdb-b33bafc426d2
+# ╟─280579ad-c109-40fc-b73b-d34edca8d8bf
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad

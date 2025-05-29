@@ -9,7 +9,8 @@ Pr = 7   # Prandtl
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-resolution = (Nx=130, Ny=130, Nz=1300)
+# resolution = (Nx=130, Ny=130, Nz=1300)
+resolution = (Nx=50, Ny=50, Nz=1000)
 ρ₀ = gsw_rho(34.57, 0.5, 0)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
@@ -17,7 +18,7 @@ dns_model = DNSModel(model_setup...; TD = VerticallyImplicitTimeDiscretization()
 
 ## Initial conditions
 depth_of_interface = -0.25
-salinity = [34.58, 34.70]
+salinity = [34.45, 34.70]
 temperature = [-1.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
@@ -33,7 +34,8 @@ output_path = joinpath(@__DIR__, "dns_rundown_$(round(interface_ics.R_ρ, digits
 save_schedule = 60
 checkpointer_time_interval = 60 * 60 # seconds
 Δt = 1e-3
-max_Δt = 1.75e-2
+# max_Δt = 1.75e-2 # DNS rundown
+max_Δt = 7e-2
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    save_vertical_velocities!;
                                    output_path,
@@ -64,7 +66,7 @@ animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslic
 animate_vertical_velocity(simulation.output_writers[:velocities].filepath, xslice = 17, yslice = 17)
 
 ## compute diagnostics
-diags = "diagnostics.jld2"
+diags = initial_state * "_diagnostics.jld2"
 if isfile(diags)
     rm(diags)
 end
