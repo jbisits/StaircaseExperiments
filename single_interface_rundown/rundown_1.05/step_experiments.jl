@@ -51,7 +51,7 @@ end
 
 # ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "R_rho_1.4_nonlinear", "R_rho_1.67_nonlinear", "R_rho_1.76_nonlinear", "R_rho_2.2_nonlinear", "R_rho_2.2_linear"])
+	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "R_rho_1.4_nonlinear", "R_rho_1.67_nonlinear", "R_rho_1.76_nonlinear", "R_rho_2.2_nonlinear", "R_rho_2.2_linear", "Tau_0.01_nonlinear"])
 	md"""
 	# Equation of state
 	
@@ -361,7 +361,7 @@ let
 	ax.subtitle = "R_Δσ = $(round(R_Δσ[t], digits = 1))"
 
 	κₛ, κₜ = expt_data["attrib/κₛ (m²s⁻¹)"], expt_data["attrib/κₜ (m²s⁻¹)"]
-	z = dims["z_aac"]
+	z = dims["z_aac"][:]
 	ΔS = Sₜ[end] - Sₜ[1]
 	ΔT = Tₜ[end] - Tₜ[1]
 	id = expt_data["attrib/interface_depth"]
@@ -680,6 +680,42 @@ let
 	Ep_upper, Eb_upper = expt_data["∫Ep_upper"], expt_data["∫Eb_upper"]
 	Ea_upper = Ep_upper .- Eb_upper
 	
+	lines!(ax, dims["time"] ./ 60, Ep_upper, label = "Ep_upper")
+	lines!(ax, dims["time"] ./ 60, Eb_upper, label = "Eb_upper")
+	# lines!(ax, dims["time"] ./ 60, Ea_upper, label = "Ea_upper")
+
+	Ep₀_lower = expt_data["∫Ep_lower"][1]
+	# Ep_lower, Eb_lower = (expt_data["∫Ep_lower"] .- Ep₀_lower) ./ Ep₀_upper, (expt_data["∫Eb_lower"] .- Ep₀_lower) / Ep₀_upper
+	Ep_lower, Eb_lower = expt_data["∫Ep_lower"], expt_data["∫Eb_lower"]
+	Ea_lower = Ep_lower .- Eb_lower
+	
+	# lines!(ax, dims["time"] ./ 60, Ep_lower, label = "Ep_lower", linestyle = :dash)
+	# lines!(ax, dims["time"] ./ 60, Eb_lower, label = "Eb_lower", linestyle = :dash)
+	# lines!(ax, dims["time"] ./ 60, Ea_lower, label = "Ea_lower", linestyle = :dash)
+	
+	axislegend(ax)
+	fig
+	# Δt = diff(dims["time"])
+	# dₜEp = diff(Ep) ./ Δt
+	# dₜEb = diff(Eb) ./ Δt
+	# dₜEa = diff(Ea) ./ Δt
+	# ax2 = Axis(fig[2, 1], xlabel = "time (mins)", ylabel = "Potential energy")
+	# lines!(ax2, dims["time"][2:end] ./ 60, dₜEp, label = "dₜEp")
+	# lines!(ax2, dims["time"][2:end] ./ 60, dₜEb, label = "dₜEb")
+	# lines!(ax2, dims["time"][2:end] ./ 60, dₜEa, label = "dₜEa")
+	# axislegend(ax2)
+end
+
+# ╔═╡ b5102aaf-5c42-4c91-8016-2e9bae2073d8
+let
+	fig = Figure(size = (600, 500))
+	ax = Axis(fig[1, 1], xlabel = "time (mins)", ylabel = "Potential energy")
+	
+	Ep₀_upper = expt_data["∫Ep_upper"][1]
+	# Ep_upper, Eb_upper = (expt_data["∫Ep_upper"] .- Ep₀_upper) ./ Ep₀_upper, (expt_data["∫Eb_upper"] .- Ep₀_upper) / Ep₀_upper
+	Ep_upper, Eb_upper = expt_data["∫Ep_upper"], expt_data["∫Eb_upper"]
+	Ea_upper = Ep_upper .- Eb_upper
+	
 	# lines!(ax, dims["time"] ./ 60, Ep_upper, label = "Ep_upper")
 	# lines!(ax, dims["time"] ./ 60, Eb_upper, label = "Eb_upper")
 	# lines!(ax, dims["time"] ./ 60, Ea_upper, label = "Ea_upper")
@@ -705,11 +741,6 @@ let
 	# lines!(ax2, dims["time"][2:end] ./ 60, dₜEa, label = "dₜEa")
 	# axislegend(ax2)
 end
-
-# ╔═╡ 280579ad-c109-40fc-b73b-d34edca8d8bf
-md"""
-**Check the PE computation -- it looks like the interface indexing might need to go the other way**
-"""
 
 # ╔═╡ 963fa274-2d8f-47fd-b227-4d7b3275d7ad
 TableOfContents()
@@ -742,7 +773,7 @@ TableOfContents()
 # ╟─6e7d38ab-2824-474b-b90c-75a3a5a05e57
 # ╟─e972f242-3b58-4581-87ae-437533b9fba1
 # ╟─d2e81b8b-4a1c-4330-8f2a-14a502390bcd
-# ╠═cd15821a-c5ad-4199-b0d8-f8944175f61d
+# ╟─cd15821a-c5ad-4199-b0d8-f8944175f61d
 # ╟─6ce43b6e-c3fa-408f-8702-900eaeb17bf5
 # ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013
@@ -755,5 +786,5 @@ TableOfContents()
 # ╟─9e6998c4-6cca-49d5-9fff-2c697296849b
 # ╟─31bed7ce-49d4-4009-be36-efd6531c979d
 # ╟─72353d1c-855b-463d-9bdb-b33bafc426d2
-# ╟─280579ad-c109-40fc-b73b-d34edca8d8bf
+# ╟─b5102aaf-5c42-4c91-8016-2e9bae2073d8
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad
