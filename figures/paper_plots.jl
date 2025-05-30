@@ -417,6 +417,20 @@ rowgap!(fig.layout, 3, Relative(0.05))
 fig
 ##
 save("S_and_T_dns_evolution.png", fig)
+
+## Figure
+# Density hovmollers for Rρ = 1.05
+files = (nl_R_ρ_105, l_R_ρ_105)
+fig = Figure(size = (800, 800))
+ax = [Axis(fig[i, 1]) for i ∈ eachindex(files)]
+colorrange = (-0.025, 0.025)
+for (i, f) ∈ enumerate(files)
+
+    jldopen(f) do ds
+
+    end
+
+end
 ## Maybes..
 ############################################################################################
 ## Figure
@@ -497,6 +511,8 @@ for i ∈ 1:3
     linkyaxes!(ax[1], ax[2])
 end
 fig
+
+
 ## Figure
 # Cabbeling shifting the interface location
 S₀ᵘ, S₀ˡ = fill(Sᵤ, Int(Nz / 2)), fill(Sₗ, Int(Nz / 2))
