@@ -30,6 +30,9 @@ t = 5000
 nl_R_ρ_105 = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_nonlineareos/plotting_snapshots.jld2")
 l_R_ρ_105 = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_lineareos/plotting_snapshots.jld2")
 nl_R_ρ_105_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_nonlineareos/step_diagnostics.jld2")
+l_R_ρ_105_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_lineareos/step_diagnostics.jld2")
+nl_R_ρ_105_energetics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_nonlineareos/energetics.jld2")
+l_R_ρ_105_energetics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_lineareos/energetics.jld2")
 ## Figure theme
 markersize = 10
 publication_theme = Theme(font="CMU Serif", fontsize = 20,
@@ -420,17 +423,54 @@ save("S_and_T_dns_evolution.png", fig)
 
 ## Figure
 # Density hovmollers for Rρ = 1.05
-files = (nl_R_ρ_105, l_R_ρ_105)
-fig = Figure(size = (800, 800))
-ax = [Axis(fig[i, 1]) for i ∈ eachindex(files)]
-colorrange = (-0.025, 0.025)
+files = (l_R_ρ_105_diagnostics, nl_R_ρ_105_diagnostics)
+fig = Figure(size = (800, 600))
+ax = [Axis(fig[1, i], xlabel = "time (min)", ylabel = "z (m)") for i ∈ eachindex(files)]
+titles = ["(a) Linear eos", "(b) Nonlinear eos"]
+colorrange = jldopen(files[1]) do ds
+        extrema(ds["σ_ha"][:, 3] .- mean(ds["σ_ha"][:, 1]))
+end
+# colorrange[2] - colorrange[1]
+# min = jldopen(files[1]) do ds
+#         minimum(ds["σ_ha"][:, 3] .- mean(ds["σ_ha"][:, 1]))
+# end
+# max = jldopen(files[2]) do ds
+#         maximum(ds["σ_ha"][:, 3] .- mean(ds["σ_ha"][:, 1]))
+# end
+# colorrange = (min, max)
 for (i, f) ∈ enumerate(files)
 
     jldopen(f) do ds
-
+        σ_ha′ = ds["σ_ha"][:, 1:120]' .- mean(ds["σ_ha"][:, 1])'
+        hm = heatmap!(ax[i], 1:120, z, σ_ha′; colorrange, colormap = :diff)
+        ax[i].title = titles[i]
+        i == 2 ? Colorbar(fig[2, :], hm, label = "σ₀′ (kgm⁻³)", vertical = false, flipaxis = false) : nothing
+        i == 2 ? hideydecorations!(ax[2], ticks = false) : nothing
     end
 
 end
+fig
+##
+save("density_hovs.png", fig)
+
+## Figure
+# energetics
+files = (l_R_ρ_105_energetics, nl_R_ρ_105_energetics)
+fig = Figure(size = (800, 600))
+ax = Axis(fig[1, 1], xlabel = "time (min)", ylabel = "Energy")
+labels = ["(a) Linear eos", "(b) Nonlinear eos"]
+for (i, f) ∈ enumerate(files)
+
+    jldopen(f) do ds
+        Eb = ds["Eb"][1:120]
+        Ep = ds["Ep"][1:120]
+        lines!(ax, 1:120, Ep .- Ep[1], label = "Ep, "*labels[i])
+        lines!(ax, 1:120, Eb .- Ep[1], label = "Eb, "*labels[i])
+    end
+
+end
+axislegend(ax)
+fig
 ## Maybes..
 ############################################################################################
 ## Figure
