@@ -403,8 +403,10 @@ let
 	erf_tracer_solution(z, Cₗ::Number, ΔC::Number, κ::Number, t, interface_depth) =
 	    Cₗ + 0.5 * ΔC * (1 + erf((z - interface_depth) / sqrt(4 * κ * t)))
 	
-	Sᵤ, Θᵤ = 34.56, -1.5 # cabbeling expt from project two
+	Sᵤ, Θᵤ = 34.58, -1.5 # cabbeling expt from project two
 	Sₗ, Θₗ = 34.7, 0.5
+	# Sᵤ, Θᵤ = 34.6, -0.5 # cabbeling expt from project two
+	# Sₗ, Θₗ = 34.7, 0.5
 	ΔS = Sᵤ - Sₗ
 	ΔΘ = Θᵤ - Θₗ
 	κₛ, κₜ = 1e-9, 1e-7
@@ -416,8 +418,8 @@ let
 	t = 5000
 	τ = (0.01, 0.05, 0.1)
 	Sᵤ_range = range(33.52, 34.59, length = 100)
-	Sₗ = 34.7
-	Θᵤ, Θₗ = -1.5, 0.5
+	# Sₗ = 34.7
+	# Θᵤ, Θₗ = -1.5, 0.5
 	temperature = [Θᵤ, Θₗ]
 	Rᵨ_leos = Array{Float64}(undef, length(Sᵤ_range), length(τ))
 	Rᵨ_nleos = similar(Rᵨ_leos)

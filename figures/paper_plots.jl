@@ -13,7 +13,7 @@ nleos = TEOS10EquationOfState(reference_density = ρ₀)
 erf_tracer_solution(z, Cₗ::Number, ΔC::Number, κ::Number, t, interface_depth) =
     Cₗ + 0.5 * ΔC * (1 + erf((z - interface_depth) / sqrt(4 * κ * t)))
 
-Sᵤ, Θᵤ = 34.56, -1.5 # cabbeling expt from project two
+Sᵤ, Θᵤ = 34.58, -1.5 # cabbeling expt from project two
 Sₗ, Θₗ = 34.7, 0.5
 ΔS = Sᵤ - Sₗ
 ΔΘ = Θᵤ - Θₗ
@@ -84,7 +84,7 @@ ax = [Axis(fig[1, i]) for i ∈ 1:2]
 lines!(ax[1], S₀ˡ, z[1:Int(Nz/2)]; color = (:blue, 0.5), label = "Initial salinity")
 lines!(ax[1], S₀ᵘ, z[Int(Nz/2)+1:end]; color = (:blue, 0.5))
 lines!(ax[1], S, z; color = :blue, linestyle = :dash, label = L"Salinity, $t = t^{*}$")
-xlims!(ax[1], 34.54, 34.72)
+xlims!(ax[1], 34.56, 34.72)
 ax[1].xlabel = "Salinity (gkg⁻¹)"
 ax[1].xlabelcolor = :blue
 ax[1].xticklabelcolor = :blue
@@ -236,7 +236,7 @@ end
 
 # Rᵨ_leos = compute_R_ρ([Sᵤ, Sₗ], temperature, interface_depth, leos)
 # Rᵨ_nleos = compute_R_ρ([Sᵤ, Sₗ], temperature, interface_depth, nleos)
-fig = Figure(size = (900, 600))
+fig = Figure(size = (1000, 600))
 linestyle = [:solid, :dash, :dot, :dashdot]
 ax1 = Axis(fig[1, 1], title = L"(a) Asymmetry due to $\tau$", titlefont = :bold, xlabel = L"τ", ylabel = L"R_{\Delta\rho}")
 for i ∈ eachindex(Sᵤ_range)
@@ -302,7 +302,7 @@ end
 
 Rᵨ_cab = compute_R_ρ([34.551, Sₗ], temperature, interface_depth, nleos)
 # fig = Figure(size = (500, 500))
-ax2 = Axis(fig[1, 2], title = L"(b) Asymmetry due to $R_{\rho}$", xlabel = L"R_{\rho}", ylabel =  L"R_{\Delta\rho}")
+ax2 = Axis(fig[1, 2], title = L"(b) Asymmetry due to $\Delta S$", xlabel = L"R_{\rho}(\Delta S)", ylabel =  L"R_{\Delta\rho}")
 linestyle = [:solid, :dash, :dot, :dashdot]
 for i ∈ eachindex(τ)
     lines!(ax2, Rᵨ_leos[:, i], Δσ_linear[:, i]; color = Makie.wong_colors()[1], linestyle = linestyle[i], label = L"$ρ_{\mathrm{linear}}\text{, }\tau =$ %$(round((τ[i]), digits = 2))")
@@ -315,12 +315,73 @@ end
 # vlines!(ax2, 1.23, linestyle = :dash)
 linkyaxes!(ax1, ax2)
 hideydecorations!(ax2, grid = false, ticks = false)
+# Legend(fig[2, 2], ax3, orientation = :horizontal, nbanks = 3)
 # axislegend(ax2, position = :rb, orientation = :horizontal, nbanks = 3)
-Legend(fig[2, 2], ax2, orientation = :horizontal, nbanks = 3)
+τ = (0.01, 0.05, 0.1)
+Θᵤ_range = range(-2.0, 0.36, length = 100)
+salinity = [Sᵤ, Sₗ]
+Rᵨ_leos = Array{Float64}(undef, length(Θᵤ_range), length(τ))
+Rᵨ_nleos = similar(Rᵨ_leos)
+σ₀_nonlinear_max = similar(Rᵨ_leos)
+σ₀_nonlinear_min = similar(Rᵨ_leos)
+σ₀_linear_max = similar(Rᵨ_leos)
+σ₀_linear_min = similar(Rᵨ_leos)
+σ₀ᵘ_leos = similar(Rᵨ_leos)
+σ₀ᵘ_nleos = similar(Rᵨ_leos)
+σ₀ˡ_nleos = gsw_rho(Sₗ, Θₗ, 0)
+σ₀ˡ_leos = total_density(Θₗ, Sₗ, 0, leos)
+for j ∈ eachindex(τ)
+
+    _κₛ = τ[j] * κₜ
+    for (i, _Θᵤ) ∈ enumerate(Θᵤ_range)
+
+        temperature = [_Θᵤ, Θₗ]
+        _ΔΘ = _Θᵤ - Θₗ
+
+        Rᵨ_leos[i, j] = compute_R_ρ(salinity, temperature, interface_depth, leos)
+        Rᵨ_nleos[i, j] = compute_R_ρ(salinity, temperature, interface_depth, nleos)
+
+        S = erf_tracer_solution.(z, Sₗ, ΔS, _κₛ, t, interface_depth)
+        T = erf_tracer_solution.(z, Θₗ, _ΔΘ, κₜ, t, interface_depth)
+        σ₀_nonlinear = gsw_rho.(S, T, 0)
+        σ₀_nonlinear_max[i, j] = maximum(σ₀_nonlinear)
+        σ₀_nonlinear_min[i, j] = minimum(σ₀_nonlinear)
+
+        σ₀_linear = total_density.(T, S, 0, leos_vec)
+        σ₀_linear_max[i, j] = maximum(σ₀_linear)
+        σ₀_linear_min[i, j] = minimum(σ₀_linear)
+
+        σ₀ᵘ_nleos[i, j] = gsw_rho(Sᵤ, _Θᵤ, 0)
+        σ₀ᵘ_leos[i, j] = total_density(_Θᵤ, Sᵤ, 0, leos)
+    end
+
+end
+Δσ_lower_nonlinear = abs.(σ₀_nonlinear_max .- σ₀ˡ_nleos)
+Δσ_upper_nonlinear = abs.(σ₀_nonlinear_min .- σ₀ᵘ_nleos)
+Δσ_nonlinear = Δσ_upper_nonlinear ./ Δσ_lower_nonlinear
+
+Δσ_lower_linear = abs.(σ₀_linear_max .- σ₀ˡ_leos)
+Δσ_upper_linear = abs.(σ₀_linear_min .- σ₀ᵘ_leos)
+Δσ_linear = Δσ_upper_linear ./ Δσ_lower_linear
+
+Rᵨ_cab = compute_R_ρ([34.551, Sₗ], temperature, interface_depth, nleos)
+# fig = Figure(size = (500, 500))
+ax3 = Axis(fig[1, 3], title = L"(b) Asymmetry due to $\Delta\Theta$", xlabel = L"R_{\rho}(\Delta\Theta)", ylabel =  L"R_{\Delta\rho}")
+linestyle = [:solid, :dash, :dot, :dashdot]
+for i ∈ eachindex(τ)
+    lines!(ax3, Rᵨ_nleos[:, i], Δσ_linear[:, i]; color = Makie.wong_colors()[1], linestyle = linestyle[i], label = L"$ρ_{\mathrm{linear}}\text{, }\tau =$ %$(round((τ[i]), digits = 2))")
+end
+for i ∈ eachindex(τ)
+    lines!(ax3, Rᵨ_nleos[:, i], Δσ_nonlinear[:, i]; color = Makie.wong_colors()[2], linestyle = linestyle[i], label = L"$ρ_{\mathrm{nonlinear}}\text{, }\tau =$ %$(round((τ[i]), digits = 2))")
+end
+# xlims!(ax3, high = 11)
+linkyaxes!(ax1, ax3)
+linkxaxes!(ax2, ax3)
+hideydecorations!(ax3, grid = false, ticks = false)
+Legend(fig[2, 2:3], ax3, orientation = :horizontal, nbanks = 3)
 fig
 ##
 save("density_asymmetry.png", fig)
-
 ## Figure
 # DNS flow evolution
 # file = jldopen(nl_R_ρ_105)
@@ -462,10 +523,13 @@ labels = ["(a) Linear eos", "(b) Nonlinear eos"]
 for (i, f) ∈ enumerate(files)
 
     jldopen(f) do ds
-        Eb = ds["Eb"][1:120]
-        Ep = ds["Ep"][1:120]
-        lines!(ax, 1:120, Ep .- Ep[1], label = "Ep, "*labels[i])
-        lines!(ax, 1:120, Eb .- Ep[1], label = "Eb, "*labels[i])
+        Ep0 = ds["Ep"][1]
+        Eb = diff((ds["Eb"][1:120] .- Ep0))
+        Ep = diff((ds["Ep"][1:120] .- Ep0))
+        ape = Ep .- Eb
+        # lines!(ax, 2:120, Ep, label = "Ep, "*labels[i])
+        # lines!(ax, 2:120, Eb, label = "Eb, "*labels[i])
+        lines!(ax, 2:120, ape, label = "Ea, "*labels[i])
     end
 
 end
