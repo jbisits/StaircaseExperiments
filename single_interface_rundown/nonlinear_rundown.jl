@@ -9,7 +9,6 @@ Pr = 7   # Prandtl
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-# resolution = (Nx=130, Ny=130, Nz=1300) # DNS resolution
 resolution = (Nx=50, Ny=50, Nz=1000)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = TEOS10EquationOfState(reference_density = ρ₀)

@@ -51,7 +51,7 @@ end
 
 # ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "R_rho_1.4_nonlinear", "R_rho_1.67_nonlinear", "R_rho_1.76_nonlinear", "R_rho_2.2_nonlinear", "R_rho_2.2_linear", "Tau_0.01_nonlinear"])
+	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "R_rho_1.03_deltatheta_0.5_nonlinear", "R_rho_1.4_nonlinear", "R_rho_1.67_nonlinear", "R_rho_1.76_nonlinear", "R_rho_2.2_nonlinear", "R_rho_2.2_linear", "Tau_0.01_nonlinear"])
 	md"""
 	# Equation of state
 	
@@ -164,6 +164,7 @@ end
 # ╔═╡ c3f03eaf-0c45-477a-ba2b-c411be6d07c8
 begin
 	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
+	R_ρ_interp = 0.5 * (dims["time"][1:end-1] .+ dims["time"][2:end])
 	start_flux = 90
 	T_interface_idx = expt_data["T_ha_interface_idx"]
 	T_flux_interface = [expt_data["T_ha_flux"][idx, i] for (i, idx) ∈ enumerate(T_interface_idx)]

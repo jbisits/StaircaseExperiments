@@ -121,6 +121,11 @@ linkyaxes!(ax[1], ax[2])
 fig
 ##
 save("S_T_sigma_profiles.png", fig)
+##
+mid_T = findfirst(T .≤ 0.5 * (Θᵤ + Θₗ)) - 1
+mid_S = findfirst(S .≤ 0.5 * (Sᵤ + Sₗ)) - 1
+T[mid_T]
+S[mid_S]
 
 ## Figure
 # Profiles in salinity-temperature space
