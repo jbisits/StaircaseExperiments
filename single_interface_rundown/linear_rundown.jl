@@ -18,7 +18,7 @@ dns_model = DNSModel(model_setup...; TD = VerticallyImplicitTimeDiscretization()
 
 ## Initial conditions
 depth_of_interface = -0.25
-salinity = [34.664, 34.70]
+salinity = [34.67, 34.70]
 Tᵤ, Tₗ = -0.0, 0.5
 ΔT = Tᵤ - Tₗ
 temperature = [Tᵤ, Tₗ]
