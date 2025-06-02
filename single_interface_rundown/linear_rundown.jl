@@ -9,7 +9,6 @@ Pr = 7   # Prandtl
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-# resolution = (Nx=130, Ny=130, Nz=1300)
 resolution = (Nx=50, Ny=50, Nz=1000)
 ρ₀ = gsw_rho(34.57, 0.5, 0)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
@@ -19,7 +18,7 @@ dns_model = DNSModel(model_setup...; TD = VerticallyImplicitTimeDiscretization()
 ## Initial conditions
 depth_of_interface = -0.25
 salinity = [34.67, 34.70]
-Tᵤ, Tₗ = -0.0, 0.5
+Tᵤ, Tₗ = -0.5, 0.5
 ΔT = Tᵤ - Tₗ
 temperature = [Tᵤ, Tₗ]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
@@ -30,7 +29,7 @@ initial_noise = TracerNoise(1e-4, 1e-2)
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
 ## Build simulation
-stop_time = Int(1 * 60 * 60) # seconds
+stop_time = Int(5 * 60 * 60) # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
 output_path = joinpath(@__DIR__, "rundown_$(round(interface_ics.R_ρ, digits = 2))_deltatheta_$(ΔT)", initial_state)
 save_schedule = 60

@@ -1,6 +1,6 @@
 using StaircaseShenanigans, GibbsSeaWater, CairoMakie
 
-restart = true
+restart = false
 
 architecture = GPU()
 Pr = 7   # Prandtl
@@ -46,7 +46,7 @@ simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    max_Δt,
                                    Δt)
 ## Run
-restart ? nothing : simulation.stop_time = Int(3 * 60 * 60) # update to pickup from a checkpoint
+restart ? nothing : simulation.stop_time = Int(5 * 60 * 60) # update to pickup from a checkpoint
 pickup = restart ? false : readdir(simulation.output_writers[:checkpointer].dir, join = true)[1]
 run!(simulation; pickup)
 

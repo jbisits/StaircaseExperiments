@@ -122,11 +122,14 @@ fig
 ##
 save("S_T_sigma_profiles.png", fig)
 ##
-mid_T = findfirst(T .≤ 0.5 * (Θᵤ + Θₗ)) - 1
-mid_S = findfirst(S .≤ 0.5 * (Sᵤ + Sₗ)) - 1
+mid_T = findfirst(T .≤ median(T)) - 1
+mid_S = findfirst(S .≤ median(S)) - 1
 T[mid_T]
 S[mid_S]
-
+mid_l = findfirst(linear_σ₀ .≤ median(linear_σ₀)) - 1
+mid_nl = findfirst(nlinear_σ₀ .≤ median(nlinear_σ₀))
+linear_σ₀′[mid_T]
+nlinear_σ₀′[mid_T]
 ## Figure
 # Profiles in salinity-temperature space
 σ_grad = get(ColorSchemes.dense, range(0.2, 1, length = 4))
@@ -322,6 +325,7 @@ axΔS = Axis(fig[1,2], title = L"(c) Asymmetry due to $\Delta S$",
             xaxisposition = :top, xticklabelcolor = :green, xtickcolor = :green,
             xlabelcolor = :green, topspinecolor = :green,
             xlabel = L"$ΔS$ (gkg$^{-1}$)")
+text!(ax2, 1, 0.1, text =  L"$\Delta \Theta = $-2$^{\circ}$C")
 lines!(axΔS, Sᵤ_range .- Sₗ, ones(length(Sᵤ_range)))
 linkyaxes!(ax2, axΔS)
 hideydecorations!(axΔS, grid = false, ticks = false)
@@ -393,7 +397,7 @@ axΔΘ = Axis(fig[1, 3], title = L"(c) Asymmetry due to $\Delta\Theta$",
 lines!(axΔΘ, Θᵤ_range .- Θₗ, ones(length(Θᵤ_range)))
 linkyaxes!(ax3, axΔΘ)
 linkyaxes!(ax2, ax3)
-# text!(ax3, 2, 0.1, L"\Delta S = -0.12")
+text!(ax3, 1, 0.1, text =  L"$\Delta S = $-0.12gkg$^{-1}$")
 hideydecorations!(ax3, grid = false, ticks = false)
 hideydecorations!(axΔΘ, grid = false, ticks = false)
 Legend(fig[2, 2:3], ax3, orientation = :horizontal, nbanks = 3)

@@ -51,7 +51,7 @@ end
 
 # ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "R_rho_1.03_deltatheta_0.5_nonlinear", "R_rho_1.4_nonlinear", "R_rho_1.67_nonlinear", "R_rho_1.76_nonlinear", "R_rho_2.2_nonlinear", "R_rho_2.2_linear", "Tau_0.01_nonlinear"])
+	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "R_rho_1.03_deltatheta_0.5_nonlinear", "R_rho_1.05_deltatheta_1.0_nonlinear", "R_rho_1.05_deltatheta_0.5_linear", "R_rho_1.4_nonlinear", "R_rho_1.67_nonlinear", "R_rho_1.76_nonlinear", "R_rho_2.2_nonlinear", "R_rho_2.2_linear", "Tau_0.01_nonlinear"])
 	md"""
 	# Equation of state
 	
@@ -164,7 +164,6 @@ end
 # ╔═╡ c3f03eaf-0c45-477a-ba2b-c411be6d07c8
 begin
 	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
-	R_ρ_interp = 0.5 * (dims["time"][1:end-1] .+ dims["time"][2:end])
 	start_flux = 90
 	T_interface_idx = expt_data["T_ha_interface_idx"]
 	T_flux_interface = [expt_data["T_ha_flux"][idx, i] for (i, idx) ∈ enumerate(T_interface_idx)]
@@ -311,6 +310,13 @@ let
 	# save("S_and_T_l_hov.png", fig)
 end
 
+# ╔═╡ 31aecf3b-616d-482e-a430-b308cb29e57d
+let
+	fig, ax, hm = heatmap(expt_data["ha_wT"]', colormap = :speed)
+	Colorbar(fig[1, 2], hm)
+	fig
+end
+
 # ╔═╡ ca6991b4-ac76-435e-bcff-82103b6abdc7
 erf_tracer_solution(z, Cₗ::Number, ΔC::Number, κ::Number, time, interface_location) =
     Cₗ + 0.5 * ΔC * (1 + erf((z - interface_location) / sqrt(4 * κ * time)))
@@ -337,13 +343,15 @@ begin
 	R_Δσ = Array{Float64}(undef, length(σ_ha[1, :]))
 	Δσ_upper = similar(R_Δσ)
 	Δσ_lower = similar(R_Δσ)
+	σ_min = similar(R_Δσ)
+	σ_max = similar(R_Δσ)
 	for (i, col) ∈ enumerate(eachcol(σ_ha))
-		σ_min = minimum(col)
+		σ_min[i] = minimum(col)
 		σ_top = col[end]
-		Δσ_upper[i] = abs(σ_min - σ_top)
-		σ_max = maximum(col)
+		Δσ_upper[i] = abs(σ_min[i] - σ_top)
+		σ_max[i] = maximum(col)
 		σ_bottom = col[1]
-		Δσ_lower[i] = abs(σ_max - σ_bottom)
+		Δσ_lower[i] = abs(σ_max[i] - σ_bottom)
 		R_Δσ[i] = Δσ_upper[i] / Δσ_lower[i]
 	end
 end
@@ -387,9 +395,12 @@ let
 	fig
 end
 
+# ╔═╡ 8f0d41f8-d287-4c0d-af00-5b53f92cff75
+abs(σ_min[3] - σ_max[3])
+
 # ╔═╡ d2e81b8b-4a1c-4330-8f2a-14a502390bcd
 let
-	fig, ax = lines(dims["time"] ./ 60, R_Δσ)
+	fig, ax = lines(expt_data["R_ρ"], R_Δσ)
 	ax.title = "Raito of density difference between upper and lower layer"
 	ax.xlabel = "time (mins)"
 	ax.ylabel = "R_Δσ"
@@ -404,10 +415,10 @@ let
 	erf_tracer_solution(z, Cₗ::Number, ΔC::Number, κ::Number, t, interface_depth) =
 	    Cₗ + 0.5 * ΔC * (1 + erf((z - interface_depth) / sqrt(4 * κ * t)))
 	
-	Sᵤ, Θᵤ = 34.58, -1.5 # cabbeling expt from project two
-	Sₗ, Θₗ = 34.7, 0.5
-	# Sᵤ, Θᵤ = 34.6, -0.5 # cabbeling expt from project two
+	# Sᵤ, Θᵤ = 34.58, -1.5
 	# Sₗ, Θₗ = 34.7, 0.5
+	Sᵤ, Θᵤ = Float64(expt_data["S_ha"][end, 1]), Float64(expt_data["T_ha"][end, 1])
+	Sₗ, Θₗ = Float64(expt_data["S_ha"][1, 1]), Float64(expt_data["T_ha"][1, 1])
 	ΔS = Sᵤ - Sₗ
 	ΔΘ = Θᵤ - Θₗ
 	κₛ, κₜ = 1e-9, 1e-7
@@ -417,10 +428,8 @@ let
 	nleos_vec = fill(nleos, Nz)
 	interface_depth = -0.25
 	t = 5000
-	Sₗ = 34.7
-	# Θᵤ, Θₗ = -1.5, 0.5
 	τ = (0.01, 0.05, 0.1)
-	Θᵤ_range = range(-1.5, 0.34, length = 100)
+	Θᵤ_range = range(Θᵤ, 0.34, length = 100)
 	salinity = [Sᵤ, Sₗ]
 	Rᵨ_leos = Array{Float64}(undef, length(Θᵤ_range), length(τ))
 	Rᵨ_nleos = similar(Rᵨ_leos)
@@ -477,7 +486,8 @@ let
 	end
 	# lines!(ax2, expt_data["R_ρ"], R_Δσ)
 	Legend(fig[2, 1], ax2, orientation = :horizontal, nbanks = 3)
-		scatter!(ax2, expt_data["R_ρ"][3], R_Δσ[3], color = :red)
+	scatter!(ax2, expt_data["R_ρ"][3], R_Δσ[3], color = :red)
+	# lines!(ax2, expt_data["R_ρ"][2:end], R_Δσ[2:end], color = :red)
 	fig
 end
 
@@ -639,13 +649,13 @@ let
 	fig = Figure(size = (600, 600))
 	ax = Axis(fig[1, 1], xlabel = "time (mins)", ylabel = "Potential energy")
 	
-	Ep₀, Eb₀ = expt_data["∫Ep"][1], expt_data["∫Eb"][1]
-	Ep, Eb = expt_data["∫Ep"], expt_data["∫Eb"]
+	Ep₀, Eb₀ = expt_data["Ep"][1], expt_data["Eb"][1]
+	Ep, Eb = expt_data["Ep"], expt_data["Eb"]
 	# Ep, Eb = (expt_data["∫Ep"] .- Eb₀) ./ Eb₀, (expt_data["∫Eb"] .- Eb₀) / Eb₀
 	Ea = Ep .- Eb
 
-	Ep_comp = expt_data["∫Ep_lower"] .+ expt_data["∫Ep_upper"]
-	Eb_comp = expt_data["∫Eb_lower"] .+ expt_data["∫Eb_upper"]
+	Ep_comp = expt_data["Ep_lower"] .+ expt_data["Ep_upper"]
+	Eb_comp = expt_data["Eb_lower"] .+ expt_data["Eb_upper"]
 	# Ep_comp = (expt_data["∫Ep_lower"] .+ expt_data["∫Ep_upper"] .- Ep₀) ./ Ep₀
 	# Eb_comp = (expt_data["∫Eb_lower"] .+ expt_data["∫Eb_upper"] .- Eb₀) ./ Eb₀
 	
@@ -672,18 +682,18 @@ let
 	fig = Figure(size = (600, 500))
 	ax = Axis(fig[1, 1], xlabel = "time (mins)", ylabel = "Potential energy")
 	
-	Ep₀_upper = expt_data["∫Ep_upper"][1]
+	Ep₀_upper = expt_data["Ep_upper"][1]
 	# Ep_upper, Eb_upper = (expt_data["∫Ep_upper"] .- Ep₀_upper) ./ Ep₀_upper, (expt_data["∫Eb_upper"] .- Ep₀_upper) / Ep₀_upper
-	Ep_upper, Eb_upper = expt_data["∫Ep_upper"], expt_data["∫Eb_upper"]
+	Ep_upper, Eb_upper = expt_data["Ep_upper"], expt_data["Eb_upper"]
 	Ea_upper = Ep_upper .- Eb_upper
 	
 	lines!(ax, dims["time"] ./ 60, Ep_upper, label = "Ep_upper")
 	lines!(ax, dims["time"] ./ 60, Eb_upper, label = "Eb_upper")
 	# lines!(ax, dims["time"] ./ 60, Ea_upper, label = "Ea_upper")
 
-	Ep₀_lower = expt_data["∫Ep_lower"][1]
+	Ep₀_lower = expt_data["Ep_lower"][1]
 	# Ep_lower, Eb_lower = (expt_data["∫Ep_lower"] .- Ep₀_lower) ./ Ep₀_upper, (expt_data["∫Eb_lower"] .- Ep₀_lower) / Ep₀_upper
-	Ep_lower, Eb_lower = expt_data["∫Ep_lower"], expt_data["∫Eb_lower"]
+	Ep_lower, Eb_lower = expt_data["Ep_lower"], expt_data["Eb_lower"]
 	Ea_lower = Ep_lower .- Eb_lower
 	
 	# lines!(ax, dims["time"] ./ 60, Ep_lower, label = "Ep_lower", linestyle = :dash)
@@ -708,18 +718,18 @@ let
 	fig = Figure(size = (600, 500))
 	ax = Axis(fig[1, 1], xlabel = "time (mins)", ylabel = "Potential energy")
 	
-	Ep₀_upper = expt_data["∫Ep_upper"][1]
+	Ep₀_upper = expt_data["Ep_upper"][1]
 	# Ep_upper, Eb_upper = (expt_data["∫Ep_upper"] .- Ep₀_upper) ./ Ep₀_upper, (expt_data["∫Eb_upper"] .- Ep₀_upper) / Ep₀_upper
-	Ep_upper, Eb_upper = expt_data["∫Ep_upper"], expt_data["∫Eb_upper"]
+	Ep_upper, Eb_upper = expt_data["Ep_upper"], expt_data["Eb_upper"]
 	Ea_upper = Ep_upper .- Eb_upper
 	
 	# lines!(ax, dims["time"] ./ 60, Ep_upper, label = "Ep_upper")
 	# lines!(ax, dims["time"] ./ 60, Eb_upper, label = "Eb_upper")
 	# lines!(ax, dims["time"] ./ 60, Ea_upper, label = "Ea_upper")
 
-	Ep₀_lower = expt_data["∫Ep_lower"][1]
+	Ep₀_lower = expt_data["Ep_lower"][1]
 	# Ep_lower, Eb_lower = (expt_data["∫Ep_lower"] .- Ep₀_lower) ./ Ep₀_upper, (expt_data["∫Eb_lower"] .- Ep₀_lower) / Ep₀_upper
-	Ep_lower, Eb_lower = expt_data["∫Ep_lower"], expt_data["∫Eb_lower"]
+	Ep_lower, Eb_lower = expt_data["Ep_lower"], expt_data["Eb_lower"]
 	Ea_lower = Ep_lower .- Eb_lower
 	
 	lines!(ax, dims["time"] ./ 60, Ep_lower, label = "Ep_lower", linestyle = :dash)
@@ -739,13 +749,18 @@ let
 	# axislegend(ax2)
 end
 
+# ╔═╡ e70a5e3c-99de-44e0-b302-857ae75de3bf
+md"""
+## Heat flux
+"""
+
 # ╔═╡ 963fa274-2d8f-47fd-b227-4d7b3275d7ad
 TableOfContents()
 
 # ╔═╡ Cell order:
 # ╟─6301138c-fa0b-11ef-0f3b-39dac35db063
 # ╟─010ecdc3-51d6-41a6-9bc5-6efbba0723a6
-# ╟─68d31cca-3f29-4402-ac79-8deaef98ef50
+# ╠═68d31cca-3f29-4402-ac79-8deaef98ef50
 # ╟─087d2583-ee90-437a-97ec-0ab607337e30
 # ╟─e177c879-b7d0-4328-b5ad-776f8c64e050
 # ╟─07089057-5b2f-40e5-a485-0eeac1e9b348
@@ -763,11 +778,13 @@ TableOfContents()
 # ╟─82964820-7220-4e21-b263-20754b6a3a33
 # ╟─2536f46d-bbe8-4f85-a16a-82afef16fef5
 # ╟─3130c878-fda2-4d11-a658-748d6a15b2b8
+# ╟─31aecf3b-616d-482e-a430-b308cb29e57d
 # ╟─ca6991b4-ac76-435e-bcff-82103b6abdc7
 # ╟─616f02b0-5958-4e43-b747-4fb277460b55
 # ╟─18edf87f-fc2b-4e32-969b-eba0e2a813c1
 # ╟─8711fdef-0da7-46bf-aa82-2f32b0590f7b
 # ╟─6e7d38ab-2824-474b-b90c-75a3a5a05e57
+# ╠═8f0d41f8-d287-4c0d-af00-5b53f92cff75
 # ╟─e972f242-3b58-4581-87ae-437533b9fba1
 # ╟─d2e81b8b-4a1c-4330-8f2a-14a502390bcd
 # ╟─cd15821a-c5ad-4199-b0d8-f8944175f61d
@@ -784,4 +801,5 @@ TableOfContents()
 # ╟─31bed7ce-49d4-4009-be36-efd6531c979d
 # ╟─72353d1c-855b-463d-9bdb-b33bafc426d2
 # ╟─b5102aaf-5c42-4c91-8016-2e9bae2073d8
+# ╟─e70a5e3c-99de-44e0-b302-857ae75de3bf
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad
