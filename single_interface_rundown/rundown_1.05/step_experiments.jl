@@ -417,12 +417,12 @@ let
 	nleos_vec = fill(nleos, Nz)
 	interface_depth = -0.25
 	t = 5000
-	τ = (0.01, 0.05, 0.1)
-	Sᵤ_range = range(33.52, 34.59, length = 100)
-	# Sₗ = 34.7
+	Sₗ = 34.7
 	# Θᵤ, Θₗ = -1.5, 0.5
-	temperature = [Θᵤ, Θₗ]
-	Rᵨ_leos = Array{Float64}(undef, length(Sᵤ_range), length(τ))
+	τ = (0.01, 0.05, 0.1)
+	Θᵤ_range = range(-1.5, 0.34, length = 100)
+	salinity = [Sᵤ, Sₗ]
+	Rᵨ_leos = Array{Float64}(undef, length(Θᵤ_range), length(τ))
 	Rᵨ_nleos = similar(Rᵨ_leos)
 	σ₀_nonlinear_max = similar(Rᵨ_leos)
 	σ₀_nonlinear_min = similar(Rᵨ_leos)
@@ -435,16 +435,16 @@ let
 	for j ∈ eachindex(τ)
 	
 	    _κₛ = τ[j] * κₜ
-	    for (i, _Sᵤ) ∈ enumerate(Sᵤ_range)
+	    for (i, _Θᵤ) ∈ enumerate(Θᵤ_range)
 	
-	        salinity = [_Sᵤ, Sₗ]
-	        _ΔS = _Sᵤ - Sₗ
+	        temperature = [_Θᵤ, Θₗ]
+	        _ΔΘ = _Θᵤ - Θₗ
 	
 	        Rᵨ_leos[i, j] = compute_R_ρ(salinity, temperature, interface_depth, leos)
 	        Rᵨ_nleos[i, j] = compute_R_ρ(salinity, temperature, interface_depth, nleos)
 	
-	        S = erf_tracer_solution.(z, Sₗ, _ΔS, _κₛ, t, interface_depth)
-	        T = erf_tracer_solution.(z, Θₗ, ΔΘ, κₜ, t, interface_depth)
+	        S = erf_tracer_solution.(z, Sₗ, ΔS, _κₛ, t, interface_depth)
+	        T = erf_tracer_solution.(z, Θₗ, _ΔΘ, κₜ, t, interface_depth)
 	        σ₀_nonlinear = gsw_rho.(S, T, 0)
 	        σ₀_nonlinear_max[i, j] = maximum(σ₀_nonlinear)
 	        σ₀_nonlinear_min[i, j] = minimum(σ₀_nonlinear)
@@ -453,8 +453,8 @@ let
 	        σ₀_linear_max[i, j] = maximum(σ₀_linear)
 	        σ₀_linear_min[i, j] = minimum(σ₀_linear)
 	
-	        σ₀ᵘ_nleos[i, j] = gsw_rho(_Sᵤ, Θᵤ, 0)
-	        σ₀ᵘ_leos[i, j] = total_density(Θᵤ, _Sᵤ, 0, leos)
+	        σ₀ᵘ_nleos[i, j] = gsw_rho(Sᵤ, _Θᵤ, 0)
+	        σ₀ᵘ_leos[i, j] = total_density(_Θᵤ, Sᵤ, 0, leos)
 	    end
 	
 	end
@@ -466,7 +466,6 @@ let
 	Δσ_upper_linear = abs.(σ₀_linear_min .- σ₀ᵘ_leos)
 	Δσ_linear = Δσ_upper_linear ./ Δσ_lower_linear
 	
-	Rᵨ_cab = compute_R_ρ([34.551, Sₗ], temperature, interface_depth, nleos)
 	fig = Figure(size = (500, 500))
 	ax2 = Axis(fig[1, 1], title = L"(b) Asymmetry due to $R_{\rho}$", xlabel = L"R_{\rho}", ylabel =  L"R_{\Delta\rho}")
 	linestyle = [:solid, :dash, :dot, :dashdot]
@@ -476,12 +475,7 @@ let
 	for i ∈ eachindex(τ)
 	    lines!(ax2, Rᵨ_nleos[:, i], Δσ_nonlinear[:, i]; color = Makie.wong_colors()[2], linestyle = linestyle[i], label = L"$ρ_{\mathrm{nonlinear}}\text{, }\tau =$ %$(round((τ[i]), digits = 2))")
 	end
-	# vlines!(ax2, Rᵨ_cab, label = "Rᵨ_cab", linestyle = :dash, color = :red)
-	# vlines!(ax2, 1.22, linestyle = :dash)
-	# vlines!(ax2, 1.23, linestyle = :dash)
-	# linkyaxes!(ax1, ax2)
-	# hideydecorations!(ax2, grid = false, ticks = false)
-	# axislegend(ax2, position = :rb, orientation = :horizontal, nbanks = 3)
+	# lines!(ax2, expt_data["R_ρ"], R_Δσ)
 	Legend(fig[2, 1], ax2, orientation = :horizontal, nbanks = 3)
 		scatter!(ax2, expt_data["R_ρ"][3], R_Δσ[3], color = :red)
 	fig

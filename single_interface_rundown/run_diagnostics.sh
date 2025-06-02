@@ -15,4 +15,4 @@ export JULIA_DEPOT_PATH="/g/data/e14/jb2381/.julia"
 export JULIA_NUM_THREADS=auto
 
 # Run the experiment
-julia --project get_energetics.jl > $PBS_JOBID.log
+julia --project re_run_diagnostics.jl > $PBS_JOBID.log
