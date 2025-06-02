@@ -307,7 +307,7 @@ end
 
 Rᵨ_cab = compute_R_ρ([34.551, Sₗ], temperature, interface_depth, nleos)
 # fig = Figure(size = (500, 500))
-ax2 = Axis(fig[1, 2], title = L"(b) Asymmetry due to $\Delta S$",
+ax2 = Axis(fig[1, 2],
             xlabel = L"R_{\rho}", ylabel =  L"R_{\Delta\rho}")
 linestyle = [:solid, :dash, :dot, :dashdot]
 for i ∈ eachindex(τ)
@@ -318,11 +318,18 @@ for i ∈ eachindex(τ)
 end
 linkyaxes!(ax1, ax2)
 hideydecorations!(ax2, grid = false, ticks = false)
-println(Δσ_nonlinear[end, end])
+axΔS = Axis(fig[1,2], title = L"(c) Asymmetry due to $\Delta S$",
+            xaxisposition = :top, xticklabelcolor = :green, xtickcolor = :green,
+            xlabelcolor = :green, topspinecolor = :green,
+            xlabel = L"$ΔS$ (gkg$^{-1}$)")
+lines!(axΔS, Sᵤ_range .- Sₗ, ones(length(Sᵤ_range)))
+linkyaxes!(ax2, axΔS)
+hideydecorations!(axΔS, grid = false, ticks = false)
 # Legend(fig[2, 2], ax3, orientation = :horizontal, nbanks = 3)
 # axislegend(ax2, position = :rb, orientation = :horizontal, nbanks = 3)
 τ = (0.01, 0.05, 0.1)
 Θᵤ_range = range(-1.5, 0.34, length = 100)
+Sᵤ = 34.58
 salinity = [Sᵤ, Sₗ]
 Rᵨ_leos = Array{Float64}(undef, length(Θᵤ_range), length(τ))
 Rᵨ_nleos = similar(Rᵨ_leos)
@@ -370,7 +377,7 @@ end
 
 Rᵨ_cab = compute_R_ρ([34.551, Sₗ], temperature, interface_depth, nleos)
 # fig = Figure(size = (500, 500))
-ax3 = Axis(fig[1, 3], title = L"(c) Asymmetry due to $\Delta\Theta$",
+ax3 = Axis(fig[1, 3],
             xlabel = L"R_{\rho}", ylabel =  L"R_{\Delta\rho}")
 linestyle = [:solid, :dash, :dot, :dashdot]
 for i ∈ eachindex(τ)
@@ -379,11 +386,16 @@ end
 for i ∈ eachindex(τ)
     lines!(ax3, Rᵨ_nleos[:, i], Δσ_nonlinear[:, i]; color = Makie.wong_colors()[2], linestyle = linestyle[i], label = L"$ρ_{\mathrm{nonlinear}}\text{, }\tau =$ %$(round((τ[i]), digits = 2))")
 end
-println(Δσ_nonlinear[1, end])
-
-# linkyaxes!(ax1, ax3)
+axΔΘ = Axis(fig[1, 3], title = L"(c) Asymmetry due to $\Delta\Theta$",
+            xaxisposition = :top, xticklabelcolor = :green, xtickcolor = :green,
+            xlabelcolor = :green, topspinecolor = :green,
+            xlabel = L"$ΔΘ$ ($^{\circ}$C)")
+lines!(axΔΘ, Θᵤ_range .- Θₗ, ones(length(Θᵤ_range)))
+linkyaxes!(ax3, axΔΘ)
 linkyaxes!(ax2, ax3)
+# text!(ax3, 2, 0.1, L"\Delta S = -0.12")
 hideydecorations!(ax3, grid = false, ticks = false)
+hideydecorations!(axΔΘ, grid = false, ticks = false)
 Legend(fig[2, 2:3], ax3, orientation = :horizontal, nbanks = 3)
 fig
 ##

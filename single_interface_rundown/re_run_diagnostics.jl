@@ -2,17 +2,17 @@ using StaircaseShenanigans, CairoMakie
 
 # update output path to where files are located
 output_path = joinpath(@__DIR__, "dns_rundown_1.05/step/nonlineareos_single_interface_60min")
-co = joinpath(output_path, "computed_output.nc")
+computed_output = joinpath(output_path, "computed_output.nc")
 tracers = joinpath(output_path, "tracers.nc")
 velocities = joinpath(output_path, "velocities.nc")
 
 @info "Re-producing animations"
-animate_density(simulation.output_writers[:computed_output].filepath, "σ",
+animate_density(computed_output, "σ",
                 xslice = 17, yslice = 17, density_limit_adjustment = 0.04)
-animate_tracers(simulation.output_writers[:tracers].filepath, xslice = 17, yslice = 17,
+animate_tracers(tracers, xslice = 17, yslice = 17,
                 S_limit_adjustment = 0.025,
                 Θ_limit_adjustment = 0.5)
-animate_vertical_velocity(simulation.output_writers[:velocities].filepath, xslice = 17, yslice = 17)
+animate_vertical_velocity(velocities, xslice = 17, yslice = 17)
 
 @info "Re-computing diagnostics"
 diags = joinpath(output_path, "step_diagnostics.jld2")
