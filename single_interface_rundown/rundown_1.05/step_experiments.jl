@@ -22,7 +22,7 @@ begin
 	Pkg.activate("../..")
 	using JLD2, CairoMakie, PlutoUI, Dates, Statistics, TimeSeries, GibbsSeaWater
 	using SpecialFunctions: erf
-	using SeawaterPolynomials:  total_density, TEOS10EquationOfState
+	using SeawaterPolynomials:  total_density, TEOS10EquationOfState, thermal_expansion, haline_contraction
 	using StaircaseShenanigans: CustomLinearEquationOfState, compute_R_ρ
 end
 
@@ -66,6 +66,11 @@ begin
 	output_path = joinpath(@__DIR__, is, expt_eos)
 	expt_data = load(joinpath(output_path, is*"_diagnostics.jld2"))
 	dims = load(joinpath(output_path, is*"_diagnostics.jld2"), "dims")
+	ρ₀ = gsw_rho(34.7, 0.5, 0)
+	_idx = findlast('_', eos)+1
+	eos_type = eos[_idx:end] .== "nonlinear" ? TEOS10EquationOfState(reference_density = ρ₀) :
+	CustomLinearEquationOfState(-0.5, 34.64, reference_density = ρ₀)
+	α_sign = ifelse(eos[_idx:end] .== "nonlinear", +, -)
 	@info "$is initial condition with $(eos) eos output loaded"
 end
 
@@ -148,8 +153,8 @@ end
 
 # ╔═╡ c852e2d3-f489-4b98-a183-dae4c3594947
 let
-	# R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
-	R_ρ_interp = dims["time"][1:end-1]
+	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
+	# R_ρ_interp = dims["time"][1:end-1]
 	fig = Figure(size = (800, 800))
 	axT = Axis(fig[1, 1], ylabel = "T flux")
 	lines!(axT, R_ρ_interp, expt_data["T_flux"][2, :])
@@ -164,6 +169,7 @@ end
 # ╔═╡ c3f03eaf-0c45-477a-ba2b-c411be6d07c8
 begin
 	R_ρ_interp = 0.5 * (expt_data["R_ρ"][1:end-1] .+ expt_data["R_ρ"][2:end])
+	# R_ρ_interp = 1:180
 	start_flux = 90
 	T_interface_idx = expt_data["T_ha_interface_idx"]
 	T_flux_interface = [expt_data["T_ha_flux"][idx, i] for (i, idx) ∈ enumerate(T_interface_idx)]
@@ -215,6 +221,7 @@ md"""
 # ╔═╡ 9a8041ad-6b12-4ef5-9f2f-44189de067f9
 let
 	timestamps = dims["time"][2:end] ./ 60
+	
 	fig = Figure(size = (800, 800))
 	axhₜ = Axis(fig[1, 1], ylabel = "hₜ (cm)")
 	lines!(axhₜ, timestamps, 100 * expt_data["hₜ"])
@@ -312,7 +319,7 @@ end
 
 # ╔═╡ 31aecf3b-616d-482e-a430-b308cb29e57d
 let
-	fig, ax, hm = heatmap(expt_data["ha_wT"]', colormap = :speed)
+	fig, ax, hm = heatmap(expt_data["ha_wT"][:, 1:60]', colormap = :speed)
 	Colorbar(fig[1, 2], hm)
 	fig
 end
@@ -359,15 +366,18 @@ end
 # ╔═╡ 8711fdef-0da7-46bf-aa82-2f32b0590f7b
 let
 	Sₜ, Tₜ = expt_data["S_ha"][:, t], expt_data["T_ha"][:, t]
-	fig, ax = lines(Sₜ, Tₜ, label = "Model output")
+	Rᵨ = expt_data["R_ρ"][t]
+	fig = Figure(size = (600, 500))
+	ax = Axis(fig[1, 1], 
+			  xlabel = "Salinity (gkg⁻¹)", 
+			  ylabel = "Temperature (°C)",
+			  title = "Ha S and T profiles at time t = $(dims["time"][t] / 60)min",
+			  subtitle = "Rᵨ = $(round(Rᵨ, digits = 1)), R_Δσ = $(round(R_Δσ[t], digits = 1))")
+	lines!(ax, Sₜ, Tₜ, label = "Model output")
 	Slims = extrema(expt_data["S_ha"][:, 1]) .+ [-0.01, 0.01]
 	Tlims = extrema(expt_data["T_ha"][:, 1]) .+ [-0.1, 0.1]
 	xlims!(Slims...)
 	ylims!(Tlims...)
-	ax.xlabel = "Salinity (gkg⁻¹)"
-	ax.ylabel = "Temperature (°C)"
-	ax.title = "Ha S and T profiles at time t = $(dims["time"][t] / 60)min"
-	ax.subtitle = "R_Δσ = $(round(R_Δσ[t], digits = 1))"
 
 	κₛ, κₜ = expt_data["attrib/κₛ (m²s⁻¹)"], expt_data["attrib/κₜ (m²s⁻¹)"]
 	z = dims["z_aac"][:]
@@ -380,7 +390,21 @@ let
 	T = erf_tracer_solution.(z, Tₜ[1], ΔT, κₜ, t, interfaceT[t])
 	lines!(ax, S, T, color = :orange, label = "Theoretical model")
 
-	axislegend(ax, position = :lt)
+
+	N = 100
+	S_range = range(extrema(Sₜ)..., length=N)
+	T_range = range(extrema(Tₜ)..., length=N)
+	eos_vec = fill(eos_type, (N, N))
+	FT = eltype(Tₜ[1])
+	α = α_sign(thermal_expansion(Tₜ[1], Sₜ[1], FT(0), eos_vec[1]))
+	β = haline_contraction(Tₜ[1], Sₜ[1], FT(0), eos_vec[1])
+	ρ_grid = total_density.(T_range' .* ones(length(T_range)), S_range .* ones(length(S_range))', fill(0, (N, N)), eos_vec)
+	ρ_deep = total_density(Tₜ[1], Sₜ[1], 0, eos_vec[1])
+	T_tangent = Tₜ[1] .+ (β / α) * (S_range .- Sₜ[1])
+	lines!(ax, S_range, T_tangent, color = :green, linestyle = :dot, label = "Tangent to density at deep water")
+	contour!(ax, S_range, T_range, ρ_grid, levels = [ρ_deep], color = :black, label = "Deep water isopycnal")
+	
+	Legend(fig[2, 1], ax)
 
 	σₜ = expt_data["σ_ha"][:, t] .- mean(expt_data["σ_ha"][:, t])
 	ax2 = Axis(fig[1, 2], 
@@ -389,9 +413,10 @@ let
 			   xlabel = "σ₀′", 
 			   ylabel = "z (m)")
 	lines!(ax2, σₜ, z)
-	hlines!(ax2, -0.25, linestyle = :dash, color = :red)
+	hlines!(ax2, -0.25, linestyle = :dash, color = :red, label = "Initial interface height")
 	σ_lims = extrema(expt_data["σ_ha"][:, end]) .- mean(expt_data["σ_ha"][:, end]) .+ [-0.01, 0.01]
 	xlims!(ax2, σ_lims)
+	Legend(fig[2, 2], ax2)
 	fig
 end
 

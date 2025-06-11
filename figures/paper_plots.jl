@@ -27,12 +27,12 @@ t = 5000
 
 ## Load output
 # when done..
-nl_R_ρ_105 = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_nonlineareos/plotting_snapshots.jld2")
-l_R_ρ_105 = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_lineareos/plotting_snapshots.jld2")
-nl_R_ρ_105_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_nonlineareos/step_diagnostics.jld2")
-l_R_ρ_105_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_lineareos/step_diagnostics.jld2")
-nl_R_ρ_105_energetics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_nonlineareos/energetics.jld2")
-l_R_ρ_105_energetics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_lineareos/energetics.jld2")
+nl_R_ρ_105_dT2_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_nonlineareos/step_diagnostics.jld2")
+l_R_ρ_105_dT2_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_lineareos/step_diagnostics.jld2")
+nl_R_ρ_105_dT1_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/R_rho_1.05_deltatheta_1.0_nonlineareos/step_diagnostics.jld2")
+l_R_ρ_105_dT1_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/R_rho_1.05_deltatheta_1.0_lineareos/step_diagnostics.jld2")
+nl_R_ρ_105_dT05_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/R_rho_1.03_deltatheta_0.5_nonlineareos/step_diagnostics.jld2")
+l_R_ρ_105_dT05_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/R_rho_1.05_deltatheta_0.5_lineareos/step_diagnostics.jld2")
 ## Figure theme
 markersize = 10
 publication_theme = Theme(font="CMU Serif", fontsize = 20,
@@ -121,15 +121,7 @@ linkyaxes!(ax[1], ax[2])
 fig
 ##
 save("S_T_sigma_profiles.png", fig)
-##
-mid_T = findfirst(T .≤ median(T)) - 1
-mid_S = findfirst(S .≤ median(S)) - 1
-T[mid_T]
-S[mid_S]
-mid_l = findfirst(linear_σ₀ .≤ median(linear_σ₀)) - 1
-mid_nl = findfirst(nlinear_σ₀ .≤ median(nlinear_σ₀))
-linear_σ₀′[mid_T]
-nlinear_σ₀′[mid_T]
+
 ## Figure
 # Profiles in salinity-temperature space
 σ_grad = get(ColorSchemes.dense, range(0.2, 1, length = 4))
@@ -405,9 +397,95 @@ fig
 ##
 save("density_asymmetry.png", fig)
 ## Figure
+# Density asymmetry heatmap
+Sᵤ_range = range(33.54, 34.58, length = 100)
+Θᵤ_range = range(-1.5, 0.25, length = 100)
+Rᵨ_leos = Array{Float64}(undef, length(Θᵤ_range), length(Sᵤ_range))
+Rᵨ_nleos = similar(Rᵨ_leos)
+σ₀_nonlinear_max = similar(Rᵨ_leos)
+σ₀_nonlinear_min = similar(Rᵨ_leos)
+σ₀_linear_max = similar(Rᵨ_leos)
+σ₀_linear_min = similar(Rᵨ_leos)
+σ₀ᵘ_leos = similar(Rᵨ_leos)
+σ₀ᵘ_nleos = similar(Rᵨ_leos)
+σ₀ˡ_nleos = gsw_rho(Sₗ, Θₗ, 0)
+σ₀ˡ_leos = total_density(Θₗ, Sₗ, 0, leos)
+τ = 0.1
+for (j, _Sᵤ) ∈ enumerate(Sᵤ_range)
+
+    _κₛ = τ * κₜ
+    salinity = [_Sᵤ, Sₗ]
+    _ΔS = _Sᵤ - Sₗ
+    for (i, _Θᵤ) ∈ enumerate(Θᵤ_range)
+
+        temperature = [_Θᵤ, Θₗ]
+        _ΔΘ = _Θᵤ - Θₗ
+
+        Rᵨ_leos[i, j] = compute_R_ρ(salinity, temperature, interface_depth, leos)
+        Rᵨ_nleos[i, j] = compute_R_ρ(salinity, temperature, interface_depth, nleos)
+
+        S = erf_tracer_solution.(z, Sₗ, _ΔS, _κₛ, t, interface_depth)
+        T = erf_tracer_solution.(z, Θₗ, _ΔΘ, κₜ, t, interface_depth)
+        σ₀_nonlinear = gsw_rho.(S, T, 0)
+        σ₀_nonlinear_max[i, j] = maximum(σ₀_nonlinear)
+        σ₀_nonlinear_min[i, j] = minimum(σ₀_nonlinear)
+
+        σ₀_linear = total_density.(T, S, 0, leos_vec)
+        σ₀_linear_max[i, j] = maximum(σ₀_linear)
+        σ₀_linear_min[i, j] = minimum(σ₀_linear)
+
+        σ₀ᵘ_nleos[i, j] = gsw_rho(_Sᵤ, _Θᵤ, 0)
+        σ₀ᵘ_leos[i, j] = total_density(_Θᵤ, _Sᵤ, 0, leos)
+    end
+
+end
+Δσ_lower_nonlinear = abs.(σ₀_nonlinear_max .- σ₀ˡ_nleos)
+Δσ_upper_nonlinear = abs.(σ₀_nonlinear_min .- σ₀ᵘ_nleos)
+Δσ_nonlinear = Δσ_upper_nonlinear ./ Δσ_lower_nonlinear
+
+Δσ_lower_linear = abs.(σ₀_linear_max .- σ₀ˡ_leos)
+Δσ_upper_linear = abs.(σ₀_linear_min .- σ₀ᵘ_leos)
+Δσ_linear = Δσ_upper_linear ./ Δσ_lower_linear
+
+
+replace!(x -> x > 10 ? NaN : x, Rᵨ_nleos)
+for (i, c) ∈ enumerate(eachcol(reverse(Rᵨ_nleos, dims = 1)))
+    for j ∈ eachindex(c)
+        Δσ_nonlinear[i, j] = isnan(Rᵨ_nleos[i, j]) ? NaN : Δσ_nonlinear[i, j]
+    end
+end
+replace!(x -> x > 10 ? NaN : x, Rᵨ_leos)
+for (i, c) ∈ enumerate(eachcol(reverse(Rᵨ_leos, dims = 1)))
+    for j ∈ eachindex(c)
+        Δσ_linear[i, j] = isnan(Rᵨ_leos[i, j]) ? NaN : Δσ_linear[i, j]
+    end
+end
+ΔΘ = Θᵤ_range .- Θₗ
+ΔS = Sᵤ_range .- Sₗ
+
+fig = Figure(size = (1000, 1000))
+ax_lRᵨ = Axis(fig[1, 1], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)", title = "Linear eos")
+hm = heatmap!(ax_lRᵨ, ΔΘ, ΔS, Rᵨ_leos)
+ax_nlRᵨ = Axis(fig[1, 2], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)", title = "Nonlinear eos")
+hm_nlRᵨ = heatmap!(ax_nlRᵨ, ΔΘ, ΔS, Rᵨ_nleos)
+hideydecorations!(ax_nlRᵨ, grid = false, ticks = false)
+hidexdecorations!(ax_nlRᵨ, grid = false, ticks = false)
+hidexdecorations!(ax_lRᵨ, grid = false, ticks = false)
+Colorbar(fig[1, 3], hm_nlRᵨ, label = "Rᵨ")
+
+colorrange = (minimum(Δσ_nonlinear[.!isnan.(Δσ_nonlinear)]), 1)
+ax_lR_Δρ = Axis(fig[2, 1], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
+hm = heatmap!(ax_lR_Δρ, ΔΘ, ΔS, Δσ_linear; colorrange, colormap = :batlow)
+ax_nlR_Δρ = Axis(fig[2, 2], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
+hideydecorations!(ax_nlR_Δρ, grid = false, ticks = false)
+hm_nlR_Δρ = heatmap!(ax_nlR_Δρ, ΔΘ, ΔS, Δσ_nonlinear; colorrange, colormap = :batlow)
+Colorbar(fig[2, 3], hm_nlR_Δρ, label = "R_Δρ")
+fig
+
+## Figure
 # DNS flow evolution
 # file = jldopen(nl_R_ρ_105)
-file = jldopen(nl_R_ρ_105_diagnostics)
+file = jldopen(nl_R_ρ_105_dT2_diagnostics)
 x = file["dims/x_caa"]
 y = file["dims/y_aca"]
 z = file["dims/z_aac"]
@@ -432,7 +510,7 @@ horizontal_ticks = LinRange(-0.025, 0.025, 5)
 T_colorrange = (-1.5, 1.5)
 S_colorrange = (-0.09, 0.09)
 w_colorrnage =  (-0.0005, 0.0005)
-files = (nl_R_ρ_105, l_R_ρ_105)
+files = (nl_R_ρ_105_dT2_diagnostics, l_R_ρ_105_dT2_diagnostics)
 fig = Figure(size = (1300, 1300))#, px_per_unit = 16)
 snapshots = [[180.00000000000003, 60.0 * 6, 60 * 12, 60.0 * 24],
                 [60.0 * 3, 60.0 * 6, 60 * 12, 60.0 * 24]]
@@ -506,31 +584,35 @@ save("S_and_T_dns_evolution.png", fig)
 
 ## Figure
 # Density hovmollers for Rρ = 1.05
-files = (l_R_ρ_105_diagnostics, nl_R_ρ_105_diagnostics)
-fig = Figure(size = (800, 600))
-ax = [Axis(fig[1, i], xlabel = "time (min)", ylabel = "z (m)") for i ∈ eachindex(files)]
+files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics)
+fig = Figure(size = (1400, 1000))
+axσ = [Axis(fig[1, i], xlabel = "time (min)", ylabel = "z (m)") for i ∈ eachindex(files)]
 titles = ["(a) Linear eos", "(b) Nonlinear eos"]
-colorrange = jldopen(files[1]) do ds
+σ_colorrange = jldopen(files[1]) do ds
         extrema(ds["σ_ha"][:, 3] .- mean(ds["σ_ha"][:, 1]))
 end
-# colorrange[2] - colorrange[1]
-# min = jldopen(files[1]) do ds
-#         minimum(ds["σ_ha"][:, 3] .- mean(ds["σ_ha"][:, 1]))
-# end
-# max = jldopen(files[2]) do ds
-#         maximum(ds["σ_ha"][:, 3] .- mean(ds["σ_ha"][:, 1]))
-# end
-# colorrange = (min, max)
+axwT = [Axis(fig[2, i], xlabel = "time (min)", ylabel = "z (m)") for i ∈ eachindex(files)]
+wT_colorrange = jldopen(files[1]) do ds
+        extrema(ds["ha_wT"])
+end
+ts_length = 200
 for (i, f) ∈ enumerate(files)
 
     jldopen(f) do ds
-        σ_ha′ = ds["σ_ha"][:, 1:120]' .- mean(ds["σ_ha"][:, 1])'
-        hm = heatmap!(ax[i], 1:120, z, σ_ha′; colorrange, colormap = :diff)
-        ax[i].title = titles[i]
-        i == 2 ? Colorbar(fig[2, :], hm, label = "σ₀′ (kgm⁻³)", vertical = false, flipaxis = false) : nothing
-        i == 2 ? hideydecorations!(ax[2], ticks = false) : nothing
-    end
+        σ_ha′ = ds["σ_ha"][:, 1:ts_length ]' .- mean(ds["σ_ha"][:, 1])'
+        hm = heatmap!(axσ[i], 1:ts_length, z, σ_ha′; colorrange = σ_colorrange, colormap = :diff)
+        axσ[i].title = titles[i]
+        i == 2 ? Colorbar(fig[1, 3], hm, label = L"$σ_{0}′$ (kgm⁻³)") : nothing
+        i == 2 ? hideydecorations!(axσ[2], ticks = false) : nothing
+        hidexdecorations!(axσ[i], ticks = false)
 
+        wT = ds["ha_wT"]
+        hm = heatmap!(axwT[i], 1:ts_length, z, wT'; colorrange = wT_colorrange, colormap = :speed)
+        i == 2 ? hideydecorations!(axwT[2], ticks = false) : nothing
+        i == 2 ? Colorbar(fig[2, 3], hm, label = L"$wΘ$ (Wm⁻²)") : nothing
+    end
+    linkxaxes!(axσ[1], axwT[1])
+    linkxaxes!(axσ[2], axwT[2])
 end
 fig
 ##
@@ -538,24 +620,58 @@ save("density_hovs.png", fig)
 
 ## Figure
 # energetics
-files = (l_R_ρ_105_energetics, nl_R_ρ_105_energetics)
+files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics)#),
+        #  l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics)#,
+        #  l_R_ρ_105_dT05_diagnostics, nl_R_ρ_105_dT05_diagnostics)
 fig = Figure(size = (800, 600))
-ax = Axis(fig[1, 1], xlabel = "time (min)", ylabel = "Energy")
-labels = ["(a) Linear eos", "(b) Nonlinear eos"]
+ax = Axis(fig[1, 1], xlabel = "time (min)", ylabel = "Rates")
+labels = ["(a) Linear eos, ΔΘ = -2", "(b) Nonlinear eos, ΔΘ = -2",
+          "(a) Linear eos, ΔΘ = -1", "(b) Nonlinear eos, ΔΘ = -1"]#,
+        #   "(a) Linear eos, ΔΘ = -0.5", "(b) Nonlinear eos, ΔΘ = -0.5"]
+ts_length = 60
 for (i, f) ∈ enumerate(files)
 
     jldopen(f) do ds
         Ep0 = ds["Ep"][1]
-        Eb = diff((ds["Eb"][1:120] .- Ep0))
-        Ep = diff((ds["Ep"][1:120] .- Ep0))
+        Eb = diff((ds["Eb"][1:ts_length] .- Ep0))
+        Ep = diff((ds["Ep"][1:ts_length] .- Ep0))
         ape = Ep .- Eb
+        ek = diff(ds["∫Eₖ"][1:ts_length])
         # lines!(ax, 2:120, Ep, label = "Ep, "*labels[i])
         # lines!(ax, 2:120, Eb, label = "Eb, "*labels[i])
-        lines!(ax, 2:120, ape, label = "Ea, "*labels[i])
+        lines!(ax, 2:ts_length, ek, label = "dEa/dt, "*labels[i])
     end
 
 end
 axislegend(ax)
+fig
+##
+# save
+
+## Figure
+# interface shifting
+files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
+         l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics)#,
+        #  l_R_ρ_105_dT05_diagnostics, nl_R_ρ_105_dT05_diagnostics)
+
+fig = Figure(size = (800, 600))
+ax = Axis(fig[1, 1], xlabel = "time (min)", ylabel = "z (m)")
+labels = ["(a) Linear eos, ΔΘ = -2", "(b) Nonlinear eos, ΔΘ = -2",
+          "(a) Linear eos, ΔΘ = -1", "(b) Nonlinear eos, ΔΘ = -1",
+          "(a) Linear eos, ΔΘ = -0.5", "(b) Nonlinear eos, ΔΘ = -0.5"]
+    ts_length = 120
+for (i, f) ∈ enumerate(files)
+
+    jldopen(f) do ds
+
+        T_mid = median(ds["T_ha"])
+        find_interface = [findfirst(c .≤ T_mid) for c ∈ eachcol(ds["T_ha"][:, 2:ts_length])]
+        z = ds["dims/z_aac"]
+        interface_height = [z[fi] for fi ∈ find_interface]
+        lines!(ax, 2:ts_length, interface_height, label = labels[i])
+    end
+end
+axislegend(ax, position = :lt)
 fig
 ## Maybes..
 ############################################################################################

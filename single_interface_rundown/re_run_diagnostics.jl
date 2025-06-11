@@ -1,7 +1,7 @@
 using StaircaseShenanigans, CairoMakie
 
 # update output path to where files are located
-output_path = joinpath(@__DIR__, "dns_rundown_1.05/step/nonlineareos_single_interface_60min")
+output_path = joinpath(@__DIR__, "rundown_1.03_deltatheta_-0.5/step/nonlineareos_single_interface_180min")
 computed_output = joinpath(output_path, "computed_output.nc")
 tracers = joinpath(output_path, "tracers.nc")
 velocities = joinpath(output_path, "velocities.nc")
