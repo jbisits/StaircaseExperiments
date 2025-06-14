@@ -237,8 +237,8 @@ let
 	mins = dims["time"] ./ 60
 	fig = Figure(size = (500, 500))
 	ax = Axis(fig[1, 1], xlabel = "time (mins)")
-	lines!(ax, mins[2:end], expt_data["ΔS"] ./ expt_data["ΔS"][1], color = :blue, label = "ΔS / ΔS₀")
-	lines!(ax, mins[2:end], expt_data["ΔT"] ./ expt_data["ΔT"][1], color = :red, label = "ΔT / ΔT₀")
+	lines!(ax, mins[1:end], expt_data["ΔS"][:] ./ expt_data["ΔS"][1], color = :blue, label = "ΔS / ΔS₀")
+	lines!(ax, mins[1:end], expt_data["ΔT"][:] ./ expt_data["ΔT"][1], color = :red, label = "ΔT / ΔT₀")
 	ylims!(ax, 0, 1.1)
 	ax2 = Axis(fig[1, 1], yaxisposition = :right,
 			    yticklabelcolor = :dodgerblue,
@@ -258,15 +258,16 @@ begin
 	lines!(ax_interface, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["S_interface_idx"]], label = "salinity")
 	lines!(ax_interface, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "temperature")
 
+	id = expt_data["attrib/interface_depth"]
 	S_mid = 0.5 * (expt_data["S_ha"][1, 1] + expt_data["S_ha"][end, 1])
 	findS = [findfirst(reverse(expt_data["S_ha"][:, i]) .≥ S_mid) for i in eachindex(expt_data["S_ha"][1, 2:end])]
-	S_interface = dims["z_aac"][findS]
-	lines!(ax_interface, expt_data["R_ρ"][2:end], abs.(S_interface), label = "salinity (ha profile)", linestyle  = :dash)
+	S_interface = vcat(id, dims["z_aac"][findS])
+	lines!(ax_interface, expt_data["R_ρ"], abs.(S_interface), label = "salinity (ha profile)", linestyle  = :dash)
 
 	T_mid = 0.5 * (expt_data["T_ha"][1, 1] + expt_data["T_ha"][end, 1])
 	findT = [findfirst(reverse(expt_data["T_ha"][:, i]) .≥ T_mid) for i in eachindex(expt_data["T_ha"][1, 2:end])]
-	T_interface = dims["z_aac"][findT]
-	lines!(ax_interface, expt_data["R_ρ"][2:end], abs.(T_interface), label = "temperature (ha profile)", linestyle = :dash)
+	T_interface = vcat(id, dims["z_aac"][findT])
+	lines!(ax_interface, expt_data["R_ρ"], abs.(T_interface), label = "temperature (ha profile)", linestyle = :dash)
 	# ylims!(ax_interface, 0.49, 0.54)
 	# vlines!(ax_interface, 1.6, color = :red, linestyle = :dash)
 	axislegend(ax_interface, position = :rb)
@@ -317,13 +318,6 @@ let
 	# save("S_and_T_l_hov.png", fig)
 end
 
-# ╔═╡ 31aecf3b-616d-482e-a430-b308cb29e57d
-let
-	fig, ax, hm = heatmap(expt_data["ha_wT"][:, 1:60]', colormap = :speed)
-	Colorbar(fig[1, 2], hm)
-	fig
-end
-
 # ╔═╡ ca6991b4-ac76-435e-bcff-82103b6abdc7
 erf_tracer_solution(z, Cₗ::Number, ΔC::Number, κ::Number, time, interface_location) =
     Cₗ + 0.5 * ΔC * (1 + erf((z - interface_location) / sqrt(4 * κ * time)))
@@ -334,7 +328,7 @@ md"""
 """
 
 # ╔═╡ 18edf87f-fc2b-4e32-969b-eba0e2a813c1
-@bind t PlutoUI.Slider(eachindex(dims["time"]))
+t_slider = @bind t PlutoUI.Slider(eachindex(dims["time"]))
 
 # ╔═╡ 6e7d38ab-2824-474b-b90c-75a3a5a05e57
 md"""
@@ -367,6 +361,14 @@ end
 let
 	Sₜ, Tₜ = expt_data["S_ha"][:, t], expt_data["T_ha"][:, t]
 	Rᵨ = expt_data["R_ρ"][t]
+	
+	κₛ, κₜ = expt_data["attrib/κₛ (m²s⁻¹)"], expt_data["attrib/κₜ (m²s⁻¹)"]
+	z = dims["z_aac"][:]
+	ΔS = Sₜ[end] - Sₜ[1]
+	ΔT = Tₜ[end] - Tₜ[1]
+	S = erf_tracer_solution.(z, Sₜ[1], ΔS, κₛ, t, T_interface[t])
+	T = erf_tracer_solution.(z, Tₜ[1], ΔT, κₜ, t, T_interface[t])
+	
 	fig = Figure(size = (600, 500))
 	ax = Axis(fig[1, 1], 
 			  xlabel = "Salinity (gkg⁻¹)", 
@@ -374,20 +376,12 @@ let
 			  title = "Ha S and T profiles at time t = $(dims["time"][t] / 60)min",
 			  subtitle = "Rᵨ = $(round(Rᵨ, digits = 1)), R_Δσ = $(round(R_Δσ[t], digits = 1))")
 	lines!(ax, Sₜ, Tₜ, label = "Model output")
+	scatter!(ax, Sₜ[findT[t]], Tₜ[findT[t]], color = :red, label = "ST interface")
 	Slims = extrema(expt_data["S_ha"][:, 1]) .+ [-0.01, 0.01]
 	Tlims = extrema(expt_data["T_ha"][:, 1]) .+ [-0.1, 0.1]
 	xlims!(Slims...)
 	ylims!(Tlims...)
 
-	κₛ, κₜ = expt_data["attrib/κₛ (m²s⁻¹)"], expt_data["attrib/κₜ (m²s⁻¹)"]
-	z = dims["z_aac"][:]
-	ΔS = Sₜ[end] - Sₜ[1]
-	ΔT = Tₜ[end] - Tₜ[1]
-	id = expt_data["attrib/interface_depth"]
-	interfaceS = vcat(id, S_interface)
-	interfaceT = vcat(id, T_interface)
-	S = erf_tracer_solution.(z, Sₜ[1], ΔS, κₛ, t, interfaceT[t])
-	T = erf_tracer_solution.(z, Tₜ[1], ΔT, κₜ, t, interfaceT[t])
 	lines!(ax, S, T, color = :orange, label = "Theoretical model")
 
 
@@ -580,7 +574,7 @@ let
 	∫wb = 0.5 * (expt_data["∫wb"][1:end-1] .+ expt_data["∫wb"][2:end])
 	∫gρw = 0.5 * (expt_data["∫gρw"][1:end-1] .+ expt_data["∫gρw"][2:end])
 	RHS = ∫wb .- ε
-	# RHS =-∫gρw .- ε
+	RHS_per = RHS ./ -ε
 	fig, ax = lines(eachindex(Δt)[1:end], dₜek[1:end], label = "dₜek")
 	lines!(ax, eachindex(Δt)[1:end], RHS[1:end], label = "∫wb - ε")
 	ax.title = "Energy  budget"
@@ -779,6 +773,170 @@ md"""
 ## Heat flux
 """
 
+# ╔═╡ 185fce17-00a3-40a3-b02e-ee44a2b10a28
+let
+	fig, ax, hm = heatmap(expt_data["ha_wT"][:, 1:60]', colormap = :speed)
+	Colorbar(fig[1, 2], hm)
+	fig
+end
+
+# ╔═╡ d053f751-6b25-4516-b5ca-c18fa886df52
+md"""
+# McDougall 1981 experiments
+
+Checking what happens to the density asymmetry in McDougall experiment.
+"""
+
+# ╔═╡ 3ab99fd4-0e04-4fb1-b6ee-b009db9c93ad
+t_slider
+
+# ╔═╡ 650e9373-c299-4518-b223-de83f969df13
+let
+	Sₚ = [1.01, 6.01]
+	T = [15.5, 30.39]
+	salinity = gsw_sa_from_sp.(Sₚ, 0, 149, -35)
+	temperature = gsw_ct_from_t.(salinity, T, 0)
+
+	κₛ, κₜ = 1e-9, 1e-7
+	z = range(-0.5, 0, length = 2000)
+	ΔS = salinity[1] - salinity[2]
+	ΔT = temperature[1] - temperature[2]
+	S = erf_tracer_solution.(z, salinity[2], ΔS, κₛ, t, -0.25)
+	T = erf_tracer_solution.(z, temperature[2], ΔT, κₜ, t, -0.25)
+	σ = total_density.(T, S, 0, fill(eos_type, length(z)))
+
+	R_Δρ = abs(minimum(σ) - σ[end]) / abs(maximum(σ) - σ[1])
+
+	Δρ = σ[1] - σ[end]
+	slope = ΔT / ΔS
+	S_mix = range(salinity..., step = 0.000001)
+    T_mix = @. temperature[1] + slope * (S_mix - salinity[1])
+	ρ_mix = total_density.(T_mix, S_mix, 0, fill(eos_type, length(S_mix)))
+	ρ_max = maximum(ρ_mix)
+	Δρ′ = ρ_max - σ[1]
+	C = Δρ′ / Δρ
+	δ = (4 + 8*C) * sqrt(C^2 + C)
+	
+	fig = Figure(size = (600, 500))
+	ax = Axis(fig[1, 1], 
+			  xlabel = "Salinity (gkg⁻¹)", 
+			  ylabel = "Temperature (°C)",
+			  title = "Ha S and T profiles at time t = $(dims["time"][t] / 60)min",
+			  subtitle = "δ = $(round(δ, digits = 2)), R_Δσ = $(round(R_Δρ, digits = 1))")
+	# Slims = salinity .+ [-0.01, 0.01]
+	# Tlims = temperature .+ [-0.1, 0.1]
+	# xlims!(Slims...)
+	# ylims!(Tlims...)
+
+	lines!(ax, S, T, color = :orange, label = "Theoretical model")
+	lines!(ax, S_mix, T_mix)
+
+	N = 100
+	S_range = range(extrema(S)..., length=N)
+	T_range = range(extrema(T)..., length=N)
+	eos_vec = fill(eos_type, (N, N))
+	FT = eltype(T[1])
+	α = α_sign(thermal_expansion(temperature[end], salinity[end], FT(0), eos_vec[1]))
+	β = haline_contraction(temperature[end], salinity[end], FT(0), eos_vec[1])
+	ρ_grid = total_density.(T_range' .* ones(length(T_range)), S_range .* ones(length(S_range))', fill(0, (N, N)), eos_vec)
+	ρ_deep = total_density(temperature[end], salinity[end], 0, eos_vec[1])
+	T_tangent = T[1] .+ (β / α) * (S_range .- S[1])
+	lines!(ax, S_range, T_tangent, color = :green, linestyle = :dot, label = "Tangent to density at deep water")
+	contour!(ax, S_range, T_range, ρ_grid, levels = [ρ_deep], color = :black, label = "Deep water isopycnal")
+	
+	Legend(fig[2, 1], ax)
+
+	σₜ = σ .- mean(σ)
+	ax2 = Axis(fig[1, 2], 
+			   title = "Ha σ′ profile at time t = $(dims["time"][t] / 60)min", 
+			   subtitle = "Anomaly from mean",
+			   xlabel = "σ₀′", 
+			   ylabel = "z (m)")
+	hlines!(ax2, -0.25, linestyle = :dash, color = :red, label = "Initial interface height")
+	lines!(ax2, σₜ, z)
+	σ_lims = extrema(σₜ) .+ [-0.1, 0.1]
+	xlims!(ax2, σ_lims)
+	Legend(fig[2, 2], ax2)
+	fig
+end
+
+# ╔═╡ 4f04677f-b9c5-4026-882e-750ce2a3f76a
+md"""
+# Other ``S - Θ`` initial conditions
+"""
+
+# ╔═╡ 5b237029-d8ce-4289-8a29-416ae9babf6e
+let
+	salinity = [34.665, 34.70]
+	temperature = [0, 0.5]
+	salinity = [34.551, 34.70]
+	temperature = [-1.5, 0.5]
+	
+
+	κₛ, κₜ = 1e-8, 1e-7
+	z = range(-0.5, 0, length = 2000)
+	ΔS = salinity[1] - salinity[2]
+	ΔT = temperature[1] - temperature[2]
+	S = erf_tracer_solution.(z, salinity[2], ΔS, κₛ, t, -0.25)
+	T = erf_tracer_solution.(z, temperature[2], ΔT, κₜ, t, -0.25)
+	σ = total_density.(T, S, 0, fill(eos_type, length(z)))
+
+	R_Δρ = abs(minimum(σ) - σ[end]) / abs(maximum(σ) - σ[1])
+
+		Δρ = σ[1] - σ[end]
+	slope = ΔT / ΔS
+	S_mix = range(salinity..., step = 0.000001)
+    T_mix = @. temperature[1] + slope * (S_mix - salinity[1])
+	ρ_mix = total_density.(T_mix, S_mix, 0, fill(eos_type, length(S_mix)))
+	ρ_max = maximum(ρ_mix)
+	Δρ′ = ρ_max - σ[1]
+	C = Δρ′ / Δρ
+	δ = (4 + 8*C) * sqrt(C^2 + C)
+	
+	fig = Figure(size = (600, 500))
+	ax = Axis(fig[1, 1], 
+			  xlabel = "Salinity (gkg⁻¹)", 
+			  ylabel = "Temperature (°C)",
+			  title = "Ha S and T profiles at time t = $(dims["time"][t] / 60)min",
+			  subtitle = "δ = $(round(δ, digits = 2)), R_Δσ = $(round(R_Δρ, digits = 1))")
+	# Slims = salinity .+ [-0.01, 0.01]
+	# Tlims = temperature .+ [-0.1, 0.1]
+	# xlims!(Slims...)
+	# ylims!(Tlims...)
+
+	lines!(ax, S, T, color = :orange, label = "Theoretical model")
+
+
+	N = 100
+	S_range = range(extrema(S)..., length=N)
+	T_range = range(extrema(T)..., length=N)
+	eos_vec = fill(eos_type, (N, N))
+	FT = eltype(T[1])
+	α = α_sign(thermal_expansion(temperature[end], salinity[end], FT(0), eos_vec[1]))
+	β = haline_contraction(temperature[end], salinity[end], FT(0), eos_vec[1])
+	ρ_grid = total_density.(T_range' .* ones(length(T_range)), S_range .* ones(length(S_range))', fill(0, (N, N)), eos_vec)
+	ρ_deep = total_density(temperature[end], salinity[end], 0, eos_vec[1])
+	T_tangent = T[1] .+ (β / α) * (S_range .- S[1])
+	lines!(ax, S_range, T_tangent, color = :green, linestyle = :dot, label = "Tangent to density at deep water")
+	contour!(ax, S_range, T_range, ρ_grid, levels = [ρ_deep], color = :black, label = "Deep water isopycnal")
+	
+	Legend(fig[2, 1], ax)
+
+	σₜ = σ .- mean(σ)
+	ax2 = Axis(fig[1, 2], 
+			   title = "Ha σ′ profile at time t = $(dims["time"][t] / 60)min", 
+			   subtitle = "Anomaly from mean",
+			   xlabel = "σ₀′", 
+			   ylabel = "z (m)")
+	hlines!(ax2, -0.25, linestyle = :dash, color = :red, label = "Initial interface height")
+	lines!(ax2, σₜ, z)
+	σ_lims = extrema(σₜ) .+ [-0.1, 0.1]
+	xlims!(ax2, σ_lims)
+	Legend(fig[2, 2], ax2)
+	fig
+	# σ[1], σ[end]
+end
+
 # ╔═╡ 963fa274-2d8f-47fd-b227-4d7b3275d7ad
 TableOfContents()
 
@@ -803,7 +961,6 @@ TableOfContents()
 # ╟─82964820-7220-4e21-b263-20754b6a3a33
 # ╟─2536f46d-bbe8-4f85-a16a-82afef16fef5
 # ╟─3130c878-fda2-4d11-a658-748d6a15b2b8
-# ╟─31aecf3b-616d-482e-a430-b308cb29e57d
 # ╟─ca6991b4-ac76-435e-bcff-82103b6abdc7
 # ╟─616f02b0-5958-4e43-b747-4fb277460b55
 # ╟─18edf87f-fc2b-4e32-969b-eba0e2a813c1
@@ -827,4 +984,10 @@ TableOfContents()
 # ╟─72353d1c-855b-463d-9bdb-b33bafc426d2
 # ╟─b5102aaf-5c42-4c91-8016-2e9bae2073d8
 # ╟─e70a5e3c-99de-44e0-b302-857ae75de3bf
+# ╟─185fce17-00a3-40a3-b02e-ee44a2b10a28
+# ╟─d053f751-6b25-4516-b5ca-c18fa886df52
+# ╟─3ab99fd4-0e04-4fb1-b6ee-b009db9c93ad
+# ╟─650e9373-c299-4518-b223-de83f969df13
+# ╟─4f04677f-b9c5-4026-882e-750ce2a3f76a
+# ╟─5b237029-d8ce-4289-8a29-416ae9babf6e
 # ╟─963fa274-2d8f-47fd-b227-4d7b3275d7ad
