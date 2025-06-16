@@ -51,7 +51,7 @@ end
 
 # ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "R_rho_1.03_deltatheta_0.5_nonlinear", "R_rho_1.05_deltatheta_1.0_nonlinear", "R_rho_1.05_deltatheta_0.5_linear", "R_rho_1.4_nonlinear", "R_rho_1.67_nonlinear", "R_rho_1.76_nonlinear", "R_rho_2.2_nonlinear", "R_rho_2.2_linear", "Tau_0.01_nonlinear"])
+	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "R_rho_1.03_deltatheta_0.5_nonlinear", "R_rho_1.05_deltatheta_1.0_nonlinear", "R_rho_1.05_deltatheta_0.5_linear", "R_rho_1.4_nonlinear", "R_rho_1.67_nonlinear", "R_rho_1.76_nonlinear", "R_rho_2.2_nonlinear", "R_rho_2.2_linear", "Tau_0.01_nonlinear", "_nonlinear"])
 	md"""
 	# Equation of state
 	
@@ -327,8 +327,77 @@ md"""
 ## ``S-\Theta`` space evolution
 """
 
+# ╔═╡ 6a8cda4f-8d4a-456e-b48c-7df73f933347
+begin
+	findS_neg = [findfirst(expt_data["S_ha"][:, i] .≤ S_mid) for i in eachindex(expt_data["S_ha"][1, 2:end])]
+	S_interface_neg = vcat(id, dims["z_aac"][findS_neg])
+	findT_neg = [findfirst(expt_data["T_ha"][:, i] .≤ T_mid) for i in eachindex(expt_data["T_ha"][1, 2:end])]
+	T_interface_neg = vcat(id, dims["z_aac"][findT_neg])
+	σ_mid = 0.5 * (expt_data["σ_ha"][1, 1] + expt_data["σ_ha"][end, 1])
+	findσ_neg = [findfirst(expt_data["σ_ha"][:, i] .≤ σ_mid) for i in eachindex(expt_data["σ_ha"][1, 2:end])]
+	σ_interface_neg = vcat(id, dims["z_aac"][findσ_neg])
+	nothing
+end
+
 # ╔═╡ 18edf87f-fc2b-4e32-969b-eba0e2a813c1
 t_slider = @bind t PlutoUI.Slider(eachindex(dims["time"]))
+
+# ╔═╡ b4eded6e-eb4e-44b6-a5ea-1a16b09fc924
+let
+	Sₜ, Tₜ = expt_data["S_ha"][:, t], expt_data["T_ha"][:, t]
+	z = dims["z_aac"]
+	Rᵨ = expt_data["R_ρ"][t]
+
+	fig = Figure(size = (800, 600))
+	ax = Axis(fig[1, 1])
+	lines!(ax, Sₜ, z; color = :blue, label = "Salinity")
+	scatter!(ax, [Sₜ[findS_neg[t]]], [S_interface_neg[t]], color = :blue, label = "S interface")
+	xlims!(ax, 34.56, 34.72)
+	ax.xlabel = "Salinity (gkg⁻¹)"
+	ax.xlabelcolor = :blue
+	ax.xticklabelcolor = :blue
+	ax.ylabel = "z (m)"
+	hlines!(ax, -0.25, linestyle = :dash, color = :black, label = "Initial interface height")
+	axT = Axis(fig[1, 1];
+	            xaxisposition = :top,
+	            xticklabelcolor = :red,
+	            xlabel = "Θ (°C)",
+	            xlabelcolor = :red,
+	            title = "Temperature and salinity profiles")
+	lines!(axT, Tₜ, z; color = :red, label = "Temperature")
+	scatter!(axT, [Tₜ[findT_neg[t]]], [T_interface_neg[t]], color = :red, label = "T interface")
+	axislegend(axT)
+	axislegend(ax, position = :lb)
+	xlims!(axT, -1.6, 0.6)
+	linkyaxes!(ax, axT)
+	Slims = extrema(expt_data["S_ha"][:, 1]) .+ [-0.01, 0.01]
+	Tlims = extrema(expt_data["T_ha"][:, 1]) .+ [-0.1, 0.1]
+	xlims!(ax, Slims...)
+	xlims!(axT, Tlims...)
+	ylims!(ax, -0.27, -0.23)
+
+	σₜ = expt_data["σ_ha"][:, t]
+	
+	ax2 = Axis(fig[1, 2], 
+			   title = "Ha σ profile at time t = $(dims["time"][t] / 60)min", 
+			   subtitle = "Anomaly from mean",
+			   xlabel = "σ₀", 
+			   ylabel = "z (m)")
+	lines!(ax2, σₜ, z)
+	scatter!(ax2, [σₜ[findS_neg[t]]], [S_interface_neg[t]], color = :blue)
+	scatter!(ax2, [σₜ[findT_neg[t]]], [T_interface_neg[t]], color = :red)
+	scatter!(ax2, [σₜ[findσ_neg[t]]], [σ_interface_neg[t]], color = :orange)
+	hlines!(ax2, -0.25, linestyle = :dash, color = :black, label = "Initial interface height")
+	σ_lims = extrema(σₜ) .+ [-0.01, 0.01]
+	xlims!(ax2, σ_lims)
+	ylims!(ax, -0.27, -0.23)
+	fig
+end
+
+# ╔═╡ 96ac45e7-9927-460e-907f-1449e09263f3
+md"""
+**Where do you cross midpoint density (in height)**
+"""
 
 # ╔═╡ 6e7d38ab-2824-474b-b90c-75a3a5a05e57
 md"""
@@ -376,7 +445,7 @@ let
 			  title = "Ha S and T profiles at time t = $(dims["time"][t] / 60)min",
 			  subtitle = "Rᵨ = $(round(Rᵨ, digits = 1)), R_Δσ = $(round(R_Δσ[t], digits = 1))")
 	lines!(ax, Sₜ, Tₜ, label = "Model output")
-	scatter!(ax, Sₜ[findT[t]], Tₜ[findT[t]], color = :red, label = "ST interface")
+	scatter!(ax, Sₜ[findS_neg[t]], Tₜ[findS_neg[t]], color = :red, label = "ST interface")
 	Slims = extrema(expt_data["S_ha"][:, 1]) .+ [-0.01, 0.01]
 	Tlims = extrema(expt_data["T_ha"][:, 1]) .+ [-0.1, 0.1]
 	xlims!(Slims...)
@@ -393,24 +462,15 @@ let
 	α = α_sign(thermal_expansion(Tₜ[1], Sₜ[1], FT(0), eos_vec[1]))
 	β = haline_contraction(Tₜ[1], Sₜ[1], FT(0), eos_vec[1])
 	ρ_grid = total_density.(T_range' .* ones(length(T_range)), S_range .* ones(length(S_range))', fill(0, (N, N)), eos_vec)
+	ρ_shallow = total_density(Tₜ[end], Sₜ[end], 0, eos_vec[1])
 	ρ_deep = total_density(Tₜ[1], Sₜ[1], 0, eos_vec[1])
+	ρ_max = maximum(expt_data["σ_ha"][:, t])
+	ρ_min = minimum(expt_data["σ_ha"][:, t])
 	T_tangent = Tₜ[1] .+ (β / α) * (S_range .- Sₜ[1])
-	lines!(ax, S_range, T_tangent, color = :green, linestyle = :dot, label = "Tangent to density at deep water")
-	contour!(ax, S_range, T_range, ρ_grid, levels = [ρ_deep], color = :black, label = "Deep water isopycnal")
+	lines!(ax, S_range, T_tangent, color = :green, linestyle = :dot, label = "Tangent to density\nat deep water")
+	contour!(ax, S_range, T_range, ρ_grid, levels = [ρ_shallow, ρ_deep, ρ_max, ρ_min], color = :grey, label = "Deep water isopycnal")
 	
-	Legend(fig[2, 1], ax)
-
-	σₜ = expt_data["σ_ha"][:, t] .- mean(expt_data["σ_ha"][:, t])
-	ax2 = Axis(fig[1, 2], 
-			   title = "Ha σ′ profile at time t = $(dims["time"][t] / 60)min", 
-			   subtitle = "Anomaly from mean",
-			   xlabel = "σ₀′", 
-			   ylabel = "z (m)")
-	lines!(ax2, σₜ, z)
-	hlines!(ax2, -0.25, linestyle = :dash, color = :red, label = "Initial interface height")
-	σ_lims = extrema(expt_data["σ_ha"][:, end]) .- mean(expt_data["σ_ha"][:, end]) .+ [-0.01, 0.01]
-	xlims!(ax2, σ_lims)
-	Legend(fig[2, 2], ax2)
+	Legend(fig[1, 2], ax)
 	fig
 end
 
@@ -423,90 +483,6 @@ let
 	ax.title = "Raito of density difference between upper and lower layer"
 	ax.xlabel = "time (mins)"
 	ax.ylabel = "R_Δσ"
-	fig
-end
-
-# ╔═╡ cd15821a-c5ad-4199-b0d8-f8944175f61d
-let
-	ρ₀ = gsw_rho(34.7, 0.5, 0.5)
-	leos = CustomLinearEquationOfState(-0.5, 34.64, reference_density = ρ₀)
-	nleos = TEOS10EquationOfState(reference_density = ρ₀)
-	erf_tracer_solution(z, Cₗ::Number, ΔC::Number, κ::Number, t, interface_depth) =
-	    Cₗ + 0.5 * ΔC * (1 + erf((z - interface_depth) / sqrt(4 * κ * t)))
-	
-	# Sᵤ, Θᵤ = 34.58, -1.5
-	# Sₗ, Θₗ = 34.7, 0.5
-	Sᵤ, Θᵤ = Float64(expt_data["S_ha"][end, 1]), Float64(expt_data["T_ha"][end, 1])
-	Sₗ, Θₗ = Float64(expt_data["S_ha"][1, 1]), Float64(expt_data["T_ha"][1, 1])
-	ΔS = Sᵤ - Sₗ
-	ΔΘ = Θᵤ - Θₗ
-	κₛ, κₜ = 1e-9, 1e-7
-	Nz = 1400
-	z = range(-0.5, 0, length = Nz) # range for density profile
-	leos_vec = fill(leos, Nz)
-	nleos_vec = fill(nleos, Nz)
-	interface_depth = -0.25
-	t = 5000
-	τ = (0.01, 0.05, 0.1)
-	Θᵤ_range = range(Θᵤ, 0.34, length = 100)
-	salinity = [Sᵤ, Sₗ]
-	Rᵨ_leos = Array{Float64}(undef, length(Θᵤ_range), length(τ))
-	Rᵨ_nleos = similar(Rᵨ_leos)
-	σ₀_nonlinear_max = similar(Rᵨ_leos)
-	σ₀_nonlinear_min = similar(Rᵨ_leos)
-	σ₀_linear_max = similar(Rᵨ_leos)
-	σ₀_linear_min = similar(Rᵨ_leos)
-	σ₀ᵘ_leos = similar(Rᵨ_leos)
-	σ₀ᵘ_nleos = similar(Rᵨ_leos)
-	σ₀ˡ_nleos = gsw_rho(Sₗ, Θₗ, 0)
-	σ₀ˡ_leos = total_density(Θₗ, Sₗ, 0, leos)
-	for j ∈ eachindex(τ)
-	
-	    _κₛ = τ[j] * κₜ
-	    for (i, _Θᵤ) ∈ enumerate(Θᵤ_range)
-	
-	        temperature = [_Θᵤ, Θₗ]
-	        _ΔΘ = _Θᵤ - Θₗ
-	
-	        Rᵨ_leos[i, j] = compute_R_ρ(salinity, temperature, interface_depth, leos)
-	        Rᵨ_nleos[i, j] = compute_R_ρ(salinity, temperature, interface_depth, nleos)
-	
-	        S = erf_tracer_solution.(z, Sₗ, ΔS, _κₛ, t, interface_depth)
-	        T = erf_tracer_solution.(z, Θₗ, _ΔΘ, κₜ, t, interface_depth)
-	        σ₀_nonlinear = gsw_rho.(S, T, 0)
-	        σ₀_nonlinear_max[i, j] = maximum(σ₀_nonlinear)
-	        σ₀_nonlinear_min[i, j] = minimum(σ₀_nonlinear)
-	
-	        σ₀_linear = total_density.(T, S, 0, leos_vec)
-	        σ₀_linear_max[i, j] = maximum(σ₀_linear)
-	        σ₀_linear_min[i, j] = minimum(σ₀_linear)
-	
-	        σ₀ᵘ_nleos[i, j] = gsw_rho(Sᵤ, _Θᵤ, 0)
-	        σ₀ᵘ_leos[i, j] = total_density(_Θᵤ, Sᵤ, 0, leos)
-	    end
-	
-	end
-	Δσ_lower_nonlinear = abs.(σ₀_nonlinear_max .- σ₀ˡ_nleos)
-	Δσ_upper_nonlinear = abs.(σ₀_nonlinear_min .- σ₀ᵘ_nleos)
-	Δσ_nonlinear = Δσ_upper_nonlinear ./ Δσ_lower_nonlinear
-	
-	Δσ_lower_linear = abs.(σ₀_linear_max .- σ₀ˡ_leos)
-	Δσ_upper_linear = abs.(σ₀_linear_min .- σ₀ᵘ_leos)
-	Δσ_linear = Δσ_upper_linear ./ Δσ_lower_linear
-	
-	fig = Figure(size = (500, 500))
-	ax2 = Axis(fig[1, 1], title = L"(b) Asymmetry due to $R_{\rho}$", xlabel = L"R_{\rho}", ylabel =  L"R_{\Delta\rho}")
-	linestyle = [:solid, :dash, :dot, :dashdot]
-	for i ∈ eachindex(τ)
-	    lines!(ax2, Rᵨ_leos[:, i], Δσ_linear[:, i]; color = Makie.wong_colors()[1], linestyle = linestyle[i], label = L"$ρ_{\mathrm{linear}}\text{, }\tau =$ %$(round((τ[i]), digits = 2))")
-	end
-	for i ∈ eachindex(τ)
-	    lines!(ax2, Rᵨ_nleos[:, i], Δσ_nonlinear[:, i]; color = Makie.wong_colors()[2], linestyle = linestyle[i], label = L"$ρ_{\mathrm{nonlinear}}\text{, }\tau =$ %$(round((τ[i]), digits = 2))")
-	end
-	# lines!(ax2, expt_data["R_ρ"], R_Δσ)
-	Legend(fig[2, 1], ax2, orientation = :horizontal, nbanks = 3)
-	scatter!(ax2, expt_data["R_ρ"][3], R_Δσ[3], color = :red)
-	# lines!(ax2, expt_data["R_ρ"][2:end], R_Δσ[2:end], color = :red)
 	fig
 end
 
@@ -597,6 +573,9 @@ let
 	axislegend(ax)
 	fig
 end
+
+# ╔═╡ 08af2ba8-9c4b-4d89-8c6b-d2becce818e0
+expt_data["S_ha"]
 
 # ╔═╡ 50e87efc-a49c-4ffd-bfbd-cd5dfad40639
 md"""
@@ -822,7 +801,7 @@ let
 			  xlabel = "Salinity (gkg⁻¹)", 
 			  ylabel = "Temperature (°C)",
 			  title = "Ha S and T profiles at time t = $(dims["time"][t] / 60)min",
-			  subtitle = "δ = $(round(δ, digits = 2)), R_Δσ = $(round(R_Δρ, digits = 1))")
+			  subtitle = "Δρ′ = $(round(Δρ′, digits = 2)), R_Δσ = $(round(R_Δρ, digits = 1))")
 	# Slims = salinity .+ [-0.01, 0.01]
 	# Tlims = temperature .+ [-0.1, 0.1]
 	# xlims!(Slims...)
@@ -869,7 +848,7 @@ md"""
 let
 	salinity = [34.665, 34.70]
 	temperature = [0, 0.5]
-	salinity = [34.551, 34.70]
+	salinity = [34.6, 34.70]
 	temperature = [-1.5, 0.5]
 	
 
@@ -963,19 +942,22 @@ TableOfContents()
 # ╟─3130c878-fda2-4d11-a658-748d6a15b2b8
 # ╟─ca6991b4-ac76-435e-bcff-82103b6abdc7
 # ╟─616f02b0-5958-4e43-b747-4fb277460b55
+# ╟─6a8cda4f-8d4a-456e-b48c-7df73f933347
+# ╟─b4eded6e-eb4e-44b6-a5ea-1a16b09fc924
 # ╟─18edf87f-fc2b-4e32-969b-eba0e2a813c1
 # ╟─8711fdef-0da7-46bf-aa82-2f32b0590f7b
+# ╟─96ac45e7-9927-460e-907f-1449e09263f3
 # ╟─6e7d38ab-2824-474b-b90c-75a3a5a05e57
 # ╠═8f0d41f8-d287-4c0d-af00-5b53f92cff75
 # ╟─e972f242-3b58-4581-87ae-437533b9fba1
 # ╟─d2e81b8b-4a1c-4330-8f2a-14a502390bcd
-# ╟─cd15821a-c5ad-4199-b0d8-f8944175f61d
 # ╟─6ce43b6e-c3fa-408f-8702-900eaeb17bf5
 # ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013
 # ╟─3c0e1dfd-e4ba-448f-8475-ada056c8b5fe
 # ╟─c576c4cd-1101-46e2-b6fa-b574f0b13dfe
 # ╟─f200b8e0-2b14-4270-963b-6bb1b154d550
+# ╠═08af2ba8-9c4b-4d89-8c6b-d2becce818e0
 # ╟─50e87efc-a49c-4ffd-bfbd-cd5dfad40639
 # ╟─ee9c0edb-477b-4cc0-8c57-36845a90bbaf
 # ╟─68a0a47e-e919-4d9d-b1a5-090d69bf633e
