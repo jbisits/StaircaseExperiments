@@ -3,7 +3,7 @@ using StaircaseShenanigans: compute_R_ρ
 using JLD2, GibbsSeaWater, StatsBase, ColorSchemes
 using SeawaterPolynomials: TEOS10EquationOfState, total_density, haline_contraction, thermal_expansion
 using SpecialFunctions: erf
-using GLMakie#, CairoMakie
+using CairoMakie# GLMakie better for surface plots
 
 cd("figures")
 ## EOS's and other constants for the paper
@@ -200,7 +200,7 @@ save("S_T_sigma_ST_space_2panel.png", fig)
 ## Figure
 # Density asymmetry heatmap
 Sᵤ_range = range(33.54, Sₗ, length = 400)
-Θᵤ_range = range(-1.5, Θₗ, length = 400)
+Θᵤ_range = range(-1.6, Θₗ, length = 400)
 Rᵨ_leos = Array{Float64}(undef, length(Θᵤ_range), length(Sᵤ_range))
 Rᵨ_nleos = similar(Rᵨ_leos)
 σ₀_nonlinear_max = similar(Rᵨ_leos)
@@ -286,6 +286,7 @@ end
 ΔS = Sᵤ_range .- Sₗ
 
 arctic_obs = [[-0.04], [-0.01]]
+dns_dT2 = [[-2], [-0.12]]
 
 fig = Figure(size = (1000, 1000))
 ax_lRᵨ = Axis(fig[1, 1], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)", title = "Linear eos")
@@ -293,8 +294,8 @@ hm = heatmap!(ax_lRᵨ, ΔΘ, ΔS, Rᵨ_leos)
 scatter!(ax_lRᵨ, arctic_obs...; color = :red)
 ax_nlRᵨ = Axis(fig[1, 2], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)", title = "Nonlinear eos")
 hm_nlRᵨ = heatmap!(ax_nlRᵨ, ΔΘ, ΔS, Rᵨ_nleos)
-scatter!(ax_nlRᵨ, arctic_obs...; color = :red)
-vlines!(ax_nlRᵨ, -0.13, color = :orange)
+scatter!(ax_nlRᵨ, arctic_obs...; markersize, color = :red)
+scatter!(ax_nlRᵨ, dns_dT2...; markersize, marker = :cross, color = :orange)
 hideydecorations!(ax_nlRᵨ, grid = false, ticks = false)
 hidexdecorations!(ax_nlRᵨ, grid = false, ticks = false)
 hidexdecorations!(ax_lRᵨ, grid = false, ticks = false)
@@ -306,8 +307,8 @@ hm = heatmap!(ax_lR_Δρ, ΔΘ, ΔS, Δσ_linear; colorrange, colormap = :batlow
 ax_nlR_Δρ = Axis(fig[2, 2], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
 hideydecorations!(ax_nlR_Δρ, grid = false, ticks = false)
 hm_nlR_Δρ = heatmap!(ax_nlR_Δρ, ΔΘ, ΔS, Δσ_nonlinear; colorrange, colormap = :batlow)
-scatter!(ax_nlR_Δρ, arctic_obs...; color = :red)
-vlines!(ax_nlR_Δρ, -0.13, color = :orange)
+scatter!(ax_nlR_Δρ, arctic_obs...; markersize, color = :red)
+scatter!(ax_nlR_Δρ, dns_dT2...; markersize, marker = :cross, color = :orange)
 hidexdecorations!(ax_lR_Δρ, grid = false, ticks = false)
 hidexdecorations!(ax_nlR_Δρ, grid = false, ticks = false)
 Colorbar(fig[2, 3], hm_nlR_Δρ, label = "R_Δρ")
@@ -319,12 +320,15 @@ ax_δ_linear = Axis(fig[3, 1], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
 hm_δ_linear = heatmap!(ax_δ_linear, ΔΘ, ΔS, δ_leos; colorrange, colormap = :speed)
 ax_δ_nlinear = Axis(fig[3, 2], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
 hm_δ_nlinear = heatmap!(ax_δ_nlinear, ΔΘ, ΔS, δ_nleos; colorrange, colormap = :speed)
-scatter!(ax_δ_nlinear, arctic_obs...; color = :red)
-vlines!(ax_δ_nlinear, -0.13, color = :orange)
+scatter!(ax_δ_nlinear, arctic_obs...; markersize, color = :red, label = "Arctic interfaces")
+scatter!(ax_δ_nlinear, dns_dT2...; markersize, marker = :cross, color = :orange , label = "DNS rundown")
+# vlines!(ax_δ_nlinear, -0.13, color = :orange)
 hideydecorations!(ax_δ_nlinear, grid = false, ticks = false)
 Colorbar(fig[3, 3], hm_δ_nlinear, label = "Δρ′")
+Legend(fig[4, :], ax_δ_nlinear, orientation = :horizontal)
 fig
-
+##
+save("density_asymmetry.png", fig, px_per_unit = 8)
 ## Figure
 # DNS flow evolution
 # file = jldopen(nl_R_ρ_105)
@@ -347,16 +351,16 @@ y_xz_density = y[1] * ones(length(x), length(z))
 y_xz_density_end = y[end] * ones(length(x), length(z))
 
 z_xy_top = z[end] * ones(length(x), length(y))
+close(file)
 
-## One row
 horizontal_ticks = LinRange(-0.025, 0.025, 5)
 T_colorrange = (-1.5, 1.5)
 S_colorrange = (-0.09, 0.09)
 w_colorrnage =  (-0.0005, 0.0005)
-files = (nl_R_ρ_105_dT2_diagnostics, l_R_ρ_105_dT2_diagnostics)
-fig = Figure(size = (1300, 1300))#, px_per_unit = 16)
-snapshots = [[180.00000000000003, 60.0 * 6, 60 * 12, 60.0 * 24],
-                [60.0 * 3, 60.0 * 6, 60 * 12, 60.0 * 24]]
+files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics)
+fig = Figure(size = (1500, 1300))
+snapshots = [[60.0 * 3, 60.0 * 6, 60 * 12, 60.0 * 24],
+             [180.00000000000003, 60.0 * 6, 60 * 12, 60.0 * 24]]
 for (j, path) ∈ enumerate(files)
 
     file = jldopen(path)
