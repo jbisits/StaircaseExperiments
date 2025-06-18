@@ -370,17 +370,12 @@ md"""
 **Where do you cross midpoint density (in height)**
 """
 
-# ╔═╡ 6e7d38ab-2824-474b-b90c-75a3a5a05e57
-md"""
-This is the rundown case here but can see the not well mixed layers here I think with the less vertical S-T relationship at the start and end of the curves.
-I can still look at the ratio between lower and upper layer density differences by taking maximum, minimum and the top and bottom values.
-From theory, for linear equation of state this should be around 1 and for non-linear equation of state this is around 0.6.
-"""
-
 # ╔═╡ e972f242-3b58-4581-87ae-437533b9fba1
 begin
 	σ_ha = expt_data["σ_ha"]
 
+	upper = findfirst(dims["z_aac"] .> -0.2)
+	lower = findfirst(dims["z_aac"] .> -0.3)
 	R_Δσ = Array{Float64}(undef, length(σ_ha[1, :]))
 	Δσ_upper = similar(R_Δσ)
 	Δσ_lower = similar(R_Δσ)
@@ -388,10 +383,10 @@ begin
 	σ_max = similar(R_Δσ)
 	for (i, col) ∈ enumerate(eachcol(σ_ha))
 		σ_min[i] = minimum(col)
-		σ_top = col[end]
+		σ_top = col[upper]
 		Δσ_upper[i] = abs(σ_min[i] - σ_top)
 		σ_max[i] = maximum(col)
-		σ_bottom = col[1]
+		σ_bottom = col[lower]
 		Δσ_lower[i] = abs(σ_max[i] - σ_bottom)
 		R_Δσ[i] = Δσ_upper[i] / Δσ_lower[i]
 	end
@@ -703,7 +698,7 @@ TableOfContents()
 # ╔═╡ Cell order:
 # ╟─6301138c-fa0b-11ef-0f3b-39dac35db063
 # ╟─010ecdc3-51d6-41a6-9bc5-6efbba0723a6
-# ╠═68d31cca-3f29-4402-ac79-8deaef98ef50
+# ╟─68d31cca-3f29-4402-ac79-8deaef98ef50
 # ╟─087d2583-ee90-437a-97ec-0ab607337e30
 # ╟─e177c879-b7d0-4328-b5ad-776f8c64e050
 # ╟─07089057-5b2f-40e5-a485-0eeac1e9b348
@@ -726,7 +721,6 @@ TableOfContents()
 # ╟─18edf87f-fc2b-4e32-969b-eba0e2a813c1
 # ╟─8711fdef-0da7-46bf-aa82-2f32b0590f7b
 # ╟─96ac45e7-9927-460e-907f-1449e09263f3
-# ╟─6e7d38ab-2824-474b-b90c-75a3a5a05e57
 # ╠═8f0d41f8-d287-4c0d-af00-5b53f92cff75
 # ╟─e972f242-3b58-4581-87ae-437533b9fba1
 # ╟─d2e81b8b-4a1c-4330-8f2a-14a502390bcd
