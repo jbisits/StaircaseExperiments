@@ -18,13 +18,13 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 Jᵀ = 6.4e-6
 Jˢ = 1.272e-7
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
-S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jˢ), bottom = FluxBoundaryCondition(Jˢ))
+S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.5*Jˢ), bottom = FluxBoundaryCondition(Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
 dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
 
 ## Initial conditions
 depth_of_interface = -0.25
-salinity = [ 34.631, 34.70]
+salinity = [34.631, 34.70]
 Tᵤ, Tₗ = -0.5, 0.5
 ΔT = Tᵤ - Tₗ
 temperature = [Tᵤ, Tₗ]
