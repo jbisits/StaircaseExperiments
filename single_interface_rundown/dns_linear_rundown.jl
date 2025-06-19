@@ -1,6 +1,6 @@
 using StaircaseShenanigans, GibbsSeaWater, CairoMakie
 
-restart = false
+restart = true
 
 architecture = GPU()
 Pr = 7   # Prandtl
@@ -9,7 +9,7 @@ Pr = 7   # Prandtl
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-resolution = (Nx=130, Ny=130, Nz=1300)
+resolution = (Nx=110, Ny=110, Nz=1100)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
@@ -17,8 +17,8 @@ dns_model = DNSModel(model_setup...; TD = VerticallyImplicitTimeDiscretization()
 
 ## Initial conditions
 depth_of_interface = -0.25
-salinity = [34.58, 34.70]
-temperature = [-1.5, 0.5]
+salinity = [34.64, 34.70]
+temperature = [-0.5, 0.5]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
 # initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1e-2))
