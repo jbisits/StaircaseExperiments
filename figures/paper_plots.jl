@@ -491,7 +491,50 @@ rowgap!(fig.layout, 3, Relative(0.05))
 fig
 ##
 save("S_and_T_dns_evolution.png", fig)
+##
+## Figure
+# initial evlotuion
+file = jldopen(nl_R_ρ_105_dT2_diagnostics)
+S = file["S_ha"][:, 3]
+Θ = file["T_ha"][:, 3]
+σ = file["σ_ha"][:, 3]
+z = file["dims/z_aac"]
+κₛ = file["attrib/κₛ (m²s⁻¹)"]
+κₜ = file["attrib/κₜ (m²s⁻¹)"]
+id = file["attrib/interface_depth"]
+close(file)
 
+ΔS = S[end] - S[1]
+ΔΘ = Θ[end] - Θ[1]
+S_model = erf_tracer_solution.(z, S[1], ΔS, κₛ, t, id)
+Θ_model = erf_tracer_solution.(z, Θ[1], ΔΘ, κₜ, t, id)
+
+N = 100
+S_range = range(extrema(S)..., length=N)
+T_range = range(extrema(Θ)..., length=N)
+eos_vec = fill(nleos, (N, N))
+ρ_grid = total_density.(T_range' .* ones(length(T_range)), S_range .* ones(length(S_range))', fill(0, (N, N)), eos_vec)
+ρ_shallow = total_density(Θ[end], S[end], 0, eos_vec[1, 1])
+ρ_deep = total_density(Θ[1], S[1], 0, eos_vec[1, 1])
+ρ_max = maximum(σ)
+ρ_min = minimum(σ)
+# T_tangent = Tₜ[1] .+ (β / α) * (S_range .- Sₜ[1])
+# lines!(ax, S_range, T_tangent, color = :green, linestyle = :dot, label = "Tangent to density\nat deep water")
+
+fig = Figure(size = (600, 600))
+ax = Axis(fig[1, 1],
+          xlabel = L"$S$ (gkg$^{-1}$)",
+          ylabel = L"$Θ$ (°C)",
+          title = L"Experiment IV, $t = 3$ min")
+contour!(ax, S_range, T_range, ρ_grid, levels = [ρ_shallow, ρ_deep, ρ_max, ρ_min],
+         color = Makie.wong_colors()[3], label = "Isopycnals", linestyle = :dot)
+lines!(ax, S_model, Θ_model, label = "1D model", linewidth = 3)
+lines!(ax, S, Θ; label = "Simulation output", color = Makie.wong_colors()[2],
+        linestyle = :dash, linewidth = 3)
+axislegend(ax, position = :lt)
+fig
+##
+save("ST_simluation.png", fig)
 ## Figure
 # Density hovmollers for Rρ = 1.05
 files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics)
