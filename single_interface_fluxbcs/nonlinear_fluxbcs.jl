@@ -1,4 +1,4 @@
-using StaircaseShenanigans, GibbsSeaWater, CairoMakie
+using StaircaseShenanigans, GibbsSeaWater, CairoMakie, JLD2
 
 restart = true
 
@@ -17,8 +17,9 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 # effect of interfaces either side.
 Jᵀ = 6.4e-6
 Jˢ = 1.272e-7
+top_salinity_scale = 0.6
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
-S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(0.5*Jˢ), bottom = FluxBoundaryCondition(Jˢ))
+S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(top_salinity_scale*Jˢ), bottom = FluxBoundaryCondition(Jˢ))
 boundary_conditions = (T=T_bcs, S=S_bcs)
 dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplicitTimeDiscretization())
 
@@ -79,9 +80,10 @@ save_diagnostics!(diags,
                   simulation.output_writers[:tracers].filepath,
                   simulation.output_writers[:computed_output].filepath,
                   simulation.output_writers[:velocities].filepath)
-jldopen(diags, "a+") do f
+jldopen("step_diagnostics.jld2", "a+") do f
     f["FluxesBCs/Jˢ"] = Jˢ
     f["FluxBCs/Jᵀ"] = Jᵀ
+    f["FluxBCs/top_salinity_scale"] = top_salinity_scale
 end
 
 # using JLD2, NCDatasets

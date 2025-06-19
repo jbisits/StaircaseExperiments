@@ -1,4 +1,4 @@
-using StaircaseShenanigans, GibbsSeaWater, CairoMakie
+using StaircaseShenanigans, GibbsSeaWater, CairoMakie, JLD2
 
 restart = true
 
@@ -10,7 +10,7 @@ diffusivities = diffusivities_from_ν(ν; τ, Pr)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
 resolution = (Nx=50, Ny=50, Nz=750)
-ρ₀ = gsw_rho(34.7, 0.5, 0.5)
+ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 # bcs from a rundown model and are an approximation/test to see if can simulate
@@ -24,7 +24,7 @@ dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplici
 
 ## Initial conditions
 depth_of_interface = -0.25
-salinity = [34.631, 34.70]
+salinity = [34.64, 34.70]
 Tᵤ, Tₗ = -0.5, 0.5
 ΔT = Tᵤ - Tₗ
 temperature = [Tᵤ, Tₗ]
@@ -85,29 +85,3 @@ jldopen(diags, "a+") do f
     f["FluxesBCs/Jˢ"] = Jˢ
     f["FluxBCs/Jᵀ"] = Jᵀ
 end
-
-# using JLD2, NCDatasets
-# ds = NCDataset(simulation.output_writers[:computed_output].filepath)
-# R_ρ = "R_rho.jld2"
-# if isfile(R_ρ)
-#     rm(R_ρ)
-# end
-# jldopen(R_ρ, "w") do f
-#     f["R_ρ"] = ds[:R_ρ][:]
-# end
-# close(ds)
-
-## local plot of figure
-# using JLD2, CairoMakie
-# output_path = joinpath(@__DIR__, "R_rho_1.05/linear/")
-# data = joinpath(output_path, "R_rho.jld2")
-# f = jldopen(data)
-# R_ρ = f["R_ρ"]
-# close(f)
-
-# fig, ax = lines(R_ρ)
-# ax.title = "R_ρ with fluxbcs linear eos"
-# ax.xlabel = "time (mins)"
-# ax.ylabel = "R_ρ"
-# fig
-# save(joinpath(output_path, "R_rho.png"), fig)

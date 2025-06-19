@@ -7,8 +7,9 @@ using CairoMakie# GLMakie better for surface plots
 
 cd("figures")
 ## EOS's and other constants for the paper
-ρ₀ = gsw_rho(34.7, 0.5, 0.5)
+ρ₀ = gsw_rho(34.7, 0.5, 0)
 leos = CustomLinearEquationOfState(-0.5, 34.64, reference_density = ρ₀)
+leos_func(S, Θ) = CustomLinearEquationOfState(Θ, S, reference_density = ρ₀)
 nleos = TEOS10EquationOfState(reference_density = ρ₀)
 erf_tracer_solution(z, Cₗ::Number, ΔC::Number, κ::Number, t, interface_depth) =
     Cₗ + 0.5 * ΔC * (1 + erf((z - interface_depth) / sqrt(4 * κ * t)))
@@ -328,7 +329,7 @@ Colorbar(fig[3, 3], hm_δ_nlinear, label = "Δρ′")
 Legend(fig[4, :], ax_δ_nlinear, orientation = :horizontal)
 fig
 ##
-save("density_asymmetry.png", fig, px_per_unit = 8)
+save("density_asymmetry.png", fig)
 ## Figure
 # DNS flow evolution
 # file = jldopen(nl_R_ρ_105)

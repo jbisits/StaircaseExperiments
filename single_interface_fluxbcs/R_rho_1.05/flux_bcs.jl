@@ -41,7 +41,7 @@ end
 
 # ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	eos_select = @bind eos Select(["deltatheta_1/nonlineareos/fluxbcs_R_rho_1.2", "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.3", "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.4", "deltathea_1/linear"])
+	eos_select = @bind eos Select(["deltatheta_1/nonlineareos/fluxbcs_R_rho_1.2", "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.3", "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.4", "deltatheta_1/lineareos", "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.35"])
 	md"""
 	# Equation of state
 
@@ -71,6 +71,9 @@ begin
 
 	### Density
 	$(LocalResource(joinpath(output_path, "density_Nsquared.mp4")))
+
+	### Vertical velocity
+	$(LocalResource(joinpath(output_path, "w.mp4")))
 
 	### Salinity and temperature
 	$(LocalResource(joinpath(output_path,"tracers.mp4")))
