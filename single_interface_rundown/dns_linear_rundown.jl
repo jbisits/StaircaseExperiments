@@ -18,7 +18,9 @@ dns_model = DNSModel(model_setup...; TD = VerticallyImplicitTimeDiscretization()
 ## Initial conditions
 depth_of_interface = -0.25
 salinity = [34.64, 34.70]
-temperature = [-0.5, 0.5]
+Tᵤ, Tₗ = -0.5, 0.5
+ΔT = Tᵤ - Tₗ
+temperature = [Tᵤ, Tₗ]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
 
 # initial_noise = (velocities = VelocityNoise(1e-2), tracers = TracerNoise(1e-4, 1e-2))
