@@ -15,8 +15,12 @@ eos = TEOS10EquationOfState(reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
 # bcs from a rundown model and are an approximation/test to see if can simulate
 # effect of interfaces either side.
-Jᵀ = 6.4e-6
-Jˢ = 1.272e-7
+# ΔT = -1
+# Jᵀ = 6.4e-6
+# Jˢ = 1.272e-7
+# ΔT = -0.5
+Jᵀ = 2.6e-6
+Jˢ = 6.36e-8
 top_salinity_scale = 0.5
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
 S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(top_salinity_scale*Jˢ), bottom = FluxBoundaryCondition(Jˢ))
@@ -25,8 +29,12 @@ dns_model = DNSModel(model_setup...; boundary_conditions, TD = VerticallyImplici
 
 ## Initial conditions
 depth_of_interface = -0.25
-salinity = [34.631, 34.70]
-Tᵤ, Tₗ = -0.5, 0.5
+# dT = 1 + Rᵨ = 1.05
+# salinity = [34.631, 34.70]
+# Tᵤ, Tₗ = -0.5, 0.5
+# # dT = 0.5 + Rᵨ = 1.05
+salinity = [34.663, 34.70]
+Tᵤ, Tₗ = 0.0, 0.5
 ΔT = Tᵤ - Tₗ
 temperature = [Tᵤ, Tₗ]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
@@ -39,7 +47,7 @@ sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 ## Build simulation
 stop_time = Int(6 * 60 * 60) # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
-output_path = joinpath(@__DIR__, "fluxbcs_$(round(interface_ics.R_ρ, digits = 2))", initial_state)
+output_path = joinpath(@__DIR__, "fluxbcs_$(round(interface_ics.R_ρ, digits = 2))_dT_$(ΔT)", initial_state)
 save_schedule = 60
 checkpointer_time_interval = 60 * 60 # seconds
 Δt = 1e-3
