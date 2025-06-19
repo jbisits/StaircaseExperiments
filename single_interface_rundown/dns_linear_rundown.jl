@@ -29,7 +29,7 @@ sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 ## Build simulation
 stop_time = Int(2 * 60 * 60) # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
-output_path = joinpath(@__DIR__, "dns_rundown_$(round(interface_ics.R_ρ, digits = 2))", initial_state)
+output_path = joinpath(@__DIR__, "dns_rundown_$(round(interface_ics.R_ρ, digits = 2))_dT_$(ΔT)", initial_state)
 save_schedule = 60
 checkpointer_time_interval = 60 * 60 # seconds
 Δt = 1e-3
