@@ -51,7 +51,17 @@ end
 
 # ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	eos_select = @bind eos Select(["higher_res_nonlinear", "higher_res_linear", "R_rho_1.03_deltatheta_0.5_nonlinear", "R_rho_1.05_deltatheta_1.0_nonlinear", "R_rho_1.05_deltatheta_0.5_linear", "R_rho_1.4_nonlinear", "R_rho_1.67_nonlinear", "R_rho_1.76_nonlinear", "R_rho_2.2_nonlinear", "R_rho_2.2_linear", "Tau_0.01_nonlinear", "_nonlinear"])
+	eos_select = @bind eos Select(["dns_res_dT2_nonlinear", 
+								   "dns_res_dT2_linear",
+								   "dns_res_dT1_nonlinear", 
+								   "dns_res_dT1_linear", 
+								   "R_rho_1.03_deltatheta_0.5_nonlinear", 
+								   "R_rho_1.05_deltatheta_1.0_nonlinear", 
+								   "R_rho_1.05_deltatheta_0.5_linear", 
+								   "R_rho_1.4_nonlinear", "R_rho_1.67_nonlinear", "
+								   R_rho_1.76_nonlinear", "R_rho_2.2_nonlinear", 
+								   "R_rho_2.2_linear", "Tau_0.01_nonlinear", 
+								   "_nonlinear"])
 	md"""
 	# Equation of state
 	
@@ -75,7 +85,7 @@ begin
 end
 
 # ╔═╡ b3fd9c9c-24d0-4ed8-a952-aaed2581045d
-expt_data["attrib/RaT"]
+expt_data["attrib/RaS"], expt_data["attrib/RaT"]
 
 # ╔═╡ e177c879-b7d0-4328-b5ad-776f8c64e050
 begin
