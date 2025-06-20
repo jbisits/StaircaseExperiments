@@ -28,12 +28,12 @@ t = 5000
 
 ## Load output
 # when done..
-nl_R_ρ_105_dT2_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_nonlineareos/step_diagnostics.jld2")
-l_R_ρ_105_dT2_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/higher_res_lineareos/step_diagnostics.jld2")
-nl_R_ρ_105_dT1_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/R_rho_1.05_deltatheta_1.0_nonlineareos/step_diagnostics.jld2")
-l_R_ρ_105_dT1_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/R_rho_1.05_deltatheta_1.0_lineareos/step_diagnostics.jld2")
-nl_R_ρ_105_dT05_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/R_rho_1.03_deltatheta_0.5_nonlineareos/step_diagnostics.jld2")
-l_R_ρ_105_dT05_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/R_rho_1.05_deltatheta_0.5_lineareos/step_diagnostics.jld2")
+nl_R_ρ_105_dT2_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT2_nonlineareos/step_diagnostics.jld2")
+l_R_ρ_105_dT2_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT2_lineareos/step_diagnostics.jld2")
+nl_R_ρ_105_dT1_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT1_nonlineareos/step_diagnostics.jld2")
+l_R_ρ_105_dT1_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT1_lineareos/step_diagnostics.jld2")
+# nl_R_ρ_105_dT05_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/R_rho_1.03_deltatheta_0.5_nonlineareos/step_diagnostics.jld2")
+# l_R_ρ_105_dT05_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/R_rho_1.05_deltatheta_0.5_lineareos/step_diagnostics.jld2")
 ## Figure theme
 markersize = 10
 publication_theme = Theme(font="CMU Serif", fontsize = 20,
@@ -67,17 +67,14 @@ linear_σ₀ = total_density.(T, S, 0, leos_vec)
 linear_σ₀′ = linear_σ₀ .- mean(vcat(linear_σ₀ᵘ, linear_σ₀ˡ))
 max_linear_σ₀′, max_linear_idx = findmax(linear_σ₀′)
 min_linear_σ₀′, min_linear_idx = findmin(linear_σ₀′)
-# linear_σ₀′_norm = 2 * (linear_σ₀′ .- min_linear_σ₀′) ./ (max_linear_σ₀′ - min_linear_σ₀′) .- 1
 linear_σ₀ᵘ′ = linear_σ₀ᵘ .- mean(vcat(linear_σ₀ᵘ, linear_σ₀ˡ))
 linear_σ₀ˡ′ = linear_σ₀ˡ .- mean(vcat(linear_σ₀ᵘ, linear_σ₀ˡ))
-# nlinear_σ₀ = total_density.(T, S, 0, nleos_vec)
 nlinear_σ₀ = gsw_rho.(S, T, 0)
 nlinear_σ₀′ = nlinear_σ₀ .- mean(vcat(nlinear_σ₀ᵘ, nlinear_σ₀ˡ))
 max_nlinear_σ₀′, max_nlinear_idx = findmax(nlinear_σ₀′)
 min_nlinear_σ₀′, min_nlinear_idx = findmin(nlinear_σ₀′)
 nlinear_σ₀ᵘ′ = nlinear_σ₀ᵘ .- mean(vcat(nlinear_σ₀ᵘ, nlinear_σ₀ˡ))
 nlinear_σ₀ˡ′ = nlinear_σ₀ˡ .- mean(vcat(nlinear_σ₀ᵘ, nlinear_σ₀ˡ))
-# nlinear_σ₀′_norm = 2 * (nlinear_σ₀′ .- min_nlinear_σ₀′) ./ (max_nlinear_σ₀′ .- min_nlinear_σ₀′) .- 1
 
 # Salinity and temperature panel
 fig = Figure(size = (800, 600))
@@ -106,19 +103,12 @@ axislegend(ax[1], position = :lb)
 lines!(ax[2], linear_σ₀ˡ′, z[1:Int(Nz/2)]; color = (:black, 0.5), label = "Initial density")
 lines!(ax[2], linear_σ₀ᵘ′, z[Int(Nz/2)+1:end]; color = (:black, 0.5))
 lines!(ax[2], linear_σ₀′, z; linestyle = :dash, label = L"$\rho_{\mathrm{linear}}$, $t = t^{*}$")
-# lines!(ax[2], nlinear_σ₀ˡ′, z[1:Int(Nz/2)]; color = (:green, 0.5), label = L"$\rho_{\mathrm{nonlinear}}, t = 83$")
-# lines!(ax[2], nlinear_σ₀ᵘ′, z[Int(Nz/2)+1:end]; color = (:green, 0.5))
 lines!(ax[2], nlinear_σ₀′, z; linestyle = :dash, label = L"$\rho_{\mathrm{nonlinear}}$, $t = t^{*}$")
 ax[2].title = "(b) Density profiles"
 ax[2].xlabel = L"$σ_{0}'$ (kgm⁻³)"
-# scatter!(ax[2], max_linear_σ₀′, z[max_linear_idx])
-# scatter!(ax[2], min_linear_σ₀′, z[min_linear_idx])
-# scatter!(ax[2], max_nlinear_σ₀′, z[max_linear_idx])
-# scatter!(ax[2], min_nlinear_σ₀′, z[min_linear_idx])
 hideydecorations!(ax[2], grid = false)
 axislegend(ax[2])
 linkyaxes!(ax[1], ax[2])
-# colsize!(fig.layout, 1, Relative(3/5))
 fig
 ##
 save("S_T_sigma_profiles.png", fig)
@@ -164,11 +154,6 @@ scatter!(ax[1], S_minmax[1], T_minmax[1]; markersize, label = "Minimum density",
 scatter!(ax[1], S_minmax[2], T_minmax[2]; markersize, label = "Maximum density", color = σ_grad[end])
 
 hidexdecorations!(ax[1], grid = false, ticks = false)
-# axislegend(ax[1], position = :lt)
-# Nonlinear
-# nlinear_σ₀_grid = total_density.(Θ_grid, S_grid, 0, fill(nleos, size(S_grid)))
-# nlinear_σ₀_lower = total_density(Θₗ, Sₗ, 0, nleos)
-# nlinear_σ₀_upper = total_density(Θᵤ, Sᵤ, 0, nleos)
 nlinear_σ₀_grid = gsw_rho.(S_grid, Θ_grid, 0) .- mean(vcat(nlinear_σ₀ᵘ, nlinear_σ₀ˡ))
 nlinear_σ₀_lower = gsw_rho(Sₗ, Θₗ, 0) .- mean(vcat(nlinear_σ₀ᵘ, nlinear_σ₀ˡ))
 nlinear_σ₀_upper = gsw_rho(Sᵤ, Θᵤ, 0) .- mean(vcat(nlinear_σ₀ᵘ, nlinear_σ₀ˡ))
@@ -376,8 +361,6 @@ hidexdecorations!(ax_lR_Δρ, grid = false, ticks = false)
 hidexdecorations!(ax_nlR_Δρ, grid = false, ticks = false)
 Colorbar(fig[2, 3], hm_nlR_Δρ, label = "R_Δρ")
 
-# replace!(x -> x == 0 ? NaN : x, δ_leos)
-# replace!(x -> x == 0 ? NaN : x, δ_nleos)
 colorrange = (0, maximum(δ_nleos[.!isnan.(δ_nleos)]))
 ax_δ_linear = Axis(fig[3, 1], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
 hm_δ_linear = heatmap!(ax_δ_linear, ΔΘ, ΔS, δ_leos; colorrange, colormap = :speed)
