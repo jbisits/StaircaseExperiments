@@ -20,7 +20,7 @@ model_setup = (;architecture, diffusivities, domain_extent, domain_topology, res
 # Jˢ = 1.272e-7
 # ΔT = -0.5
 Jᵀ = 2.6e-6
-Jˢ = 6.36e-8
+Jˢ = 4.77e-8
 top_salinity_scale = 0.5
 T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Jᵀ), bottom = FluxBoundaryCondition(Jᵀ))
 S_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(top_salinity_scale*Jˢ), bottom = FluxBoundaryCondition(Jˢ))
