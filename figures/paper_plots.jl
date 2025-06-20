@@ -27,13 +27,16 @@ interface_depth = -0.25
 t = 5000
 
 ## Load output
-# when done..
 nl_R_ρ_105_dT2_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT2_nonlineareos/step_diagnostics.jld2")
 l_R_ρ_105_dT2_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT2_lineareos/step_diagnostics.jld2")
 nl_R_ρ_105_dT1_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT1_nonlineareos/step_diagnostics.jld2")
 l_R_ρ_105_dT1_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT1_lineareos/step_diagnostics.jld2")
 # nl_R_ρ_105_dT05_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/R_rho_1.03_deltatheta_0.5_nonlineareos/step_diagnostics.jld2")
 # l_R_ρ_105_dT05_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/R_rho_1.05_deltatheta_0.5_lineareos/step_diagnostics.jld2")
+linear_expt_labels = ["I", "II", "III"]
+nlinear_expt_labels = ["IV", "V", "VI"]
+linear_expt_markers = [:utriangle, :dtriangle, :rtriangle]
+nlinear_expt_markers = [:cross, :xcross, :star5]
 ## Figure theme
 markersize = 10
 publication_theme = Theme(font="CMU Serif", fontsize = 20,
@@ -246,7 +249,9 @@ end
 Legend(fig[2, 1], ax1, orientation = :horizontal, nbanks = 3)
 fig
 save("tau_asymmetry.png", fig)
-## Density asymmetry heatmap
+
+## Figure
+# Density asymmetry heatmap
 Sᵤ_range = range(33.54, Sₗ, length = 400)
 Θᵤ_range = range(-1.6, Θₗ, length = 400)
 Rᵨ_leos = Array{Float64}(undef, length(Θᵤ_range), length(Sᵤ_range))
@@ -334,16 +339,25 @@ end
 ΔS = Sᵤ_range .- Sₗ
 
 arctic_obs = [[-0.04], [-0.01]]
-dns_dT2 = [[-2], [-0.12]]
+ΔΘ_expts = [-2, -1, -0.5]
+ΔS_expts_linear = [-0.12, -0.06, -0.03]
+ΔS_expts_nlinear = [-0.12, -0.069, -0.037]
 
+##
+markersize = 15
+linear_colour = :black
+nlinear_colour = linear_colour
 fig = Figure(size = (1000, 1000))
 ax_lRᵨ = Axis(fig[1, 1], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)", title = "Linear eos")
-hm = heatmap!(ax_lRᵨ, ΔΘ, ΔS, Rᵨ_leos)
-scatter!(ax_lRᵨ, arctic_obs...; color = :red)
+hm = heatmap!(ax_lRᵨ, ΔΘ, ΔS, Rᵨ_leos, colormap = :amp)
+scatter!(ax_lRᵨ, arctic_obs...; color = :red, markersize)
+scatter!(ax_lRᵨ, ΔΘ_expts, ΔS_expts_linear;
+         color = linear_colour, markersize, marker = linear_expt_markers)
 ax_nlRᵨ = Axis(fig[1, 2], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)", title = "Nonlinear eos")
-hm_nlRᵨ = heatmap!(ax_nlRᵨ, ΔΘ, ΔS, Rᵨ_nleos)
+hm_nlRᵨ = heatmap!(ax_nlRᵨ, ΔΘ, ΔS, Rᵨ_nleos, colormap = :amp)
 scatter!(ax_nlRᵨ, arctic_obs...; markersize, color = :red)
-scatter!(ax_nlRᵨ, dns_dT2...; markersize, marker = :cross, color = :orange)
+scatter!(ax_nlRᵨ, ΔΘ_expts, ΔS_expts_nlinear;
+         color = nlinear_colour, markersize, marker = nlinear_expt_markers)
 hideydecorations!(ax_nlRᵨ, grid = false, ticks = false)
 hidexdecorations!(ax_nlRᵨ, grid = false, ticks = false)
 hidexdecorations!(ax_lRᵨ, grid = false, ticks = false)
@@ -352,26 +366,41 @@ Colorbar(fig[1, 3], hm_nlRᵨ, label = "Rᵨ")
 colorrange = (minimum(Δσ_nonlinear[.!isnan.(Δσ_nonlinear)]), 1)
 ax_lR_Δρ = Axis(fig[2, 1], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
 hm = heatmap!(ax_lR_Δρ, ΔΘ, ΔS, Δσ_linear; colorrange, colormap = :batlow)
+scatter!(ax_lR_Δρ, arctic_obs...; color = :red, markersize)
+scatter!(ax_lR_Δρ, ΔΘ_expts, ΔS_expts_linear;
+         color = linear_colour, markersize, marker = linear_expt_markers)
 ax_nlR_Δρ = Axis(fig[2, 2], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
 hideydecorations!(ax_nlR_Δρ, grid = false, ticks = false)
 hm_nlR_Δρ = heatmap!(ax_nlR_Δρ, ΔΘ, ΔS, Δσ_nonlinear; colorrange, colormap = :batlow)
 scatter!(ax_nlR_Δρ, arctic_obs...; markersize, color = :red)
-scatter!(ax_nlR_Δρ, dns_dT2...; markersize, marker = :cross, color = :orange)
+scatter!(ax_nlR_Δρ, ΔΘ_expts, ΔS_expts_nlinear;
+         color = nlinear_colour, markersize, marker = nlinear_expt_markers)
 hidexdecorations!(ax_lR_Δρ, grid = false, ticks = false)
 hidexdecorations!(ax_nlR_Δρ, grid = false, ticks = false)
 Colorbar(fig[2, 3], hm_nlR_Δρ, label = "R_Δρ")
 
 colorrange = (0, maximum(δ_nleos[.!isnan.(δ_nleos)]))
 ax_δ_linear = Axis(fig[3, 1], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
-hm_δ_linear = heatmap!(ax_δ_linear, ΔΘ, ΔS, δ_leos; colorrange, colormap = :speed)
+hm_δ_linear = heatmap!(ax_δ_linear, ΔΘ, ΔS, δ_leos; colorrange, colormap = :turbid)
+scatter!(ax_δ_linear, arctic_obs...; markersize, color = :red)
+scatter!(ax_δ_linear, ΔΘ_expts, ΔS_expts_linear; color = linear_colour,
+         label = linear_expt_labels, markersize, marker = linear_expt_markers)
 ax_δ_nlinear = Axis(fig[3, 2], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
-hm_δ_nlinear = heatmap!(ax_δ_nlinear, ΔΘ, ΔS, δ_nleos; colorrange, colormap = :speed)
+hm_δ_nlinear = heatmap!(ax_δ_nlinear, ΔΘ, ΔS, δ_nleos; colorrange, colormap = :turbid)
 scatter!(ax_δ_nlinear, arctic_obs...; markersize, color = :red, label = "Arctic interfaces")
-scatter!(ax_δ_nlinear, dns_dT2...; markersize, marker = :cross, color = :orange , label = "DNS rundown")
-# vlines!(ax_δ_nlinear, -0.13, color = :orange)
+scatter!(ax_δ_nlinear, ΔΘ_expts, ΔS_expts_nlinear; color = nlinear_colour,
+         label = nlinear_expt_labels, markersize, marker = nlinear_expt_markers)
 hideydecorations!(ax_δ_nlinear, grid = false, ticks = false)
 Colorbar(fig[3, 3], hm_δ_nlinear, label = "Δρ′")
-Legend(fig[4, :], ax_δ_nlinear, orientation = :horizontal)
+legend_markers = [MarkerElement(color = :black, marker = m; markersize)
+                  for m ∈ vcat(linear_expt_markers, nlinear_expt_markers)]
+legend_expts = vcat(linear_expt_labels, nlinear_expt_labels)
+Legend(fig[4, 1], legend_markers, legend_expts, "DNS Experiments",
+       orientation = :horizontal)
+lmarker_2 = [MarkerElement(color = :red, marker = :circle; markersize)]
+lobs = ["Timmermans et al. (2008), Arctic Ocean"]
+Legend(fig[4, 2], lmarker_2, lobs, "Observations",
+       orientation = :horizontal)
 fig
 ##
 save("density_asymmetry.png", fig)
@@ -477,44 +506,56 @@ save("S_and_T_dns_evolution.png", fig)
 ##
 ## Figure
 # initial evlotuion
-file = jldopen(nl_R_ρ_105_dT2_diagnostics)
+files = (nl_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT1_diagnostics)
+fig = Figure(size = (1200, 600))
+ax = [Axis(fig[1, i],
+            xlabel = L"$S$ (gkg$^{-1}$)",
+            ylabel = L"$Θ$ (°C)",
+            title = "Experiment " * nlinear_expt_labels[i] * L", $t = 3$ min") for i ∈ eachindex(files)]
+file = jldopen(files[1])
 S = file["S_ha"][:, 3]
 Θ = file["T_ha"][:, 3]
-σ = file["σ_ha"][:, 3]
-z = file["dims/z_aac"]
-κₛ = file["attrib/κₛ (m²s⁻¹)"]
-κₜ = file["attrib/κₜ (m²s⁻¹)"]
-id = file["attrib/interface_depth"]
-close(file)
-
-ΔS = S[end] - S[1]
-ΔΘ = Θ[end] - Θ[1]
-S_model = erf_tracer_solution.(z, S[1], ΔS, κₛ, t, id)
-Θ_model = erf_tracer_solution.(z, Θ[1], ΔΘ, κₜ, t, id)
-
 N = 100
 S_range = range(extrema(S)..., length=N)
 T_range = range(extrema(Θ)..., length=N)
 eos_vec = fill(nleos, (N, N))
 ρ_grid = total_density.(T_range' .* ones(length(T_range)), S_range .* ones(length(S_range))', fill(0, (N, N)), eos_vec)
-ρ_shallow = total_density(Θ[end], S[end], 0, eos_vec[1, 1])
-ρ_deep = total_density(Θ[1], S[1], 0, eos_vec[1, 1])
-ρ_max = maximum(σ)
-ρ_min = minimum(σ)
-# T_tangent = Tₜ[1] .+ (β / α) * (S_range .- Sₜ[1])
-# lines!(ax, S_range, T_tangent, color = :green, linestyle = :dot, label = "Tangent to density\nat deep water")
+close(file)
+for (i, f) ∈ enumerate(files)
+    file = jldopen(f)
+    S = file["S_ha"][:, 2+i]
+    Θ = file["T_ha"][:, 2+i]
+    σ = file["σ_ha"][:, 2+i]
+    z = file["dims/z_aac"]
+    κₛ = file["attrib/κₛ (m²s⁻¹)"]
+    κₜ = file["attrib/κₜ (m²s⁻¹)"]
+    id = file["attrib/interface_depth"]
+    close(file)
 
-fig = Figure(size = (600, 600))
-ax = Axis(fig[1, 1],
-          xlabel = L"$S$ (gkg$^{-1}$)",
-          ylabel = L"$Θ$ (°C)",
-          title = L"Experiment IV, $t = 3$ min")
-contour!(ax, S_range, T_range, ρ_grid, levels = [ρ_shallow, ρ_deep, ρ_max, ρ_min],
-         color = Makie.wong_colors()[3], label = "Isopycnals", linestyle = :dot)
-lines!(ax, S_model, Θ_model, label = "1D model", linewidth = 3)
-lines!(ax, S, Θ; label = "Simulation output", color = Makie.wong_colors()[2],
-        linestyle = :dash, linewidth = 3)
-axislegend(ax, position = :lt)
+    ΔS = S[end] - S[1]
+    ΔΘ = Θ[end] - Θ[1]
+    S_model = erf_tracer_solution.(z, S[1], ΔS, κₛ, t, id)
+    Θ_model = erf_tracer_solution.(z, Θ[1], ΔΘ, κₜ, t, id)
+
+    ρ_shallow = total_density(Θ[end], S[end], 0, eos_vec[1, 1])
+    ρ_deep = total_density(Θ[1], S[1], 0, eos_vec[1, 1])
+    ρ_max = maximum(σ)
+    ρ_min = minimum(σ)
+    # T_tangent = Tₜ[1] .+ (β / α) * (S_range .- Sₜ[1])
+    # lines!(ax, S_range, T_tangent, color = :green, linestyle = :dot, label = "Tangent to density\nat deep water")
+
+    contour!(ax[i], S_range, T_range, ρ_grid, levels = [ρ_shallow, ρ_deep, ρ_max, ρ_min],
+            color = Makie.wong_colors()[3], label = "Isopycnals", linestyle = :dot)
+    lines!(ax[i], S_model, Θ_model, label = "1D model", linewidth = 3)
+    lines!(ax[i], S, Θ; label = "Simulation output", color = Makie.wong_colors()[2],
+            linestyle = :dash, linewidth = 3)
+    if i > 1
+        hideydecorations!(ax[i], grid = false, ticks = false)
+        linkyaxes!(ax[i], ax[1])
+        linkxaxes!(ax[i], ax[1])
+    end
+end
+Legend(fig[2, :], ax[1], orientation = :horizontal)
 fig
 ##
 save("ST_simluation.png", fig)

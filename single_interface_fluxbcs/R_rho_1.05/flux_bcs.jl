@@ -41,7 +41,13 @@ end
 
 # ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	eos_select = @bind eos Select(["deltatheta_1/nonlineareos/fluxbcs_R_rho_1.2", "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.3", "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.4", "deltatheta_1/lineareos", "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.35", "deltatheta_1/nonlineareos"])
+	eos_select = @bind eos Select(["deltatheta_1/nonlineareos/fluxbcs_R_rho_1.2",
+								   "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.3", 
+								   "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.4", 
+								   "deltatheta_1/lineareos", 
+								   "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.35",
+								   "deltatheta_1/nonlineareos",
+								   "deltatheta_05"])
 	md"""
 	# Equation of state
 
