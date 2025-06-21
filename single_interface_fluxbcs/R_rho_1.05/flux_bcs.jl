@@ -47,7 +47,7 @@ begin
 								   "deltatheta_1/lineareos", 
 								   "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.35",
 								   "deltatheta_1/nonlineareos",
-								   "deltatheta_05"])
+								   "deltatheta_05/nonlineareos"])
 	md"""
 	# Equation of state
 
@@ -239,20 +239,21 @@ begin
 	lines!(ax_interface, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["S_interface_idx"]], label = "salinity")
 	# lines!(ax_interface, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "temperature")
 
-	# id = expt_data["attrib/interface_depth"]
-	# S_mid = 0.5 * (expt_data["S_ha"][1, 1] + expt_data["S_ha"][end, 1])
-	# findS = [findfirst(reverse(expt_data["S_ha"][:, i]) .≥ S_mid) for i in eachindex(expt_data["S_ha"][1, 2:end])]
-	# S_interface = vcat(id, dims["z_aac"][findS])
+	id = expt_data["attrib/interface_depth"]
+	S_mid = 0.5 * (expt_data["S_ha"][1, 1] + expt_data["S_ha"][end, 1])
+	findS = [findfirst(reverse(expt_data["S_ha"][:, i]) .≥ S_mid) for i in eachindex(expt_data["S_ha"][1, 2:end])]
+	S_interface = vcat(id, dims["z_aac"][findS])
 	# lines!(ax_interface, expt_data["R_ρ"], abs.(S_interface), label = "salinity (ha profile)", linestyle  = :dash)
 
-	# T_mid = 0.5 * (expt_data["T_ha"][1, 1] + expt_data["T_ha"][end, 1])
-	# findT = [findfirst(reverse(expt_data["T_ha"][:, i]) .≥ T_mid) for i in eachindex(expt_data["T_ha"][1, 2:end])]
-	# T_interface = vcat(id, dims["z_aac"][findT])
+	T_mid = 0.5 * (expt_data["T_ha"][1, 1] + expt_data["T_ha"][end, 1])
+	findT = [findfirst(reverse(expt_data["T_ha"][:, i]) .≥ T_mid) for i in eachindex(expt_data["T_ha"][1, 2:end])]
+	T_interface = vcat(id, dims["z_aac"][findT])
 	# lines!(ax_interface, expt_data["R_ρ"], abs.(T_interface), label = "temperature (ha profile)", linestyle = :dash)
 	# ylims!(ax_interface, 0.49, 0.54)
 	# vlines!(ax_interface, 1.6, color = :red, linestyle = :dash)
 	axislegend(ax_interface, position = :lt)
 	fig_interface
+	# lines(diff(dims["z✶"][expt_data["S_interface_idx"]]))
 end
 
 # ╔═╡ 82964820-7220-4e21-b263-20754b6a3a33

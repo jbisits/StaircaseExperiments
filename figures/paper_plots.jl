@@ -35,6 +35,7 @@ l_R_ρ_105_dT1_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/run
 # l_R_ρ_105_dT05_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/R_rho_1.05_deltatheta_0.5_lineareos/step_diagnostics.jld2")
 linear_expt_labels = ["I", "II", "III"]
 nlinear_expt_labels = ["IV", "V", "VI"]
+all_labels = collect(Iterators.flatten(zip(linear_expt_labels, nlinear_expt_labels)))
 linear_expt_markers = [:utriangle, :dtriangle, :rtriangle]
 nlinear_expt_markers = [:cross, :xcross, :star5]
 ## Figure theme
@@ -559,20 +560,22 @@ Legend(fig[2, :], ax[1], orientation = :horizontal)
 fig
 ##
 save("ST_simluation.png", fig)
+
 ## Figure
 # Density hovmollers for Rρ = 1.05
 files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics)
+files = (l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics)
 fig = Figure(size = (1400, 1000))
 axσ = [Axis(fig[1, i], xlabel = "time (min)", ylabel = "z (m)") for i ∈ eachindex(files)]
-titles = ["(a) Linear eos", "(b) Nonlinear eos"]
+titles = ["(a) Experiment I", "(b) Experiment IV"]
 σ_colorrange = jldopen(files[1]) do ds
         extrema(ds["σ_ha"][:, 3] .- mean(ds["σ_ha"][:, 1]))
 end
-axwT = [Axis(fig[2, i], xlabel = "time (min)", ylabel = "z (m)") for i ∈ eachindex(files)]
-wT_colorrange = jldopen(files[1]) do ds
-        extrema(ds["ha_wT"])
-end
-ts_length = 200
+# axwT = [Axis(fig[2, i], xlabel = "time (min)", ylabel = "z (m)") for i ∈ eachindex(files)]
+# wT_colorrange = jldopen(files[1]) do ds
+#         extrema(ds["ha_wT"])
+# end
+ts_length = 120
 for (i, f) ∈ enumerate(files)
 
     jldopen(f) do ds
@@ -583,13 +586,13 @@ for (i, f) ∈ enumerate(files)
         i == 2 ? hideydecorations!(axσ[2], ticks = false) : nothing
         hidexdecorations!(axσ[i], ticks = false)
 
-        wT = ds["ha_wT"]
-        hm = heatmap!(axwT[i], 1:ts_length, z, wT'; colorrange = wT_colorrange, colormap = :speed)
-        i == 2 ? hideydecorations!(axwT[2], ticks = false) : nothing
-        i == 2 ? Colorbar(fig[2, 3], hm, label = L"$wΘ$ (Wm⁻²)") : nothing
+        # wT = ds["ha_wT"]
+        # hm = heatmap!(axwT[i], 1:ts_length, z, wT'; colorrange = wT_colorrange, colormap = :speed)
+        # i == 2 ? hideydecorations!(axwT[2], ticks = false) : nothing
+        # i == 2 ? Colorbar(fig[2, 3], hm, label = L"$wΘ$ (Wm⁻²)") : nothing
     end
-    linkxaxes!(axσ[1], axwT[1])
-    linkxaxes!(axσ[2], axwT[2])
+    # linkxaxes!(axσ[1], axwT[1])
+    # linkxaxes!(axσ[2], axwT[2])
 end
 fig
 ##
@@ -597,30 +600,40 @@ save("density_hovs.png", fig)
 
 ## Figure
 # energetics
-files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics)#),
-        #  l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics)#,
+files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
+         l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics)#,
         #  l_R_ρ_105_dT05_diagnostics, nl_R_ρ_105_dT05_diagnostics)
-fig = Figure(size = (800, 600))
-ax = Axis(fig[1, 1], xlabel = "time (min)", ylabel = "Rates")
-labels = ["(a) Linear eos, ΔΘ = -2", "(b) Nonlinear eos, ΔΘ = -2",
-          "(a) Linear eos, ΔΘ = -1", "(b) Nonlinear eos, ΔΘ = -1"]#,
-        #   "(a) Linear eos, ΔΘ = -0.5", "(b) Nonlinear eos, ΔΘ = -0.5"]
-ts_length = 60
+fig = Figure(size = (1000, 600))
+ax = [Axis(fig[1, i], xlabel = "time (min)", ylabel = "Non-dimensional energy") for i ∈ 1:2]
+ts_length = 120
+j = 1
 for (i, f) ∈ enumerate(files)
 
+    j = i ∈ (1, 2) ? 1 : 2
     jldopen(f) do ds
+
+        t = ds["dims"]["time"][1:ts_length]
+        Δt = diff(t)
         Ep0 = ds["Ep"][1]
-        Eb = diff((ds["Eb"][1:ts_length] .- Ep0))
-        Ep = diff((ds["Ep"][1:ts_length] .- Ep0))
+        Epfinal = ds["Eb"][ts_length]
+        Ep = ds["Ep"][1:ts_length] .- Ep0
+        Eb = ds["Eb"][1:ts_length] .- Ep0
+        dₜEp = diff(Ep) ./ Δt
+        dₜEb = diff(Eb) ./ Δt
         ape = Ep .- Eb
-        ek = diff(ds["∫Eₖ"][1:ts_length])
+        dₜape = diff(ape) ./ Δt
+        ek = diff(ds["∫Eₖ"][1:ts_length]) ./ Δt
         # lines!(ax, 2:120, Ep, label = "Ep, "*labels[i])
         # lines!(ax, 2:120, Eb, label = "Eb, "*labels[i])
-        lines!(ax, 2:ts_length, ek, label = "dEa/dt, "*labels[i])
+        lines!(ax[j], 1:ts_length, ape, label = "Experiment "*all_labels[i])
+        if j > 1
+            hideydecorations!(ax[j], grid = false, ticks = false)
+            linkyaxes!(ax[j], ax[1])
+        end
+        i % 2 == 0 ? axislegend(ax[j]) : nothing
     end
-
 end
-axislegend(ax)
+
 fig
 ##
 # save
