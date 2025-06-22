@@ -1,6 +1,6 @@
 using StaircaseShenanigans, GibbsSeaWater, CairoMakie
 
-restart = false
+restart = true
 
 architecture = GPU()
 Pr = 7   # Prandtl
@@ -9,7 +9,7 @@ Pr = 7   # Prandtl
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
-resolution = (Nx=110, Ny=110, Nz=1100)
+resolution = (Nx=90, Ny=90, Nz=900)
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 eos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 model_setup = (;architecture, diffusivities, domain_extent, domain_topology, resolution, eos)
@@ -17,8 +17,8 @@ dns_model = DNSModel(model_setup...; TD = VerticallyImplicitTimeDiscretization()
 
 ## Initial conditions
 depth_of_interface = -0.25
-salinity = [34.64, 34.70]
-Tᵤ, Tₗ = -0.5, 0.5
+salinity = [34.67, 34.70]
+Tᵤ, Tₗ = 0.0, 0.5
 ΔT = Tᵤ - Tₗ
 temperature = [Tᵤ, Tₗ]
 interface_ics = SingleInterfaceICs(eos, depth_of_interface, salinity, temperature)
@@ -29,7 +29,7 @@ initial_noise = TracerNoise(1e-4, 1e-2)
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
 ## Build simulation
-stop_time = Int(2 * 60 * 60) # seconds
+stop_time = Int(4 * 60 * 60) # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
 output_path = joinpath(@__DIR__, "dns_rundown_$(round(interface_ics.R_ρ, digits = 2))_dT_$(ΔT)", initial_state)
 save_schedule = 60
