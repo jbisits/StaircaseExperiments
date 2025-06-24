@@ -31,8 +31,8 @@ nl_R_ρ_105_dT2_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/ru
 l_R_ρ_105_dT2_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT2_lineareos/step_diagnostics.jld2")
 nl_R_ρ_105_dT1_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT1_nonlineareos/step_diagnostics.jld2")
 l_R_ρ_105_dT1_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT1_lineareos/step_diagnostics.jld2")
-# nl_R_ρ_105_dT05_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/R_rho_1.03_deltatheta_0.5_nonlineareos/step_diagnostics.jld2")
-# l_R_ρ_105_dT05_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/R_rho_1.05_deltatheta_0.5_lineareos/step_diagnostics.jld2")
+nl_R_ρ_105_dT05_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT05_nonlineareos/step_diagnostics.jld2")
+l_R_ρ_105_dT05_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT05_lineareos/step_diagnostics.jld2")
 linear_expt_labels = ["I", "II", "III"]
 nlinear_expt_labels = ["IV", "V", "VI"]
 all_labels = collect(Iterators.flatten(zip(linear_expt_labels, nlinear_expt_labels)))
@@ -339,7 +339,7 @@ end
 ΔΘ = Θᵤ_range .- Θₗ
 ΔS = Sᵤ_range .- Sₗ
 
-arctic_obs = [[-0.04], [-0.01]]
+arctic_obs = [[-0.04], [-0.014]]
 ΔΘ_expts = [-2, -1, -0.5]
 ΔS_expts_linear = [-0.12, -0.06, -0.03]
 ΔS_expts_nlinear = [-0.12, -0.069, -0.037]
@@ -405,6 +405,19 @@ Legend(fig[4, 2], lmarker_2, lobs, "Observations",
 fig
 ##
 save("density_asymmetry.png", fig)
+##
+# RΔρ for observations
+find_Θ = findall(-0.5 .<= ΔΘ .<= -0.1) # Southern Ocean
+SO_vals = Δσ_nonlinear[find_Θ, :]
+replace!(SO_vals, NaN => 0)
+nz = findall(SO_vals .!= 0)
+extrema(SO_vals[nz])
+
+find_Θ = findall(-0.81 .<= ΔΘ .<= -0.79)
+SO_vals = Δσ_nonlinear[find_Θ, :]
+replace!(SO_vals, NaN => 0)
+nz = findall(SO_vals .!= 0)
+extrema(SO_vals[nz])
 ## Figure
 # DNS flow evolution
 # file = jldopen(nl_R_ρ_105)
@@ -449,32 +462,33 @@ for (j, path) ∈ enumerate(files)
     close(file)
 
     ax = [Axis3(fig[j, i],
-            aspect=(1/3, 1/3, 1),
-            titlefont = :regular,
-            xlabel = "x (cm)",
-            ylabel = "y (cm)",
-            zlabel = "z (m)",
-            xticks = (horizontal_ticks, string.(horizontal_ticks .* 100)),
-            yticks = (horizontal_ticks, string.(horizontal_ticks .* 100)),
-            xlabeloffset = 40,
-            ylabeloffset = 40,
-            zlabeloffset = 50,
-            xlabelsize = 14,
-            ylabelsize = 14,
-            zlabelsize = 16,
-            xticklabelsize = 12,
-            yticklabelsize = 12,
-            zticklabelsize = 16,
-            zlabelrotation = π / 2,
-            limits = ((x[1], x[end]), (y[1], y[end]), (z[1], z[end])),
-            elevation = π / 6.5,
-            azimuth = 1.25π,
-            xspinesvisible = false,
-            yspinesvisible = false,
-            zspinesvisible = false,
-            zgridvisible = false,
-            protrusions = 20
-            ) for i ∈ 1:4]
+                # title = i == 1 ? "Experiment I" : "Experiment IV",
+                aspect=(1/3, 1/3, 1),
+                titlefont = :regular,
+                xlabel = "x (cm)",
+                ylabel = "y (cm)",
+                zlabel = "z (m)",
+                xticks = (horizontal_ticks, string.(horizontal_ticks .* 100)),
+                yticks = (horizontal_ticks, string.(horizontal_ticks .* 100)),
+                xlabeloffset = 40,
+                ylabeloffset = 40,
+                zlabeloffset = 50,
+                xlabelsize = 14,
+                ylabelsize = 14,
+                zlabelsize = 16,
+                xticklabelsize = 12,
+                yticklabelsize = 12,
+                zticklabelsize = 16,
+                zlabelrotation = π / 2,
+                limits = ((x[1], x[end]), (y[1], y[end]), (z[1], z[end])),
+                elevation = π / 6.5,
+                azimuth = 1.25π,
+                xspinesvisible = false,
+                yspinesvisible = false,
+                zspinesvisible = false,
+                zgridvisible = false,
+                protrusions = 20
+                ) for i ∈ 1:4]
 
     for i ∈ eachindex(snapshots[j])
         sf_S = surface!(ax[i], x_xz, y_xz_density, z_xz; color = slices[i].S_xz .- initial_S,
@@ -485,7 +499,8 @@ for (j, path) ∈ enumerate(files)
                         backlight = 5f0, shading = FastShading)
         sf_w = surface!(ax[i], x, y, z_xy_top; color = slices[i].velocity_zmean, colormap = :balance,
                         colorrange = w_colorrnage)
-        ax[i].title = "t = $(round(snapshots[j][i] / 60)) minutes"
+        ax[i].title = j == 1 ? "I, t = $(round(snapshots[j][i] / 60)) minutes" :
+                               "IV, t = $(round(snapshots[j][i] / 60)) minutes"
         if j == 2
             if i == 1
                 Colorbar(fig[j+1, 1:2], sf_S, label = "S′ (gkg⁻¹)", vertical = false, flipaxis = false)
@@ -498,7 +513,7 @@ for (j, path) ∈ enumerate(files)
         end
     end
 end
-Label(fig[0, :], "Salinity and temperature evolution - Rᵨ = 1.05", fontsize = 22, font = :bold)
+Label(fig[0, :], "Salinity and temperature evolution", fontsize = 22, font = :bold)
 rowgap!(fig.layout, 2, Relative(0.05))
 rowgap!(fig.layout, 3, Relative(0.05))
 fig
@@ -507,12 +522,12 @@ save("S_and_T_dns_evolution.png", fig)
 ##
 ## Figure
 # initial evlotuion
-files = (nl_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT1_diagnostics)
+files = (nl_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT05_diagnostics)
 fig = Figure(size = (1200, 600))
 ax = [Axis(fig[1, i],
             xlabel = L"$S$ (gkg$^{-1}$)",
             ylabel = L"$Θ$ (°C)",
-            title = "Experiment " * nlinear_expt_labels[i] * L", $t = 3$ min") for i ∈ eachindex(files)]
+            title = "Experiment " * nlinear_expt_labels[i] * ", t = 3 min") for i ∈ eachindex(files)]
 file = jldopen(files[1])
 S = file["S_ha"][:, 3]
 Θ = file["T_ha"][:, 3]
@@ -537,19 +552,26 @@ for (i, f) ∈ enumerate(files)
     ΔΘ = Θ[end] - Θ[1]
     S_model = erf_tracer_solution.(z, S[1], ΔS, κₛ, t, id)
     Θ_model = erf_tracer_solution.(z, Θ[1], ΔΘ, κₜ, t, id)
+    σ_model = total_density.(Θ_model, S_model, fill(0, length(S_model)), fill(nleos, length(S_model)))
+    ρmodel_shallow = σ_model[end]
+    ρmodel_deep = σ_model[1]
+    ρmodel_max = maximum(σ_model)
+    ρmodel_min = minimum(σ_model)
+    R_Δρ_model = round(abs(ρmodel_min - ρmodel_shallow) / abs(ρmodel_max - ρmodel_deep), digits = 3)
 
-    ρ_shallow = total_density(Θ[end], S[end], 0, eos_vec[1, 1])
-    ρ_deep = total_density(Θ[1], S[1], 0, eos_vec[1, 1])
+    ρ_shallow = σ[end]
+    ρ_deep = σ[1]
     ρ_max = maximum(σ)
     ρ_min = minimum(σ)
-    # T_tangent = Tₜ[1] .+ (β / α) * (S_range .- Sₜ[1])
-    # lines!(ax, S_range, T_tangent, color = :green, linestyle = :dot, label = "Tangent to density\nat deep water")
+    R_Δρ_sim = round(abs(ρ_min - ρ_shallow) / abs(ρ_max - ρ_deep), digits = 3)
 
     contour!(ax[i], S_range, T_range, ρ_grid, levels = [ρ_shallow, ρ_deep, ρ_max, ρ_min],
             color = Makie.wong_colors()[3], label = "Isopycnals", linestyle = :dot)
     lines!(ax[i], S_model, Θ_model, label = "1D model", linewidth = 3)
     lines!(ax[i], S, Θ; label = "Simulation output", color = Makie.wong_colors()[2],
             linestyle = :dash, linewidth = 3)
+    text!(ax[i], 34.58, 0.5, text = L"1D model $R_{\Delta\rho} =$ %$(R_Δρ_model)", align = (:left, :top))
+    text!(ax[i], 34.58, 0.25, text = L"Simulation $R_{\Delta\rho} =$ %$(R_Δρ_sim)", align = (:left, :top))
     if i > 1
         hideydecorations!(ax[i], grid = false, ticks = false)
         linkyaxes!(ax[i], ax[1])
@@ -563,53 +585,101 @@ save("ST_simluation.png", fig)
 
 ## Figure
 # Density hovmollers for Rρ = 1.05
-files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics)
-files = (l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics)
+files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
+         l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics,
+         l_R_ρ_105_dT05_diagnostics, nl_R_ρ_105_dT05_diagnostics)
 fig = Figure(size = (1400, 1000))
-axσ = [Axis(fig[1, i], xlabel = "time (min)", ylabel = "z (m)") for i ∈ eachindex(files)]
-titles = ["(a) Experiment I", "(b) Experiment IV"]
-σ_colorrange = jldopen(files[1]) do ds
+axσ = [Axis(fig[j, i], xlabel = "time (min)", ylabel = "z (m)") for i ∈ 1:2, j ∈ 1:3]
+σ_colorrange_dT2 = jldopen(files[1]) do ds
         extrema(ds["σ_ha"][:, 3] .- mean(ds["σ_ha"][:, 1]))
 end
+σ_colorrange_dT1 = jldopen(files[3]) do ds
+        extrema(ds["σ_ha"][:, 3] .- mean(ds["σ_ha"][:, 1]))
+end
+σ_colorrange_dT05 = jldopen(files[5]) do ds
+        extrema(ds["σ_ha"][:, 3] .- mean(ds["σ_ha"][:, 1]))
+end
+colorranges = (σ_colorrange_dT2, σ_colorrange_dT1, σ_colorrange_dT05)
 # axwT = [Axis(fig[2, i], xlabel = "time (min)", ylabel = "z (m)") for i ∈ eachindex(files)]
 # wT_colorrange = jldopen(files[1]) do ds
 #         extrema(ds["ha_wT"])
 # end
-ts_length = 120
+ts_length = 240
 for (i, f) ∈ enumerate(files)
 
     jldopen(f) do ds
+        crange = if i ∈ 1:2
+                    colorranges[1]
+                elseif i ∈ 3:4
+                    colorranges[2]
+                elseif i ∈ 5:6
+                    colorranges[3]
+                end
         σ_ha′ = ds["σ_ha"][:, 1:ts_length ]' .- mean(ds["σ_ha"][:, 1])'
-        hm = heatmap!(axσ[i], 1:ts_length, z, σ_ha′; colorrange = σ_colorrange, colormap = :diff)
-        axσ[i].title = titles[i]
-        i == 2 ? Colorbar(fig[1, 3], hm, label = L"$σ_{0}′$ (kgm⁻³)") : nothing
-        i == 2 ? hideydecorations!(axσ[2], ticks = false) : nothing
-        hidexdecorations!(axσ[i], ticks = false)
-
-        # wT = ds["ha_wT"]
-        # hm = heatmap!(axwT[i], 1:ts_length, z, wT'; colorrange = wT_colorrange, colormap = :speed)
-        # i == 2 ? hideydecorations!(axwT[2], ticks = false) : nothing
-        # i == 2 ? Colorbar(fig[2, 3], hm, label = L"$wΘ$ (Wm⁻²)") : nothing
+        hm = heatmap!(axσ[i], 1:ts_length, z, σ_ha′; colorrange = crange, colormap = :diff)
+        axσ[i].title = all_labels[i]
+        if i % 2 == 0
+            Colorbar(fig[Int(i / 2), 3], hm, label = L"$σ_{0}′$ (kgm$^{-3}$)")
+            hideydecorations!(axσ[i], ticks = false)
+        end
+        if i < 5
+            hidexdecorations!(axσ[i], ticks = false)
+        end
     end
-    # linkxaxes!(axσ[1], axwT[1])
-    # linkxaxes!(axσ[2], axwT[2])
+
 end
 fig
 ##
 save("density_hovs.png", fig)
+##
+## Figure
+# salinity midpoint
+files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
+         l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics,
+         l_R_ρ_105_dT05_diagnostics, nl_R_ρ_105_dT05_diagnostics)
+fig_interface = Figure(size = (500, 500))
+ax_interface = Axis(fig_interface[1, 1],
+                    title = "Salinity interface",
+                    xlabel = "time (min)",
+                    ylabel = L"$z*$ (m)")
+# ax_rate_of_change = Axis(fig_interface[2, 1],
+#                          title = "Rate of change",
+#                          xlabel = L"R_{\rho}",
+#                          ylabel = L"$\mathrm{d}z* / \mathrm{d}t$ ")
+ts_range = 1:240
+for (i, file) ∈ enumerate(files)
+    jldopen(file) do f
+        t = f["dims"]["time"][ts_range]
+        z✶ = f["dims"]["z✶"][f["S_interface_idx"]][ts_range]
+        Rᵨ = f["R_ρ"][ts_range]
+        ls = i % 2 == 0 ? :dash : :solid
+        lines!(ax_interface, t ./ 60, z✶, label = all_labels[i], linestyle = ls)
 
+        # if i % 2 == 0
+        #     Δt = diff(t)
+        #     Δz✶ = diff(z✶)
+        #     lines!(ax_rate_of_change, Rᵨ[2:end], Δz✶ ./ Δt, label = all_labels[i])
+        # end
+    end
+end
+axislegend(ax_interface, position = :rc, nbanks = 2)
+fig_interface
+##
+save("salinity_interfaces.png", fig_interface)
 ## Figure
 # energetics
 files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
-         l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics)#,
-        #  l_R_ρ_105_dT05_diagnostics, nl_R_ρ_105_dT05_diagnostics)
+         l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics,
+         l_R_ρ_105_dT05_diagnostics, nl_R_ρ_105_dT05_diagnostics)
 fig = Figure(size = (1000, 600))
-ax = [Axis(fig[1, i], xlabel = "time (min)", ylabel = "Non-dimensional energy") for i ∈ 1:2]
-ts_length = 120
+ax = [Axis(fig[i, 1], xlabel = "time (min)", ylabel = "Non-dimensional energy") for i ∈ 1:2]
+ax[1].title = "Available potential energy"
+ts_length = 240
 j = 1
+linestyles = (:solid, :dash)
 for (i, f) ∈ enumerate(files)
 
-    j = i ∈ (1, 2) ? 1 : 2
+    # j = i ∈ (1, 2) ? 1 : 2
     jldopen(f) do ds
 
         t = ds["dims"]["time"][1:ts_length]
@@ -625,17 +695,23 @@ for (i, f) ∈ enumerate(files)
         ek = diff(ds["∫Eₖ"][1:ts_length]) ./ Δt
         # lines!(ax, 2:120, Ep, label = "Ep, "*labels[i])
         # lines!(ax, 2:120, Eb, label = "Eb, "*labels[i])
-        lines!(ax[j], 1:ts_length, ape, label = "Experiment "*all_labels[i])
-        if j > 1
-            hideydecorations!(ax[j], grid = false, ticks = false)
-            linkyaxes!(ax[j], ax[1])
+        ls = i % 2 == 0 ? linestyles[2] : linestyles[1]
+        lines!(ax[1], 1:ts_length, ape, linestyle = ls, label = all_labels[i])
+        if i < 3
+            lines!(ax[2], 2:ts_length, dₜape, linestyle = ls)
+            ax[2].ylabel = "Non-dimensional rate"
         end
-        i % 2 == 0 ? axislegend(ax[j]) : nothing
+        if i == 1
+            hidexdecorations!(ax[i], grid = false, ticks = false)
+        end
+
     end
 end
-
+linkxaxes!(ax[1], ax[2])
+axislegend(ax[1], orientation = :horizontal, nbanks = 2, position = :rb)
 fig
 ##
+save("ape.png", fig)
 # save
 
 ## Figure
@@ -663,7 +739,31 @@ for (i, f) ∈ enumerate(files)
 end
 axislegend(ax, position = :lt)
 fig
-## Maybes..
+
+## Calculations
+# Δρ′
+# I, IV
+Θᵤ, Θₗ = -1.5, 0.5
+Sᵤ, Sₗ = 34.58, 34.7
+# II, V
+Θᵤ, Θₗ = -0.5, 0.5
+Sᵤ, Sₗ = 34.64, 34.7
+Sᵤ, Sₗ = 34.631, 34.7
+# III, VI
+Θᵤ, Θₗ = 0, 0.5
+Sᵤ, Sₗ = 34.67, 34.7
+Sᵤ, Sₗ = 34.663, 34.7
+
+
+ΔΘ_mix = Θₗ - Θᵤ
+ΔS_mix = Sₗ - Sᵤ
+S_mix = range(Sᵤ, Sₗ, length = 1000)
+Θ_mix = Θᵤ .+ (ΔΘ_mix / ΔS_mix) * (S_mix .- Sᵤ)
+ρ_mix = total_density.(Θ_mix, S_mix, fill(0, length(S_mix)), fill(nleos, length(S_mix)))
+ρ_max = maximum(ρ_mix)
+ρₗ = total_density(Θₗ, Sₗ, 0, nleos)
+ρ_max - ρₗ
+## Old and maybe plots
 ############################################################################################
 ## Figure
 # staricase asymmetry

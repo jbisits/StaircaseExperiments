@@ -55,6 +55,8 @@ begin
 								   "dns_res_dT2_linear",
 								   "dns_res_dT1_nonlinear", 
 								   "dns_res_dT1_linear", 
+								   "dns_res_dT05_nonlinear", 
+								   "dns_res_dT05_linear", 
 								   "R_rho_1.03_deltatheta_0.5_nonlinear", 
 								   "R_rho_1.05_deltatheta_1.0_nonlinear", 
 								   "R_rho_1.05_deltatheta_0.5_linear", 
@@ -450,6 +452,14 @@ let
 	ΔT = Tₜ[end] - Tₜ[1]
 	S = erf_tracer_solution.(z, Sₜ[1], ΔS, κₛ, t, T_interface[t])
 	T = erf_tracer_solution.(z, Tₜ[1], ΔT, κₜ, t, T_interface[t])
+
+	# S_mixing = range(expt_data["S_ha"][end, 1], expt_data["S_ha"][1, 1], length = 1000)
+	# ΔS_mix = expt_data["S_ha"][1, 1] - expt_data["S_ha"][end, 1]
+	# ΔT_mix = expt_data["T_ha"][1, 1] - expt_data["T_ha"][end, 1]
+	# T_mixing = expt_data["T_ha"][end, 1] .+ (ΔT_mix / ΔS_mix) * (S_mixing .- expt_data["S_ha"][end, 1])
+	# ρ_mixing = total_density.(T_mixing, S_mixing, fill(0, length(S_mixing)), fill(eos_type, length(S_mixing)))
+	# ρ_mix_max = maximum(ρ_mixing)
+	# Δρ′ = ρ_mix_max - expt_data["σ_ha"][1, 1] 
 	
 	fig = Figure(size = (600, 500))
 	ax = Axis(fig[1, 1], 
@@ -467,7 +477,7 @@ let
 	lines!(ax, S, T, color = :orange, label = "Theoretical model")
 
 
-	N = 100
+	N = 200
 	S_range = range(extrema(Sₜ)..., length=N)
 	T_range = range(extrema(Tₜ)..., length=N)
 	eos_vec = fill(eos_type, (N, N))
@@ -482,7 +492,7 @@ let
 	T_tangent = Tₜ[1] .+ (β / α) * (S_range .- Sₜ[1])
 	lines!(ax, S_range, T_tangent, color = :green, linestyle = :dot, label = "Tangent to density\nat deep water")
 	contour!(ax, S_range, T_range, ρ_grid, levels = [ρ_shallow, ρ_deep, ρ_max, ρ_min], color = :grey, label = "Deep water isopycnal")
-	
+
 	Legend(fig[1, 2], ax)
 	fig
 end
@@ -859,10 +869,10 @@ md"""
 
 # ╔═╡ 5b237029-d8ce-4289-8a29-416ae9babf6e
 let
-	salinity = [34.665, 34.70]
+	salinity = [34.663, 34.70]
 	temperature = [0, 0.5]
-	salinity = [34.6, 34.70]
-	temperature = [-1.5, 0.5]
+	# salinity = [34.6, 34.70]
+	# temperature = [-1.5, 0.5]
 	
 
 	κₛ, κₜ = 1e-8, 1e-7
@@ -874,8 +884,9 @@ let
 	σ = total_density.(T, S, 0, fill(eos_type, length(z)))
 
 	R_Δρ = abs(minimum(σ) - σ[end]) / abs(maximum(σ) - σ[1])
+	Rᵨ = compute_R_ρ(salinity, temperature, -0.25, eos_type)
 
-		Δρ = σ[1] - σ[end]
+	Δρ = σ[1] - σ[end]
 	slope = ΔT / ΔS
 	S_mix = range(salinity..., step = 0.000001)
     T_mix = @. temperature[1] + slope * (S_mix - salinity[1])
@@ -890,7 +901,7 @@ let
 			  xlabel = "Salinity (gkg⁻¹)", 
 			  ylabel = "Temperature (°C)",
 			  title = "Ha S and T profiles at time t = $(dims["time"][t] / 60)min",
-			  subtitle = "δ = $(round(δ, digits = 2)), R_Δσ = $(round(R_Δρ, digits = 1))")
+			  subtitle = "Rᵨ = $(Rᵨ)  Δρ′ = $(round(Δρ′, digits = 6)), R_Δσ = $(round(R_Δρ, digits = 1))")
 	# Slims = salinity .+ [-0.01, 0.01]
 	# Tlims = temperature .+ [-0.1, 0.1]
 	# xlims!(Slims...)
@@ -937,7 +948,7 @@ TableOfContents()
 # ╟─010ecdc3-51d6-41a6-9bc5-6efbba0723a6
 # ╟─68d31cca-3f29-4402-ac79-8deaef98ef50
 # ╟─087d2583-ee90-437a-97ec-0ab607337e30
-# ╠═b3fd9c9c-24d0-4ed8-a952-aaed2581045d
+# ╟─b3fd9c9c-24d0-4ed8-a952-aaed2581045d
 # ╟─e177c879-b7d0-4328-b5ad-776f8c64e050
 # ╟─07089057-5b2f-40e5-a485-0eeac1e9b348
 # ╟─c2dce901-8578-448c-8c6e-ec7bb3e6d71b
