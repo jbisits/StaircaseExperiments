@@ -27,17 +27,18 @@ interface_depth = -0.25
 t = 5000
 
 ## Load output
-nl_R_ρ_105_dT2_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT2_nonlineareos/step_diagnostics.jld2")
-l_R_ρ_105_dT2_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT2_lineareos/step_diagnostics.jld2")
-nl_R_ρ_105_dT1_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT1_nonlineareos/step_diagnostics.jld2")
-l_R_ρ_105_dT1_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT1_lineareos/step_diagnostics.jld2")
-nl_R_ρ_105_dT05_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT05_nonlineareos/step_diagnostics.jld2")
-l_R_ρ_105_dT05_diagnostics = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step/dns_res_dT05_lineareos/step_diagnostics.jld2")
-linear_expt_labels = ["I", "II", "III"]
-nlinear_expt_labels = ["IV", "V", "VI"]
-all_labels = collect(Iterators.flatten(zip(linear_expt_labels, nlinear_expt_labels)))
-linear_expt_markers = [:utriangle, :dtriangle, :rtriangle]
-nlinear_expt_markers = [:cross, :xcross, :star5]
+# rundown experiments
+rundown_path = joinpath(@__DIR__, "../single_interface_rundown/rundown_1.05/step")
+nl_R_ρ_105_dT2_diagnostics  = joinpath(rundown_path, "dns_res_dT2_nonlineareos/step_diagnostics.jld2")
+l_R_ρ_105_dT2_diagnostics   = joinpath(rundown_path, "dns_res_dT2_lineareos/step_diagnostics.jld2")
+nl_R_ρ_105_dT1_diagnostics  = joinpath(rundown_path, "dns_res_dT1_nonlineareos/step_diagnostics.jld2")
+l_R_ρ_105_dT1_diagnostics   = joinpath(rundown_path, "dns_res_dT1_lineareos/step_diagnostics.jld2")
+nl_R_ρ_105_dT05_diagnostics = joinpath(rundown_path, "dns_res_dT05_nonlineareos/step_diagnostics.jld2")
+l_R_ρ_105_dT05_diagnostics  = joinpath(rundown_path, "dns_res_dT05_lineareos/step_diagnostics.jld2")
+# flux bc experiments
+fluxbc_path = joinpath(@__DIR__, "../single_interface_fluxbcs/R_rho_1.05/deltatheta_1/")
+l_fbc_diagnostics  = joinpath(fluxbc_path, "lineareos/step_diagnostics.jld2")
+nl_fbc_diagnostics = joinpath(fluxbc_path, "nonlineareos/step_diagnostics.jld2")
 ## Figure theme
 markersize = 10
 publication_theme = Theme(font="CMU Serif", fontsize = 20,
@@ -54,6 +55,12 @@ publication_theme = Theme(font="CMU Serif", fontsize = 20,
                                     spinewidth=0.5))
 new_theme = merge(theme_latexfonts(), publication_theme)
 set_theme!(new_theme)
+# labels
+linear_expt_labels = ["I", "II", "III"]
+nlinear_expt_labels = ["IV", "V", "VI"]
+all_labels = collect(Iterators.flatten(zip(linear_expt_labels, nlinear_expt_labels)))
+linear_expt_markers = [:utriangle, :dtriangle, :rtriangle]
+nlinear_expt_markers = [:cross, :xcross, :star5]
 
 ## Figure
 # Asymmetric effects of non-linear eos
@@ -233,8 +240,7 @@ end
 
 find_τ_01 = findfirst(τ_range .> 0.1)
 τ_range[find_τ_01]
-# Rᵨ_leos = compute_R_ρ([Sᵤ, Sₗ], temperature, interface_depth, leos)
-# Rᵨ_nleos = compute_R_ρ([Sᵤ, Sₗ], temperature, interface_depth, nleos)
+
 fig = Figure(size = (600, 600))
 linestyle = [:solid, :dash, :dot, :dashdot]
 ax1 = Axis(fig[1, 1], title = L"(a) Asymmetry due to $\tau$", titlefont = :bold, xlabel = L"τ", ylabel = L"R_{\Delta\rho}")
@@ -418,6 +424,7 @@ SO_vals = Δσ_nonlinear[find_Θ, :]
 replace!(SO_vals, NaN => 0)
 nz = findall(SO_vals .!= 0)
 extrema(SO_vals[nz])
+
 ## Figure
 # DNS flow evolution
 # file = jldopen(nl_R_ρ_105)
@@ -664,6 +671,28 @@ for (i, file) ∈ enumerate(files)
 end
 axislegend(ax_interface, position = :rc, nbanks = 2)
 fig_interface
+## Figure
+# Height of midpoint density
+files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
+         l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics,
+         l_R_ρ_105_dT05_diagnostics, nl_R_ρ_105_dT05_diagnostics)
+
+fig = Figure(size = (800, 600))
+ax = Axis(fig[1, 1], xlabel = "time (min)", ylabel = "z (m)")
+ts_length = 1:240
+for (i, f) ∈ enumerate(files)
+
+    jldopen(f) do ds
+
+        σ_mid = [0.5 * (ds["σ_ha"][1, i] + ds["σ_ha"][end, i]) for i ∈ ts_length]  #median(ds["σ_ha"][:, 1])
+        find_interface = [findfirst(c .≤ σ_mid[i]) for (i, c) ∈ enumerate(eachcol(ds["σ_ha"][:, ts_length]))]
+        z = abs.(reverse(ds["dims/z_aac"]))
+        interface_height = [z[fi] for fi ∈ find_interface]
+        lines!(ax, ts_length, interface_height, label = all_labels[i])
+    end
+end
+axislegend(ax, position = :rb)
+fig
 ##
 save("salinity_interfaces.png", fig_interface)
 ## Figure
@@ -712,34 +741,53 @@ axislegend(ax[1], orientation = :horizontal, nbanks = 2, position = :rb)
 fig
 ##
 save("ape.png", fig)
-# save
 
 ## Figure
-# interface shifting
-files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
-         l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics)#,
-        #  l_R_ρ_105_dT05_diagnostics, nl_R_ρ_105_dT05_diagnostics)
+# Flux boundary conditions
+fig = Figure(size = (800, 800))
+files = (l_fbc_diagnostics, nl_fbc_diagnostics)
+labels = ("II with flux boudary conditions","V with flux boundary conditions")
+titles = ("Experiment II with flux boundary conditions",
+          "Experiment V with flux boundary conditions")
+ax = [Axis(fig[i, 1]) for i ∈ 1:3]
 
-fig = Figure(size = (800, 600))
-ax = Axis(fig[1, 1], xlabel = "time (min)", ylabel = "z (m)")
-labels = ["(a) Linear eos, ΔΘ = -2", "(b) Nonlinear eos, ΔΘ = -2",
-          "(a) Linear eos, ΔΘ = -1", "(b) Nonlinear eos, ΔΘ = -1",
-          "(a) Linear eos, ΔΘ = -0.5", "(b) Nonlinear eos, ΔΘ = -0.5"]
-    ts_length = 120
-for (i, f) ∈ enumerate(files)
+for (i, file) ∈ enumerate(files)
 
-    jldopen(f) do ds
+    f = jldopen(file)
+    ΔS = f["ΔS"]
+    ΔT = f["ΔT"]
+    Rᵨ = f["R_ρ"]
+    t = f["dims"]["time"] ./ 60
+    z✶ = f["dims"]["z✶"][f["S_interface_idx"]]
+    close(f)
 
-        T_mid = median(ds["T_ha"])
-        find_interface = [findfirst(c .≤ T_mid) for c ∈ eachcol(ds["T_ha"][:, 2:ts_length])]
-        z = ds["dims/z_aac"]
-        interface_height = [z[fi] for fi ∈ find_interface]
-        lines!(ax, 2:ts_length, interface_height, label = labels[i])
-    end
+    lines!(ax[i], t, ΔS ./ ΔS[1], color = :blue, label = L"ΔS / ΔS_{0}")
+	lines!(ax[i], t, ΔT ./ ΔT[1], color = :red, label = L"ΔT / ΔT_{0}")
+	ylims!(ax[i], 0, 1.1)
+    ax[i].title = titles[i]
+	ax2 = Axis(fig[i, 1],
+                yaxisposition = :right,
+			    yticklabelcolor = :dodgerblue,
+			    rightspinecolor = :dodgerblue,
+				ylabelcolor = :dodgerblue,
+			    ytickcolor = :dodgerblue,
+				ylabel = "Rᵨ")
+	lines!(ax2, t, Rᵨ, color = :dodgerblue, label = L"R_{\rho}")
+    linkxaxes!(ax2, ax[i])
+    hidexdecorations!(ax2)
+	axislegend(ax[i], merge = true, position = :rb)
+    lines!(ax[3], t[2:end], z✶, label = labels[i])
+    ax[3].xlabel = "time (min)"
+    ax[3].ylabel = L"z*"
+
 end
-axislegend(ax, position = :lt)
-fig
+axislegend(ax[3], position = :lt)
+hidexdecorations!(ax[1], grid = false, ticks = false)
+hidexdecorations!(ax[2], grid = false, ticks = false)
 
+fig
+##
+save("flux_bcs.png", fig)
 ## Calculations
 # Δρ′
 # I, IV
