@@ -29,13 +29,13 @@ initial_noise = TracerNoise(1e-4, 1e-2)
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
 ## Build simulation
-stop_time = Int(2 * 60 * 60) # seconds
+stop_time = Int(1 * 60 * 60) # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
 output_path = joinpath(@__DIR__, "dns_rundown_$(round(interface_ics.R_ρ, digits = 2))_dT_$(ΔT)_julia110", initial_state)
 save_schedule = 60
 checkpointer_time_interval = 60 * 60 # seconds
 Δt = 1e-3
-max_Δt = 1.75e-2 # DNS timesetp
+max_Δt = 5e-2 # DNS timesetp for larger dT = 1.75e-2
 simulation = SDNS_simulation_setup(sdns, stop_time, save_computed_output!,
                                    save_vertical_velocities!;
                                    output_path,

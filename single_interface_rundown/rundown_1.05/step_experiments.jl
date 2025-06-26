@@ -56,7 +56,8 @@ begin
 								   "dns_res_dT1_nonlinear", 
 								   "dns_res_dT1_linear", 
 								   "dns_res_dT05_nonlinear", 
-								   "dns_res_dT05_linear", 
+								   "dns_res_dT05_linear",
+								   "dns_res_dT05_j110_nonlinear",
 								   "R_rho_1.03_deltatheta_0.5_nonlinear", 
 								   "R_rho_1.05_deltatheta_1.0_nonlinear", 
 								   "R_rho_1.05_deltatheta_0.5_linear", 
@@ -571,7 +572,7 @@ let
 	dₜek = diff(ek) ./ Δt
 	ε = 0.5 * (expt_data["∫ε"][1:end-1] .+ expt_data["∫ε"][2:end])
 	∫wb = 0.5 * (expt_data["∫wb"][1:end-1] .+ expt_data["∫wb"][2:end])
-	∫gρw = 0.5 * (expt_data["∫gρw"][1:end-1] .+ expt_data["∫gρw"][2:end])
+	∫gρw = - 0.5 * (expt_data["∫gρw"][1:end-1] .+ expt_data["∫gρw"][2:end])
 	RHS = ∫wb .- ε
 	RHS_per = RHS ./ -ε
 	fig, ax = lines(eachindex(Δt)[1:end], dₜek[1:end], label = "dₜek")
@@ -581,10 +582,11 @@ let
 	ax.ylabel = "Watts / ρ₀"
 	axislegend(ax, position = :rb)
 
-	abs_err = abs.(dₜek .- RHS)[3:end]
+	abs_err = abs.(dₜek .- RHS)
 	ax2 = Axis(fig[2, 1], title = "Absolute error, MAE = $(mean(abs_err))")
-	lines!(ax2, abs_err[3:end])
+	lines!(ax2, abs_err)
 	fig
+	# RHS_per
 end
 
 # ╔═╡ f200b8e0-2b14-4270-963b-6bb1b154d550
@@ -980,7 +982,7 @@ TableOfContents()
 # ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013
 # ╟─3c0e1dfd-e4ba-448f-8475-ada056c8b5fe
-# ╟─c576c4cd-1101-46e2-b6fa-b574f0b13dfe
+# ╠═c576c4cd-1101-46e2-b6fa-b574f0b13dfe
 # ╟─f200b8e0-2b14-4270-963b-6bb1b154d550
 # ╠═08af2ba8-9c4b-4d89-8c6b-d2becce818e0
 # ╟─50e87efc-a49c-4ffd-bfbd-cd5dfad40639
