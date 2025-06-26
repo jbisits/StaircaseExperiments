@@ -48,6 +48,7 @@ begin
 								   "deltatheta_1/alt_lineareos",
 								   "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.35",
 								   "deltatheta_1/nonlineareos",
+								   "deltatheta_1/nonlineareos_pickup",
 								   "deltatheta_05/nonlineareos"])
 	md"""
 	# Equation of state

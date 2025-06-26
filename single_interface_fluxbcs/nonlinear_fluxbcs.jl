@@ -1,6 +1,6 @@
 using StaircaseShenanigans, GibbsSeaWater, CairoMakie, JLD2
 
-restart = false
+restart = true
 
 architecture = GPU()
 Pr = 7   # Prandtl
@@ -45,7 +45,7 @@ initial_noise = TracerNoise(1e-4, 1e-2)
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
 ## Build simulation
-stop_time = Int(6 * 60 * 60) # seconds
+stop_time = Int(10 * 60 * 60) # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
 output_path = joinpath(@__DIR__, "fluxbcs_$(round(interface_ics.R_ρ, digits = 2))_dT_$(ΔT)", initial_state)
 save_schedule = 60

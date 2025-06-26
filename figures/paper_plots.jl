@@ -428,7 +428,8 @@ extrema(SO_vals[nz])
 ## Figure
 # DNS flow evolution
 # file = jldopen(nl_R_ρ_105)
-file = jldopen(nl_R_ρ_105_dT2_diagnostics)
+files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics)
+file = jldopen(files[2])
 x = file["dims/x_caa"]
 y = file["dims/y_aca"]
 z = file["dims/z_aac"]
@@ -453,7 +454,6 @@ horizontal_ticks = LinRange(-0.025, 0.025, 5)
 T_colorrange = (-1.5, 1.5)
 S_colorrange = (-0.09, 0.09)
 w_colorrnage =  (-0.0005, 0.0005)
-files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics)
 fig = Figure(size = (1500, 1300))
 snapshots = [[60.0 * 3, 60.0 * 6, 60 * 12, 60.0 * 24],
              [180.00000000000003, 60.0 * 6, 60 * 12, 60.0 * 24]]
@@ -856,6 +856,7 @@ for (i, file) ∈ enumerate(files)
                         diff(f["dims"]["y_aca"]),
                         diff(f["dims"]["z_aac"]))
         Δ = minimum(spcaings) * 1e3
+        println(Δ)
         j = i ≤ 2 ? 1 : i > 4 ? 3 : 2
         i % 2 == 0 ? lines!(ax[j], log10.(fill(Δ, length(Ba))), color = :red, linestyle = :dot,
                             label = "Grid resolution") : nothing
