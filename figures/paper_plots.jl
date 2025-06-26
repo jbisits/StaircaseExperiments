@@ -3,7 +3,7 @@ using StaircaseShenanigans: compute_R_ρ
 using JLD2, GibbsSeaWater, StatsBase, ColorSchemes
 using SeawaterPolynomials: TEOS10EquationOfState, total_density, haline_contraction, thermal_expansion
 using SpecialFunctions: erf
-using CairoMakie# GLMakie better for surface plots
+using CairoMakie # GLMakie better for surface plots
 
 cd("figures")
 ## EOS's and other constants for the paper
@@ -780,7 +780,6 @@ for (i, file) ∈ enumerate(files)
     ax[3].xlabel = "time (min)"
     ax[3].ylabel = L"z*"
     ax[3].title = "Salinity interface"
-
 end
 
 files = (l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics)
@@ -793,7 +792,6 @@ for (i, file) ∈ enumerate(files)
         Rᵨ = f["R_ρ"][ts_range]
         lines!(ax[3], t ./ 60, z✶, label = labels_nf[i],
                 linestyle = :dash, color = Makie.wong_colors()[i])
-
     end
 end
 
