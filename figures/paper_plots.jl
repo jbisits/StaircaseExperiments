@@ -824,6 +824,85 @@ S_mix = range(Sᵤ, Sₗ, length = 1000)
 ρ_max = maximum(ρ_mix)
 ρₗ = total_density(Θₗ, Sₗ, 0, nleos)
 ρ_max - ρₗ
+
+## Figure
+# Batchelor lengths and resolution
+files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
+         l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics,
+         l_R_ρ_105_dT05_diagnostics, nl_R_ρ_105_dT05_diagnostics)
+fig = Figure(size = (700, 800))
+ax = [Axis(fig[i, 1],
+          title = "Batchelor lengths and resolution",
+          xlabel = "time (mins)",
+          ylabel = "Length (log10(mm))") for i ∈ 1:3]
+ts_length = 3:240
+linestyles = (:solid, :dash)
+
+for (i, file) ∈ enumerate(files)
+
+    ls = i % 2 == 0 ? linestyles[2] : linestyles[1]
+    jldopen(file) do f
+        j = i ≤ 2 ? 1 : i > 4 ? 3 : 2
+        Ba = 1e3 * f["Ba"][ts_length]
+        lines!(ax[j], log10.(Ba), label = all_labels[i], linestyle = ls, color = Makie.wong_colors()[i])
+
+        j > 1 ? ax[j].title = "" : nothing
+        j < 3 ? hidexdecorations!(ax[j], grid = false, ticks = false) : nothing
+    end
+
+    jldopen(file) do f
+        Ba = 1e3 * f["Ba"][ts_length]
+        spcaings = vcat(diff(f["dims"]["x_caa"]),
+                        diff(f["dims"]["y_aca"]),
+                        diff(f["dims"]["z_aac"]))
+        Δ = minimum(spcaings) * 1e3
+        j = i ≤ 2 ? 1 : i > 4 ? 3 : 2
+        i % 2 == 0 ? lines!(ax[j], log10.(fill(Δ, length(Ba))), color = :red, linestyle = :dot,
+                            label = "Grid resolution") : nothing
+
+        i % 2 == 0 ? axislegend(ax[j], position = :rt) : nothing
+    end
+
+end
+fig
+##
+save("Batchelor_lengths.png", fig)
+## Figure
+# Energy budgets
+files = (l_R_ρ_105_dT2_diagnostics, l_R_ρ_105_dT1_diagnostics, l_R_ρ_105_dT05_diagnostics,
+         nl_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT05_diagnostics)
+expt_labels_ordered = ("I", "II", "III", "IV", "V", "VI")
+fig = Figure(size = (700, 800))
+ax = [Axis(fig[i, j],
+          title = "Batchelor lengths and resolution",
+          xlabel = "time (mins)") for i ∈ 1:3, j ∈ 1:2]
+ts_length = 1:240
+for (i, file) ∈ enumerate(files)
+
+    ls = i % 2 == 0 ? linestyles[2] : linestyles[1]
+    jldopen(file) do f
+
+        Δt = diff(f["dims"]["time"][ts_length])
+        dₜek = diff(f["∫Eₖ"][ts_length]) ./ Δt
+        ε = 0.5 * (f["∫ε"][1:ts_length[end-1]] .+ f["∫ε"][2:ts_length[end]])
+        ∫wb = 0.5 * (f["∫wb"][1:ts_length[end-1]] .+ f["∫wb"][2:ts_length[end]])
+        RHS = ∫wb .- ε
+
+        mean_abs_err = round(mean(abs.(dₜek .- RHS)), digits = 15)
+        lines!(ax[i], dₜek, label = L"∫E_{k}\mathrm{d}V")
+        lines!(ax[i], RHS, label = L"∫bw\mathrm{d}V - ε", linestyle = :dash)
+        ax[i].title = expt_labels_ordered[i] * ", MAE = $(mean_abs_err)"
+        i ∈ (3, 6) ? nothing : hidexdecorations!(ax[i], grid = false, ticks = false)
+        i < 4 ? nothing : hideydecorations!(ax[i], grid = false, ticks = false)
+    end
+
+end
+linkyaxes!(ax[4], ax[1])
+linkyaxes!(ax[5], ax[2])
+linkyaxes!(ax[6], ax[3])
+fig
+##
+save("energy_budgets.png", fig)
 ## Old and maybe plots
 ############################################################################################
 ## Figure
