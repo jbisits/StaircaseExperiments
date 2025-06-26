@@ -38,7 +38,7 @@ l_R_ρ_105_dT05_diagnostics  = joinpath(rundown_path, "dns_res_dT05_lineareos/st
 # flux bc experiments
 fluxbc_path = joinpath(@__DIR__, "../single_interface_fluxbcs/R_rho_1.05/deltatheta_1/")
 l_fbc_diagnostics  = joinpath(fluxbc_path, "lineareos/step_diagnostics.jld2")
-nl_fbc_diagnostics = joinpath(fluxbc_path, "nonlineareos/step_diagnostics.jld2")
+nl_fbc_diagnostics = joinpath(fluxbc_path, "nonlineareos/fluxbcs_R_rho_1.35/step_diagnostics.jld2")
 ## Figure theme
 markersize = 10
 publication_theme = Theme(font="CMU Serif", fontsize = 20,

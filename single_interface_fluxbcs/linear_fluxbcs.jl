@@ -82,6 +82,6 @@ save_diagnostics!(diags,
                   simulation.output_writers[:computed_output].filepath,
                   simulation.output_writers[:velocities].filepath)
 jldopen(diags, "a+") do f
-    f["FluxesBCs/Jˢ"] = Jˢ
+    f["FluxBCs/Jˢ"] = Jˢ
     f["FluxBCs/Jᵀ"] = Jᵀ
 end

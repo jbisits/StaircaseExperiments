@@ -89,7 +89,7 @@ save_diagnostics!(diags,
                   simulation.output_writers[:computed_output].filepath,
                   simulation.output_writers[:velocities].filepath)
 jldopen("step_diagnostics.jld2", "a+") do f
-    f["FluxesBCs/Jˢ"] = Jˢ
+    f["FluxBCs/Jˢ"] = Jˢ
     f["FluxBCs/Jᵀ"] = Jᵀ
     f["FluxBCs/top_salinity_scale"] = top_salinity_scale
 end

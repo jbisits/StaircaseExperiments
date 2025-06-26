@@ -71,6 +71,9 @@ begin
 	@info "$is initial condition with $(eos) eos output loaded"
 end
 
+# ╔═╡ 1d8b8079-60cd-47fd-97c2-2d81e6ed4247
+expt_data["FluxesBCs/Jˢ"], expt_data["FluxBCs/Jᵀ"]
+
 # ╔═╡ e177c879-b7d0-4328-b5ad-776f8c64e050
 begin
 	md"""
@@ -712,6 +715,7 @@ TableOfContents()
 # ╟─010ecdc3-51d6-41a6-9bc5-6efbba0723a6
 # ╟─68d31cca-3f29-4402-ac79-8deaef98ef50
 # ╟─087d2583-ee90-437a-97ec-0ab607337e30
+# ╠═1d8b8079-60cd-47fd-97c2-2d81e6ed4247
 # ╟─e177c879-b7d0-4328-b5ad-776f8c64e050
 # ╟─07089057-5b2f-40e5-a485-0eeac1e9b348
 # ╟─c2dce901-8578-448c-8c6e-ec7bb3e6d71b
