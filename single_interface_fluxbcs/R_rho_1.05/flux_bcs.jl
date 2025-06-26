@@ -44,7 +44,8 @@ begin
 	eos_select = @bind eos Select(["deltatheta_1/nonlineareos/fluxbcs_R_rho_1.2",
 								   "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.3", 
 								   "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.4", 
-								   "deltatheta_1/lineareos", 
+								   "deltatheta_1/lineareos",
+								   "deltatheta_1/alt_lineareos",
 								   "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.35",
 								   "deltatheta_1/nonlineareos",
 								   "deltatheta_05/nonlineareos"])

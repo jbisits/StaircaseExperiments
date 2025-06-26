@@ -679,14 +679,14 @@ files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
 
 fig = Figure(size = (800, 600))
 ax = Axis(fig[1, 1], xlabel = "time (min)", ylabel = "z (m)")
-ts_length = 1:240
+ts_length = 15:240
 for (i, f) ∈ enumerate(files)
 
     jldopen(f) do ds
 
-        σ_mid = [0.5 * (ds["σ_ha"][1, i] + ds["σ_ha"][end, i]) for i ∈ ts_length]  #median(ds["σ_ha"][:, 1])
-        find_interface = [findfirst(c .≤ σ_mid[i]) for (i, c) ∈ enumerate(eachcol(ds["σ_ha"][:, ts_length]))]
-        z = abs.(reverse(ds["dims/z_aac"]))
+        σ_mid = [0.5*(ds["σ_ha"][1, i] + ds["σ_ha"][end, i]) for i ∈ ts_length] #[median(ds["σ_ha"][:, i]) for i ∈ ts_length]
+        find_interface = [findfirst(sort(c) .≥ σ_mid[i]) for (i, c) ∈ enumerate(eachcol(ds["σ_ha"][:, ts_length]))]
+        z = abs.(ds["dims/z_aac"])
         interface_height = [z[fi] for fi ∈ find_interface]
         lines!(ax, ts_length, interface_height, label = all_labels[i])
     end
@@ -746,7 +746,7 @@ save("ape.png", fig)
 # Flux boundary conditions
 fig = Figure(size = (800, 800))
 files = (l_fbc_diagnostics, nl_fbc_diagnostics)
-labels = ("II with flux boudary conditions","V with flux boundary conditions")
+labels = ("II with flux boundary conditions","V with flux boundary conditions")
 titles = ("Experiment II with flux boundary conditions",
           "Experiment V with flux boundary conditions")
 ax = [Axis(fig[i, 1]) for i ∈ 1:3]
@@ -762,7 +762,7 @@ for (i, file) ∈ enumerate(files)
     close(f)
 
     lines!(ax[i], t, ΔS ./ ΔS[1], color = :blue, label = L"ΔS / ΔS_{0}")
-	lines!(ax[i], t, ΔT ./ ΔT[1], color = :red, label = L"ΔT / ΔT_{0}")
+	lines!(ax[i], t, ΔT ./ ΔT[1], color = :red, label = L"ΔΘ / ΔΘ_{0}")
 	ylims!(ax[i], 0, 1.1)
     ax[i].title = titles[i]
 	ax2 = Axis(fig[i, 1],
@@ -779,12 +779,27 @@ for (i, file) ∈ enumerate(files)
     lines!(ax[3], t[2:end], z✶, label = labels[i])
     ax[3].xlabel = "time (min)"
     ax[3].ylabel = L"z*"
+    ax[3].title = "Salinity interface"
 
 end
-axislegend(ax[3], position = :lt)
+
+files = (l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics)
+ts_range = 1:240
+labels_nf = ("II", "V")
+for (i, file) ∈ enumerate(files)
+    jldopen(file) do f
+        t = f["dims"]["time"][ts_range]
+        z✶ = f["dims"]["z✶"][f["S_interface_idx"]][ts_range]
+        Rᵨ = f["R_ρ"][ts_range]
+        lines!(ax[3], t ./ 60, z✶, label = labels_nf[i],
+                linestyle = :dash, color = Makie.wong_colors()[i])
+
+    end
+end
+
+Legend(fig[4, :], ax[3], orientation = :horizontal, nbanks = 2)
 hidexdecorations!(ax[1], grid = false, ticks = false)
 hidexdecorations!(ax[2], grid = false, ticks = false)
-
 fig
 ##
 save("flux_bcs.png", fig)
