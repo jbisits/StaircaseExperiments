@@ -28,7 +28,7 @@ end
 
 # ╔═╡ b51bd896-64f6-11ef-3b2b-3d362d0c3f8a
 md"""
-# Diffusive interfaces with a non-linear equation of state 
+# Diffusive interfaces with a non-linear equation of state
 
 An initial value problem for a tracer (1D profile) can be posed as
 ```math
@@ -80,14 +80,14 @@ begin
 	ρ₀ = gsw_rho(34.7, 0.5, 0)
 	leos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 	nleos = TEOS10EquationOfState(reference_density = ρ₀)
-	
+
 	τ = κₛ / κₜ
 	md"""
-	# Non-linear equation of state 
-	
+	# Non-linear equation of state
+
 	### Upper layer stability
 	$(select_upper_layer)
-	
+
 	### Diffusivities
 	Salt = $(κₛ_var) m²s⁻¹
 
@@ -103,7 +103,7 @@ let
 
 	S_upper = upper_layer == "Stable" ? S_stable : S_cab
 	ΔS = upper_layer == "Stable" ? ΔSₛ : ΔS_c
-	
+
 	z = range(-1, 0, length = 1400)
     interface_location = -0.5
 	τ = κₛ / κₜ
@@ -194,7 +194,7 @@ let
 	scatter!(ax[1], median(S)+ΔS_interface/8, z[find_S_interface][1], color = :blue)
 	scatter!(axT, median(T)-ΔΘ_interface/8, z[find_Θ_interface][end], color = :red)
 	scatter!(axT, median(T)+ΔΘ_interface/8, z[find_Θ_interface][1], color = :red)
-	
+
 	Δρ = gsw_rho(S_upper, Θ_upper, 0) - gsw_rho(S_star, Θ_star, 0)
 
 	md"""
@@ -218,7 +218,7 @@ let
 
 	S_upper = upper_layer == "Stable" ? S_stable : S_cab
 	ΔS = upper_layer == "Stable" ? ΔSₛ : ΔS_c
-	
+
 	z = range(-1, 0, length = 1400)
 	eos = CustomLinearEquationOfState(-0.5, 34.6)
 	eos_vec = fill(eos, length(z))
@@ -332,7 +332,7 @@ md"""
 begin
 	S_upper = upper_layer == "Stable" ? S_stable : S_cab
 	ΔS = upper_layer == "Stable" ? ΔSₛ : ΔS_c
-	
+
 	z = range(-1, 0, length = 1400)
 	eos = CustomLinearEquationOfState(-0.5, 34.6)
 	eos_vec = fill(eos, length(z))
@@ -350,12 +350,12 @@ begin
 		σ₀_nonlinear = gsw_rho.(S, T, 0)
 		σ₀_nonlinear_max[i] = maximum(σ₀_nonlinear)
 		σ₀_nonlinear_min[i] = minimum(σ₀_nonlinear)
-		
+
 		σ₀_linear = total_density.(T, S, 0, eos_vec)
 		σ₀_linear_max[i] = maximum(σ₀_linear)
 		σ₀_linear_min[i] = minimum(σ₀_linear)
 	end
-	
+
 	Δσ_lower_nonlinear = σ₀_nonlinear_max .- gsw_rho(S_star, Θ_star, 0)
 	Δσ_upper_nonlinear = abs.(σ₀_nonlinear_min .- gsw_rho(S_upper, Θ_upper, 0))
 	Δσ_nonlinear = Δσ_upper_nonlinear ./ Δσ_lower_nonlinear
@@ -363,7 +363,7 @@ begin
 	Δσ_lower_linear = σ₀_linear_max .- total_density(Θ_star, S_star, 0, eos)
 	Δσ_upper_linear = abs.(σ₀_linear_min .- total_density(Θ_upper, S_upper, 0, eos))
 	Δσ_linear = Δσ_upper_linear ./ Δσ_lower_linear
-	
+
 	fig, ax = lines(τ_range, Δσ_nonlinear, label = "nonlinear eos")
 	lines!(ax, τ_range, Δσ_linear, label = "linear eos")
 	ax.xlabel = "τ"
@@ -470,9 +470,9 @@ let
 	R_Δσ = Δσ_upper / Δσ_lower
 	md"""
 	$(fig)
-	EOS: $(eos_select), ``S_{u} = `` $(round(Sᵤ, digits = 4)) $(Sᵤ_slider),    
+	EOS: $(eos_select), ``S_{u} = `` $(round(Sᵤ, digits = 4)) $(Sᵤ_slider),
 	``\kappa_{S} = `` $(_κₛ) $(κₛ_slider)
-	
+
 	``R_{\rho} = `` $(R_ρ), ``\tau = `` $(τ), ``R_{\Delta\sigma} = `` $(R_Δσ)
 	"""
 end
