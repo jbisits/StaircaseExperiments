@@ -644,9 +644,9 @@ save("density_hovs.png", fig)
 files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
          l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics,
          l_R_ρ_105_dT05_diagnostics, nl_R_ρ_105_dT05_diagnostics)
-fig_interface = Figure(size = (500, 500))
+fig_interface = Figure(size = (800, 400))
 ax_interface = Axis(fig_interface[1, 1],
-                    title = "Salinity interface",
+                    title = "Salinity interface height",
                     xlabel = "time (min)",
                     ylabel = L"$z*$ (m)")
 # ax_rate_of_change = Axis(fig_interface[2, 1],
@@ -661,14 +661,24 @@ for (i, file) ∈ enumerate(files)
         Rᵨ = f["R_ρ"][ts_range]
         ls = i % 2 == 0 ? :dash : :solid
         lines!(ax_interface, t ./ 60, z✶, label = all_labels[i], linestyle = ls)
-
         # if i % 2 == 0
         #     Δt = diff(t)
         #     Δz✶ = diff(z✶)
         #     lines!(ax_rate_of_change, Rᵨ[2:end], Δz✶ ./ Δt, label = all_labels[i])
         # end
+        # if i == 4
+        #     ax_R_rho = Axis(fig_interface[1, 1],
+        #         title = "Salinity interface",
+        #         xlabel = L"R_{\rho}",
+        #         xaxisposition = :top,
+        #         xtickcolor = :dodgerblue,
+        #         xticklabelcolor = :dodgerblue,
+        #         xlabelcolor = :dodgerblue,
+        #         xticks = (1:240 , string.(round.(Rᵨ, digits = 2))))
+        # end
     end
 end
+linkxaxes!(ax_R_rho, ax_interface)
 axislegend(ax_interface, position = :rc, nbanks = 2)
 fig_interface
 ## Figure
