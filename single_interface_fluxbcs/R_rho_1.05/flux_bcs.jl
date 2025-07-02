@@ -48,7 +48,7 @@ begin
 								   "deltatheta_1/alt_lineareos",
 								   "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.35",
 								   "deltatheta_1/nonlineareos",
-								   "deltatheta_1/nonlineareos_pickup",
+								   "deltatheta_1/longer_nonlineareos",
 								   "deltatheta_05/nonlineareos"])
 	md"""
 	# Equation of state
@@ -73,7 +73,7 @@ begin
 end
 
 # ╔═╡ 1d8b8079-60cd-47fd-97c2-2d81e6ed4247
-expt_data["FluxesBCs/Jˢ"], expt_data["FluxBCs/Jᵀ"]
+expt_data["FluxBCs/Jˢ"], expt_data["FluxBCs/Jᵀ"]
 
 # ╔═╡ e177c879-b7d0-4328-b5ad-776f8c64e050
 begin
