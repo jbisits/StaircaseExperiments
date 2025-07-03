@@ -127,9 +127,11 @@ save("fig1_S_T_sigma_profiles.png", fig)
 
 ## Figure
 # Profiles in salinity-temperature space
-σ_grad = get(ColorSchemes.dense, range(0.2, 1, length = 4))
+# σ_grad = get(ColorSchemes.dense, range(0.2, 1, length = 4))
+σ_grad = get(ColorSchemes.diff, [0.2, 0.3, 0.6, 1])
+σ_grad = cgrad(σ_grad, 4, categorical = true)
 fig = Figure(size = (800, 600))
-eos_title = ["(a) Linear equaiton of state", "(b) Nonlinear equation of state"]
+eos_title = ["(a) Linear equation of state", "(b) Nonlinear equation of state"]
 ax = [Axis(fig[i, 1], title = eos_title[i], xlabel = "S (gkg⁻¹)", ylabel = "Θ (°C)") for i ∈ 1:2]
 N = 2000
 S_range, Θ_range = range(minimum(S), maximum(S), length = N), range(minimum(T), maximum(T), length = N)
@@ -143,19 +145,26 @@ linear_σ₀_max = maximum(linear_σ₀) .- mean(vcat(linear_σ₀ᵘ, linear_σ
 
 function my_contour_label_formatter(level::Real)::String
     lev_short = round(level; digits = 3)
-    x = @sprintf("%.1E", lev_short)
+    x = @sprintf("%.1e", lev_short)
     string(x)
 end
-cn = contour!(ax[1], S_range, Θ_range, linear_σ₀_grid';
-              levels = [linear_σ₀_min, linear_σ₀_upper, linear_σ₀_lower, linear_σ₀_max],
-            #   colormap = :dense,
-              color = σ_grad,
-              labelformatter = my_contour_label_formatter,
-              labels = true,
-              linewidth = 0.5,
-              label = "Isopycnals",
-              labelsize = 16)
 
+σ_linear_levels = [linear_σ₀_min, linear_σ₀_upper, linear_σ₀_lower, linear_σ₀_max]
+cn = contour!(ax[1], S_range, Θ_range, linear_σ₀_grid';
+              levels = σ_linear_levels,
+              colormap = σ_grad,
+              colorrange = extrema(σ_linear_levels),
+            #   color = σ_grad,
+            #   labelformatter = my_contour_label_formatter,
+            #   labels = true,
+            #   labelsize = 14,
+              linewidth = 0.75,
+            #   linestyle = :dot,
+              label = "Isopycnals")
+Colorbar(fig[1, 2], colorrange = extrema(σ_linear_levels),
+        colormap = cgrad(σ_grad, 4, categorical = true),
+        ticks = (range(extrema(σ_linear_levels)..., length = 4), string.(round.(σ_linear_levels, digits = 3))),
+        label = L"$\Delta \sigma_{0}'$ (kgm$^{-3}$)")
 lines!(ax[1], S, T, linear_σ₀; label = "S-T profile", color = :tomato, linestyle = :dash)
 S_minmax = [S[min_linear_idx], S[max_linear_idx]]
 T_minmax = [T[min_linear_idx], T[max_linear_idx]]
@@ -176,15 +185,22 @@ lines!(ax[2], S, T, nlinear_σ₀; label = "S-T profile", color = :tomato, lines
 S_minmax = [S[min_nlinear_idx], S[max_nlinear_idx]]
 T_minmax = [T[min_nlinear_idx], T[max_nlinear_idx]]
 
+σ_nl_levels = [nlinear_σ₀_min, nlinear_σ₀_upper, nlinear_σ₀_lower, nlinear_σ₀_max]
 cn = contour!(ax[2], S_range, Θ_range, nlinear_σ₀_grid';
-              levels = [nlinear_σ₀_min, nlinear_σ₀_upper, nlinear_σ₀_lower, nlinear_σ₀_max],
-            #   colormap = :dense,
-              labelformatter = my_contour_label_formatter,
-              labels = true,
-              color = σ_grad,
-              linewidth = 0.5,
-              label = "Isopycnals",
-              labelsize = 16)
+              levels = σ_nl_levels,
+              colormap = σ_grad,
+              colorrange = (-maximum(σ_nl_levels), maximum(σ_nl_levels)),
+            #   labelformatter = my_contour_label_formatter,
+            #   labels = true,
+            #   color = σ_grad,
+                # labelsize = 14,
+              linewidth = 0.75,
+            #   linestyle = :dot,
+              label = "Isopycnals")
+Colorbar(fig[2, 2], colorrange = extrema(σ_nl_levels),
+        colormap = σ_grad,
+        ticks = (range(nlinear_σ₀_min, nlinear_σ₀_max, length = 4), string.(round.(σ_nl_levels, digits = 3))),
+        label = L"$\Delta \sigma_{0}'$ (kgm$^{-3}$)")
 scatter!(ax[2], S_minmax[1], T_minmax[1]; markersize, label = "Minimum density", color = σ_grad[1])
 scatter!(ax[2], S[end], T[end]; markersize, label = "Initial upper density", color = σ_grad[2])
 scatter!(ax[2], S[1], T[1]; markersize, label = "Initial lower density", color = σ_grad[3])
@@ -346,7 +362,7 @@ find_τ_01 = findfirst(τ_range .> 0.1)
 
 fig = Figure(size = (800, 400))
 linestyle = [:solid, :dash, :dot, :dashdot]
-ax1 = Axis(fig[1, 1], title = L"(a) Asymmetry due to $\tau$", titlefont = :bold, xlabel = L"τ", ylabel = L"R_{\Delta\rho}")
+ax1 = Axis(fig[1, 1], title = L"Asymmetry due to $\tau$", titlefont = :bold, xlabel = L"τ", ylabel = L"R_{\Delta\rho}")
 for i ∈ eachindex(Sᵤ_range)
     lines!(ax1, τ_range, Δσ_linear[:, i], linestyle = linestyle[i], color = Makie.wong_colors()[1],
            label = L"$ρ_{\mathrm{linear}}\text{, }R_{\rho} =$ %$(round(Rᵨ_leos[i], digits = 2))")
@@ -639,7 +655,7 @@ for (i, f) ∈ enumerate(files)
                 end
         σ_ha′ = ds["σ_ha"][:, 1:ts_length ]' .- mean(ds["σ_ha"][:, 1])'
         hm = heatmap!(axσ[i], 1:ts_length, z, σ_ha′; colorrange = crange, colormap = :diff)
-        axσ[i].title = all_labels[i]
+        axσ[i].title = "Experiment " * all_labels[i]
         if i % 2 == 0
             Colorbar(fig[Int(i / 2), 3], hm, label = L"$σ_{0}′$ (kgm$^{-3}$)")
             hideydecorations!(axσ[i], ticks = false)
