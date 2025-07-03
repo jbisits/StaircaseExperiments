@@ -530,64 +530,77 @@ extrema(SO_vals[nz])
 
 ## Figure
 # initial evlotuion
-files = (nl_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT05_diagnostics)
-fig = Figure(size = (900, 600))
-ax = [Axis(fig[1, i],
-            xlabel = L"$S$ (gkg$^{-1}$)",
-            ylabel = L"$Θ$ (°C)",
-            title = "Experiment " * nlinear_expt_labels[i],
-            subtitle = L"$t = 3$ min") for i ∈ eachindex(files)]
-file = jldopen(files[1])
-S = file["S_ha"][:, 3]
-Θ = file["T_ha"][:, 3]
-N = 100
-S_range = range(extrema(S)..., length=N)
-T_range = range(extrema(Θ)..., length=N)
-eos_vec = fill(nleos, (N, N))
-ρ_grid = total_density.(T_range' .* ones(length(T_range)), S_range .* ones(length(S_range))', fill(0, (N, N)), eos_vec)
-close(file)
-for (i, f) ∈ enumerate(files)
-    file = jldopen(f)
-    S = file["S_ha"][:, 2+i]
-    Θ = file["T_ha"][:, 2+i]
-    σ = file["σ_ha"][:, 2+i]
-    z = file["dims/z_aac"]
-    κₛ = file["attrib/κₛ (m²s⁻¹)"]
-    κₜ = file["attrib/κₜ (m²s⁻¹)"]
-    id = file["attrib/interface_depth"]
+nl_files = (nl_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT05_diagnostics)
+l_files = (l_R_ρ_105_dT2_diagnostics, l_R_ρ_105_dT1_diagnostics, l_R_ρ_105_dT05_diagnostics)
+merged_files = (l_files, nl_files)
+eos_type = (leos, nleos)
+ordered_labels = (("I", "II", "III"), ("IV", "V", "VI"))
+fig = Figure(size = (900, 900))
+for (j, files) ∈ enumerate(merged_files)
+    ax = [Axis(fig[j, i],
+                xlabel = L"$S$ (gkg$^{-1}$)",
+                ylabel = L"$Θ$ (°C)",
+                title = "Experiment " * ordered_labels[j][i]) for i ∈ eachindex(files)]
+    file = jldopen(files[1])
+    S = file["S_ha"][:, 4]
+    Θ = file["T_ha"][:, 4]
+    N = 100
+    S_range = range(extrema(S)..., length=N)
+    T_range = range(extrema(Θ)..., length=N)
+    eos_vec = fill(eos_type[j], (N, N))
+    ρ_grid = total_density.(T_range' .* ones(length(T_range)),
+                            S_range .* ones(length(S_range))',
+                            fill(0, (N, N)), eos_vec)
     close(file)
+    for (i, f) ∈ enumerate(files)
+        file = jldopen(f)
+        S = file["S_ha"][:, 2+i]
+        Θ = file["T_ha"][:, 2+i]
+        σ = file["σ_ha"][:, 2+i]
+        z = file["dims/z_aac"]
+        t = file["dims/time"]
+        κₛ = file["attrib/κₛ (m²s⁻¹)"]
+        κₜ = file["attrib/κₜ (m²s⁻¹)"]
+        id = file["attrib/interface_depth"]
+        close(file)
 
-    ΔS = S[end] - S[1]
-    ΔΘ = Θ[end] - Θ[1]
-    S_model = erf_tracer_solution.(z, S[1], ΔS, κₛ, t, id)
-    Θ_model = erf_tracer_solution.(z, Θ[1], ΔΘ, κₜ, t, id)
-    σ_model = total_density.(Θ_model, S_model, fill(0, length(S_model)), fill(nleos, length(S_model)))
-    ρmodel_shallow = σ_model[end]
-    ρmodel_deep = σ_model[1]
-    ρmodel_max = maximum(σ_model)
-    ρmodel_min = minimum(σ_model)
-    R_Δρ_model = round(abs(ρmodel_min - ρmodel_shallow) / abs(ρmodel_max - ρmodel_deep), digits = 3)
+        ΔS = S[end] - S[1]
+        ΔΘ = Θ[end] - Θ[1]
+        _t = 5000
+        S_model = erf_tracer_solution.(z, S[1], ΔS, κₛ, _t, id)
+        Θ_model = erf_tracer_solution.(z, Θ[1], ΔΘ, κₜ, _t, id)
+        σ_model = total_density.(Θ_model, S_model, fill(0, length(S_model)), fill(eos_type[j], length(S_model)))
+        ρmodel_shallow = σ_model[end]
+        ρmodel_deep = σ_model[1]
+        ρmodel_max = maximum(σ_model)
+        ρmodel_min = minimum(σ_model)
+        R_Δρ_model = round(abs(ρmodel_min - ρmodel_shallow) / abs(ρmodel_max - ρmodel_deep), digits = 3)
 
-    ρ_shallow = σ[end]
-    ρ_deep = σ[1]
-    ρ_max = maximum(σ)
-    ρ_min = minimum(σ)
-    R_Δρ_sim = round(abs(ρ_min - ρ_shallow) / abs(ρ_max - ρ_deep), digits = 3)
+        ρ_shallow = σ[end]
+        ρ_deep = σ[1]
+        ρ_max = maximum(σ)
+        ρ_min = minimum(σ)
+        R_Δρ_sim = round(abs(ρ_min - ρ_shallow) / abs(ρ_max - ρ_deep), digits = 3)
 
-    contour!(ax[i], S_range, T_range, ρ_grid, levels = [ρ_shallow, ρ_deep, ρ_max, ρ_min],
-            color = Makie.wong_colors()[3], label = "Isopycnals", linestyle = :dot)
-    lines!(ax[i], S_model, Θ_model, label = "1D model", linewidth = 3)
-    lines!(ax[i], S, Θ; label = "Simulation output", color = Makie.wong_colors()[2],
-            linestyle = :dash, linewidth = 3)
-text!(ax[i], 34.7, -1.2, text = L"1D model $R_{\Delta\rho} =$ %$(R_Δρ_model)", align = (:right, :top))
-text!(ax[i], 34.7, -1.4, text = L"Simulation $R_{\Delta\rho} =$ %$(R_Δρ_sim)", align = (:right, :top))
-if i > 1
-        hideydecorations!(ax[i], grid = false, ticks = false)
-        linkyaxes!(ax[i], ax[1])
-        linkxaxes!(ax[i], ax[1])
+        contour!(ax[i], S_range, T_range, ρ_grid, levels = [ρmodel_shallow, ρmodel_deep, ρmodel_max, ρmodel_min],
+                color = Makie.wong_colors()[3], label = "Isopycnals", linestyle = :dot)
+        lines!(ax[i], S_model, Θ_model, label = "1D model", linewidth = 3)
+        lines!(ax[i], S, Θ; label = "Simulation output", color = Makie.wong_colors()[2],
+                linestyle = :dash, linewidth = 3)
+        text!(ax[i], 34.7, -1.2, text = L"1D model $R_{\Delta\rho} =$ %$(R_Δρ_model)", align = (:right, :top))
+        text!(ax[i], 34.7, -1.4, text = L"Simulation $R_{\Delta\rho} =$ %$(R_Δρ_sim)", align = (:right, :top))
+        ax[i].subtitle = L"$t~=$ %$(round(t[2+i]/60, digits = 1)) min"
+        if i > 1
+                hideydecorations!(ax[i], grid = false, ticks = false)
+                linkyaxes!(ax[i], ax[1])
+                linkxaxes!(ax[i], ax[1])
+        end
+        if j == 1
+            hidexdecorations!(ax[i], grid = false, ticks = false)
+        end
     end
 end
-Legend(fig[2, :], ax[1], orientation = :horizontal)
+Legend(fig[3, :], ax[1], orientation = :horizontal)
 fig
 ##
 save("fig6_ST_simluation.png", fig)
@@ -752,7 +765,7 @@ linkxaxes!(ax[1], ax[2])
 axislegend(ax[1], orientation = :horizontal, nbanks = 2, position = :rb)
 fig
 ##
-save("ape.png", fig)
+save("fig9_ape.png", fig)
 
 ## Figure
 # Flux boundary conditions
@@ -885,7 +898,7 @@ save("fig11_Batchelor_lengths.png", fig)
 files = (l_R_ρ_105_dT2_diagnostics, l_R_ρ_105_dT1_diagnostics, l_R_ρ_105_dT05_diagnostics,
          nl_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT05_diagnostics)
 expt_labels_ordered = ("I", "II", "III", "IV", "V", "VI")
-fig = Figure(size = (800, 800))
+fig = Figure(size = (800, 1000))
 ax = [Axis(fig[i, j],
           title = "Batchelor lengths and resolution",
           xlabel = "time (mins)") for i ∈ 1:3, j ∈ 1:2]
@@ -902,8 +915,8 @@ for (i, file) ∈ enumerate(files)
         RHS = ∫wb .- ε
 
         mean_abs_err = round(mean(abs.(dₜek .- RHS)), digits = 15)
-        lines!(ax[i], dₜek, label = L"∫E_{k}\mathrm{d}V")
-        lines!(ax[i], RHS, label = L"∫bw\mathrm{d}V - ε", linestyle = :dash)
+        lines!(ax[i], dₜek, label = L"\rho_{0}^{-1}\frac{\mathrm{d}}{\mathrm{d}t}\int E_{k}~\mathrm{d}V")
+        lines!(ax[i], RHS, label = L"\int bw~\mathrm{d}V - ε", linestyle = :dash)
         ax[i].title = expt_labels_ordered[i] * ", MAE = $(mean_abs_err)"
         i ∈ (3, 6) ? nothing : hidexdecorations!(ax[i], grid = false, ticks = false)
         i < 4 ? nothing : hideydecorations!(ax[i], grid = false, ticks = false)
@@ -913,6 +926,7 @@ end
 linkyaxes!(ax[4], ax[1])
 linkyaxes!(ax[5], ax[2])
 linkyaxes!(ax[6], ax[3])
+Legend(fig[4, :], ax[1], orientation = :horizontal)
 fig
 ##
 save("fig12_energy_budgets.png", fig)
