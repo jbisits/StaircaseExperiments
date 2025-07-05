@@ -392,6 +392,7 @@ Rᵨ_nleos = similar(Rᵨ_leos)
 σ₀ˡ_leos = total_density(Θₗ, Sₗ, 0, leos)
 τ = 0.1
 Δρ′_nlinear = similar(Rᵨ_leos)
+δ(C) = 1 + 2*C + 2*sqrt(C^2 + C)
 δ_leos = similar(Rᵨ_leos)
 δ_nleos = similar(Rᵨ_leos)
 for (j, _Sᵤ) ∈ enumerate(Sᵤ_range)
@@ -431,8 +432,10 @@ for (j, _Sᵤ) ∈ enumerate(Sᵤ_range)
         Δρ_nlinear = abs(ρ_nlinear[1] - ρ_nlinear[end])
         Δρ′_linear = ρ_l_max - ρ_linear[end]
         Δρ′_nlinear[i, j] = ρ_nl_max - ρ_nlinear[end]
-        δ_leos[i, j] = Δρ′_linear #/ Δρ_linear
-        δ_nleos[i, j] = Δρ′_nlinear[i, j] #/ Δρ_nlinear
+        # δ_leos[i, j] = Δρ′_linear #/ Δρ_linear
+        # δ_nleos[i, j] = Δρ′_nlinear[i, j] #/ Δρ_nlinear
+        δ_leos[i, j] = δ(Δρ′_linear / Δρ_linear)
+        δ_nleos[i, j] = δ(Δρ′_nlinear[i, j] / (ρ_nlinear[end] - ρ_nlinear[1]))
     end
 
 end
@@ -459,7 +462,7 @@ for (i, c) ∈ enumerate(eachcol(reverse(Rᵨ_leos, dims = 1)))
     end
 end
 
-δ_nleos = δ_nleos ./ maximum(δ_nleos[.!isnan.(δ_nleos)]) # normalise
+# δ_nleos = δ_nleos ./ maximum(δ_nleos[.!isnan.(δ_nleos)]) # normalise
 
 ΔΘ = Θᵤ_range .- Θₗ
 ΔS = Sᵤ_range .- Sₗ
@@ -505,14 +508,15 @@ hidexdecorations!(ax_lR_Δρ, grid = false, ticks = false)
 hidexdecorations!(ax_nlR_Δρ, grid = false, ticks = false)
 Colorbar(fig[2, 3], hm_nlR_Δρ, label = "R_Δρ")
 
-colorrange = (0, maximum(δ_nleos[.!isnan.(δ_nleos)]))
+# colorrange = (0, maximum(δ_nleos[.!isnan.(δ_nleos)]))
+colorrange = (1, 10)
 ax_δ_linear = Axis(fig[3, 1], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
-hm_δ_linear = heatmap!(ax_δ_linear, ΔΘ, ΔS, δ_leos; colorrange, colormap = :turbid)
+hm_δ_linear = heatmap!(ax_δ_linear, ΔΘ, ΔS, δ_leos; colorrange, colormap = :turbid, highclip = :red, lowclip = :orange)
 scatter!(ax_δ_linear, arctic_obs...; markersize, color = :red)
 scatter!(ax_δ_linear, ΔΘ_expts, ΔS_expts_linear; color = linear_colour,
          label = linear_expt_labels, markersize, marker = linear_expt_markers)
 ax_δ_nlinear = Axis(fig[3, 2], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
-hm_δ_nlinear = heatmap!(ax_δ_nlinear, ΔΘ, ΔS, δ_nleos; colorrange, colormap = :turbid)
+hm_δ_nlinear = heatmap!(ax_δ_nlinear, ΔΘ, ΔS, δ_nleos; colorrange, colormap = :turbid, highclip = :red, lowclip = :orange)
 scatter!(ax_δ_nlinear, arctic_obs...; markersize, color = :red, label = "Arctic interfaces")
 scatter!(ax_δ_nlinear, ΔΘ_expts, ΔS_expts_nlinear; color = nlinear_colour,
          label = nlinear_expt_labels, markersize, marker = nlinear_expt_markers)
@@ -953,6 +957,45 @@ Legend(fig[4, :], ax[1], orientation = :horizontal)
 fig
 ##
 save("fig12_energy_budgets.png", fig)
+
+##
+# δ parameter
+# McDougall expt 25th Oct check
+S = [0.04, 6.01]
+Θ = [15.5, 30.39]
+ΔS = diff(S)
+Θ = gsw_ct_from_t.(S, Θ, 0)
+ΔΘ = diff(Θ)
+S_mix = range(S..., length = 1000)
+T_mix = Θ[2] .+ (ΔΘ / ΔS) .* (S_mix .- S[2])
+ρ = gsw_rho.(S, Θ, 0)
+Δρ = diff(ρ)
+Δρ′ = maximum(gsw_rho.(S_mix, T_mix, 0)) - gsw_rho(S[2], Θ[2], 0)
+
+δ(C) = 1 + 2*C + 2*sqrt(C^2 + C)
+δ(Δρ′/Δρ[1]) # checks out
+
+## One of mine
+S = [34.631, 34.7]
+ΔS = diff(S)
+Θ = [-0.5, 0.5]
+ΔΘ = diff(Θ)
+S_mix = range(S..., length = 1000)
+T_mix = Θ[2] .+ (ΔΘ / ΔS) .* (S_mix .- S[2])
+ρ = gsw_rho.(S, Θ, 0)
+Δρ = diff(ρ)
+Δρ′ = maximum(gsw_rho.(S_mix, T_mix, 0)) - gsw_rho(S[2], Θ[2], 0)
+δ(Δρ′/Δρ[1])
+
+
+
+
+
+
+
+
+
+
 ## Old and maybe plots
 ############################################################################################
 ## Figure
