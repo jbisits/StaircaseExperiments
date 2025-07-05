@@ -544,6 +544,9 @@ replace!(SO_vals, NaN => 0)
 nz = findall(SO_vals .!= 0)
 extrema(SO_vals[nz])
 
+## δ parameter
+
+
 ## Figure
 # initial evlotuion
 nl_files = (nl_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT05_diagnostics)
@@ -712,6 +715,10 @@ axislegend(ax_R_rho, position = :lt, orientation = :horizontal, nbanks = 2)
 fig_interface
 ##
 save("salinity_interfaces.png", fig_interface)
+##
+# Entrainment rate
+# Fit line to non-linear expt that has approximately constant R_ρ to get entrainment velocity
+# Then use equation (Diffusive) from McDougall (1981) to compute the Entrainment parameter.
 ## Figure
 # Height of midpoint density
 files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
