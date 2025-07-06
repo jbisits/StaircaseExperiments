@@ -41,7 +41,9 @@ end
 
 # ╔═╡ 68d31cca-3f29-4402-ac79-8deaef98ef50
 begin
-	eos_select = @bind eos Select(["deltatheta_1/nonlineareos/fluxbcs_R_rho_1.2",
+	eos_select = @bind eos Select(["deltatheta_1/dns_res_nonlineareos",
+								   "deltatheta_1/dns_res_lineareos",
+								   "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.2",
 								   "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.3", 
 								   "deltatheta_1/nonlineareos/fluxbcs_R_rho_1.4", 
 								   "deltatheta_1/lineareos",
@@ -136,7 +138,7 @@ let
 
 	fig = Figure(size = (500, 500))
 	ax1 = Axis(fig[1, 1], xlabel = "R_ρ", ylabel = "Ẽ")
-	lines!(ax1, R_ρ_interp, expt_data["Ẽ"])
+	lines!(ax1, eachindex(expt_data["Ẽ"]), expt_data["Ẽ"])
 	# vlines!(ax1, 1.6, color = :red, linestyle = :dash)
 
 	# ax2 = Axis(fig[2, 1], xlabel = "R_ρ", ylabel = "Ẽ")
