@@ -38,8 +38,8 @@ nl_R_ρ_105_dT05_diagnostics = joinpath(rundown_path, "dns_res_dT05_nonlineareos
 l_R_ρ_105_dT05_diagnostics  = joinpath(rundown_path, "dns_res_dT05_lineareos/step_diagnostics.jld2")
 # flux bc experiments
 fluxbc_path = joinpath(@__DIR__, "../single_interface_fluxbcs/R_rho_1.05/deltatheta_1/")
-l_fbc_diagnostics  = joinpath(fluxbc_path, "lineareos/step_diagnostics.jld2")
-nl_fbc_diagnostics = joinpath(fluxbc_path, "nonlineareos/fluxbcs_R_rho_1.35/step_diagnostics.jld2")
+l_fbc_diagnostics  = joinpath(fluxbc_path, "alt_lineareos/step_diagnostics.jld2")
+nl_fbc_diagnostics = joinpath(fluxbc_path, "longer_nonlineareos/step_diagnostics.jld2")
 ## Figure theme
 markersize = 10
 publication_theme = Theme(font="CMU Serif", fontsize = 20,
@@ -548,9 +548,6 @@ replace!(SO_vals, NaN => 0)
 nz = findall(SO_vals .!= 0)
 extrema(SO_vals[nz])
 
-## δ parameter
-
-
 ## Figure
 # initial evlotuion
 nl_files = (nl_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT05_diagnostics)
@@ -691,11 +688,6 @@ ax_interface = Axis(fig_interface[2, 1],
                     title = "(b) Salinity interface height",
                     xlabel = "time (min)",
                     ylabel = L"$z*$ (m)")
-
-# ax_rate_of_change = Axis(fig_interface[2, 1],
-#                          title = "Rate of change",
-#                          xlabel = L"R_{\rho}",
-#                          ylabel = L"$\mathrm{d}z* / \mathrm{d}t$ ")
 ts_range = 1:240
 for (i, file) ∈ enumerate(files)
     jldopen(file) do f
@@ -705,48 +697,15 @@ for (i, file) ∈ enumerate(files)
         ls = i % 2 == 0 ? :dash : :solid
         lines!(ax_interface, t ./ 60, z✶, label = all_labels[i], linestyle = ls)
         lines!(ax_R_rho, t ./ 60, Rᵨ, label = all_labels[i], linestyle = ls)
-        # if i % 2 == 0
-        #     Δt = diff(t)
-        #     Δz✶ = diff(z✶)
-        #     lines!(ax_rate_of_change, Rᵨ[2:end], Δz✶ ./ Δt, label = all_labels[i])
-        # end
     end
 end
 hidexdecorations!(ax_R_rho, grid = false, ticks = false)
 linkxaxes!(ax_R_rho, ax_interface)
 axislegend(ax_R_rho, position = :lt, orientation = :horizontal, nbanks = 2)
-# Legend(fig_interface[3, 1], ax_interface, orientation = :horizontal)
 fig_interface
 ##
 save("salinity_interfaces.png", fig_interface)
-##
-# Entrainment rate
-# Fit line to non-linear expt that has approximately constant R_ρ to get entrainment velocity
-# Then use equation (Diffusive) from McDougall (1981) to compute the Entrainment parameter.
-## Figure
-# Height of midpoint density
-files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
-         l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics,
-         l_R_ρ_105_dT05_diagnostics, nl_R_ρ_105_dT05_diagnostics)
 
-fig = Figure(size = (800, 600))
-ax = Axis(fig[1, 1], xlabel = "time (min)", ylabel = "z (m)")
-ts_length = 15:240
-for (i, f) ∈ enumerate(files)
-
-    jldopen(f) do ds
-
-        σ_mid = [0.5*(ds["σ_ha"][1, i] + ds["σ_ha"][end, i]) for i ∈ ts_length] #[median(ds["σ_ha"][:, i]) for i ∈ ts_length]
-        find_interface = [findfirst(sort(c) .≥ σ_mid[i]) for (i, c) ∈ enumerate(eachcol(ds["σ_ha"][:, ts_length]))]
-        z = abs.(ds["dims/z_aac"])
-        interface_height = [z[fi] for fi ∈ find_interface]
-        lines!(ax, ts_length, interface_height, label = all_labels[i])
-    end
-end
-axislegend(ax, position = :rb)
-fig
-##
-save("salinity_interfaces.png", fig_interface)
 ## Figure
 # energetics
 files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
@@ -802,15 +761,15 @@ labels = ("II with flux boundary conditions","V with flux boundary conditions")
 titles = ("Experiment II with flux boundary conditions",
           "Experiment V with flux boundary conditions")
 ax = [Axis(fig[i, 1]) for i ∈ 1:3]
-
+ts_range = 1:360
 for (i, file) ∈ enumerate(files)
 
     f = jldopen(file)
-    ΔS = f["ΔS"]
-    ΔT = f["ΔT"]
-    Rᵨ = f["R_ρ"]
-    t = f["dims"]["time"] ./ 60
-    z✶ = f["dims"]["z✶"][f["S_interface_idx"]]
+    ΔS = f["ΔS"][ts_range]
+    ΔT = f["ΔT"][ts_range]
+    Rᵨ = f["R_ρ"][ts_range]
+    t = f["dims"]["time"][ts_range] ./ 60
+    z✶ = f["dims"]["z✶"][f["S_interface_idx"][ts_range]]
     close(f)
 
     lines!(ax[i], t, ΔS ./ ΔS[1], color = :blue, label = L"ΔS / ΔS_{0}")
@@ -828,9 +787,9 @@ for (i, file) ∈ enumerate(files)
     linkxaxes!(ax2, ax[i])
     hidexdecorations!(ax2)
 	axislegend(ax[i], merge = true, position = :rb)
-    lines!(ax[3], t[2:end], z✶, label = labels[i])
+    lines!(ax[3], t[1:end], z✶, label = labels[i])
     ax[3].xlabel = "time (min)"
-    ax[3].ylabel = L"z*"
+    ax[3].ylabel = L"$z*$ (m)"
     ax[3].title = "Salinity interface"
 end
 
@@ -852,7 +811,24 @@ hidexdecorations!(ax[1], grid = false, ticks = false)
 hidexdecorations!(ax[2], grid = false, ticks = false)
 fig
 ##
+f = jldopen(nl_fbc_diagnostics)
+linfit_range = 100:360
+z✶ = f["dims"]["z✶"][f["S_interface_idx"][linfit_range]]
+t = f["dims"]["time"][linfit_range]
+A = [ones(length(t)) t]
+a, b = A \ z✶
+lines!(ax[3], t./60, a .+ t .* b)
+fig
+uₑ = b
+ΔS = abs(mean(f["ΔS"][linfit_range]))
+ΔT = abs(mean(f["ΔT"][linfit_range]))
+Jₛ = f["FluxBCs/Jˢ"] * f["FluxBCs/top_salinity_scale"]
+Jₜ = f["FluxBCs/Jᵀ"]
+Ẽ = (uₑ * ΔS) / (2 * 0.25 * Jₛ + uₑ * ΔS)
+Ẽ = (uₑ * ΔT) / (2 * 0.25 * Jₜ + uₑ * ΔT)
+##
 save("flux_bcs.png", fig)
+
 ## Calculations
 # Δρ′
 # I, IV
@@ -975,7 +951,21 @@ T_mix = Θ[2] .+ (ΔΘ / ΔS) .* (S_mix .- S[2])
 δ(C) = 1 + 2*C + 2*sqrt(C^2 + C)
 δ(Δρ′/Δρ[1]) # checks out
 
-## One of mine
+## My experiments
+#  Non-linear eos
+δᵢ_nleos = Vector{Float64}(undef, 3)
+# ΔΘ = -1
+S = [34.58, 34.7]
+ΔS = diff(S)
+Θ = [-1.5, 0.5]
+ΔΘ = diff(Θ)
+S_mix = range(S..., length = 1000)
+T_mix = Θ[2] .+ (ΔΘ / ΔS) .* (S_mix .- S[2])
+ρ = gsw_rho.(S, Θ, 0)
+Δρ = diff(ρ)
+Δρ′ = maximum(gsw_rho.(S_mix, T_mix, 0)) - gsw_rho(S[2], Θ[2], 0)
+δᵢ_nleos[1] = δ(Δρ′/Δρ[1])
+# ΔΘ = -1
 S = [34.631, 34.7]
 ΔS = diff(S)
 Θ = [-0.5, 0.5]
@@ -985,374 +975,59 @@ T_mix = Θ[2] .+ (ΔΘ / ΔS) .* (S_mix .- S[2])
 ρ = gsw_rho.(S, Θ, 0)
 Δρ = diff(ρ)
 Δρ′ = maximum(gsw_rho.(S_mix, T_mix, 0)) - gsw_rho(S[2], Θ[2], 0)
-δ(Δρ′/Δρ[1])
-
-
-
-
-
-
-
-
-
-
-## Old and maybe plots
-############################################################################################
-## Figure
-# staricase asymmetry
-S₀_range = [34.585, 34.62, 34.66, 34.705]
-Θ₀_range = [-1.5, -1.0, -0.5, 0.0]
-interfaces = [-0.5, -1, -1.5]
-
-Nz = 1000
-z_ranges = [(-1.0, 0), (-1.5, -0.5), (-2.0, -1.0)]
-leos_vec = fill(leos, Nz)
-fig = Figure(size = (800, 600))
-ax = [Axis(fig[1, i]) for i ∈ 1:2]
-for i ∈ 1:3
-
-    _z = range(z_ranges[i][1], z_ranges[i][2], length = Nz)
-    S₀ᵘ, S₀ˡ = fill(S₀_range[i], Int(Nz / 2)), fill(S₀_range[i+1], Int(Nz / 2))
-    ΔS = S₀_range[i] - S₀_range[i+1]
-    Θ₀ᵘ, Θ₀ˡ = fill(Θ₀_range[i], Int(Nz / 2)), fill(Θ₀_range[i+1], Int(Nz / 2))
-    ΔΘ = Θ₀_range[i] - Θ₀_range[i+1]
-    linear_σ₀ᵘ = total_density.(Θ₀ᵘ, S₀ᵘ, 0, leos_vec[1:Int(Nz / 2)])
-    linear_σ₀ˡ = total_density.(Θ₀ˡ, S₀ˡ, 0, leos_vec[Int(Nz / 2)+1:end])
-    nlinear_σ₀ᵘ = gsw_rho.(S₀ᵘ, Θ₀ᵘ, 0)
-    nlinear_σ₀ˡ = gsw_rho.(S₀ˡ, Θ₀ˡ, 0)
-    S = erf_tracer_solution.(_z, S₀_range[i+1], ΔS, κₛ, t, interfaces[i])
-    T = erf_tracer_solution.(_z, Θ₀_range[i+1], ΔΘ, κₜ, t, interfaces[i])
-    τ = κₛ / κₜ
-    linear_σ₀ = total_density.(T, S, 0, leos_vec)
-    linear_σ₀′ = linear_σ₀ #.- mean(vcat(linear_σ₀ᵘ, linear_σ₀ˡ))
-    max_linear_σ₀′, max_linear_idx = findmax(linear_σ₀′)
-    min_linear_σ₀′, min_linear_idx = findmin(linear_σ₀′)
-    # linear_σ₀′_norm = 2 * (linear_σ₀′ .- min_linear_σ₀′) ./ (max_linear_σ₀′ - min_linear_σ₀′) .- 1
-    linear_σ₀ᵘ′ = linear_σ₀ᵘ #.- mean(vcat(linear_σ₀ᵘ, linear_σ₀ˡ))
-    linear_σ₀ˡ′ = linear_σ₀ˡ #.- mean(vcat(linear_σ₀ᵘ, linear_σ₀ˡ))
-    # nlinear_σ₀ = total_density.(T, S, 0, nleos_vec)
-    nlinear_σ₀ = gsw_rho.(S, T, 0)
-    nlinear_σ₀′ = nlinear_σ₀ #.- mean(vcat(nlinear_σ₀ᵘ, nlinear_σ₀ˡ))
-    max_nlinear_σ₀′, max_nlinear_idx = findmax(nlinear_σ₀′)
-    min_nlinear_σ₀′, min_nlinear_idx = findmin(nlinear_σ₀′)
-    nlinear_σ₀ᵘ′ = nlinear_σ₀ᵘ #.- mean(vcat(nlinear_σ₀ᵘ, nlinear_σ₀ˡ))
-    nlinear_σ₀ˡ′ = nlinear_σ₀ˡ #.- mean(vcat(nlinear_σ₀ᵘ, nlinear_σ₀ˡ))
-
-    lines!(ax[1], S₀ˡ, _z[1:Int(Nz / 2)]; color = (:blue, 0.5), label = "Initial salinity")
-    lines!(ax[1], S₀ᵘ, _z[Int(Nz / 2)+1:end]; color = (:blue, 0.5))
-    lines!(ax[1], S, _z; color = :blue, linestyle = :dash, label = L"Salinity, $t = t^{*}$")
-    xlims!(ax[1], 34.54, 34.72)
-    ax[1].xlabel = "Salinity (gkg⁻¹)"
-    ax[1].xlabelcolor = :blue
-    ax[1].xticklabelcolor = :blue
-    ax[1].ylabel = "z (m)"
-    ylims!(ax[1], -2, 0)
-    axT = Axis(fig[1, 1];
-                xaxisposition = :top,
-                xticklabelcolor = :red,
-                xlabel = "Θ (°C)",
-                xlabelcolor = :red,
-                title = "(a) Temperature and salinity profiles")
-    lines!(axT, Θ₀ˡ, _z[1:Int(Nz / 2)]; color = (:red, 0.5), label = "Initial temperature")
-    lines!(axT, Θ₀ᵘ, _z[Int(Nz / 2)+1:end]; color = (:red, 0.5))
-    lines!(axT, T, _z; color = :red, linestyle = :dash, label = L"Temperature, $t = t^{*}$")
-    xlims!(axT, -2, 0.6)
-    linkyaxes!(axT, ax[1])
-
-    # lines!(ax[2], linear_σ₀ˡ′, _z[1:Int(Nz/2)]; color = (:black, 0.5))#, label = "Initial density")
-    # lines!(ax[2], linear_σ₀ᵘ′, _z[Int(Nz/2)+1:end]; color = (:black, 0.5))
-    # lines!(ax[2], linear_σ₀′, _z; linestyle = :dash, label = L"$\rho_{\mathrm{linear}}$, $t = t^{*}$")
-    lines!(ax[2], nlinear_σ₀ˡ′, _z[1:Int(Nz/2)]; color = (:black, 0.5), label = L"$\rho_{\mathrm{nonlinear}}, t = 83$")
-    lines!(ax[2], nlinear_σ₀ᵘ′, _z[Int(Nz/2)+1:end]; color = (:black, 0.5))
-    lines!(ax[2], nlinear_σ₀′, _z; linestyle = :dash, label = L"$\rho_{\mathrm{nonlinear}}$, $t = t^{*}$")
-    ax[2].title = "(b) Density profiles"
-    ax[2].xlabel = L"$σ_{0}'$ (kgm⁻³)"
-    # scatter!(ax[2], max_linear_σ₀′, z[max_linear_idx])
-    # scatter!(ax[2], min_linear_σ₀′, z[min_linear_idx])
-    # scatter!(ax[2], max_nlinear_σ₀′, z[max_linear_idx])
-    # scatter!(ax[2], min_nlinear_σ₀′, z[min_linear_idx])
-    hideydecorations!(ax[2], grid = false)
-    # Legend(fig[1, 3], ax[2])
-    linkyaxes!(ax[1], ax[2])
+δᵢ_nleos[2] = δ(Δρ′/Δρ[1])
+# ΔΘ = -0.5
+S = [34.663, 34.7]
+ΔS = diff(S)
+Θ = [0.0, 0.5]
+ΔΘ = diff(Θ)
+S_mix = range(S..., length = 1000)
+T_mix = Θ[2] .+ (ΔΘ / ΔS) .* (S_mix .- S[2])
+ρ = gsw_rho.(S, Θ, 0)
+Δρ = diff(ρ)
+Δρ′ = maximum(gsw_rho.(S_mix, T_mix, 0)) - gsw_rho(S[2], Θ[2], 0)
+δᵢ_nleos[3] =  δ(Δρ′/Δρ[1])
+for i ∈ eachindex(δᵢ_nleos)
+    println("$(nlinear_expt_labels[i]) = $(round(δᵢ_nleos[i], digits = 2))")
 end
-fig
-
-
-## Figure
-# Cabbeling shifting the interface location
-S₀ᵘ, S₀ˡ = fill(Sᵤ, Int(Nz / 2)), fill(Sₗ, Int(Nz / 2))
-Θ₀ᵘ, Θ₀ˡ = fill(Θᵤ, Int(Nz / 2)), fill(Θₗ, Int(Nz / 2))
-linear_σ₀ᵘ = total_density.(Θ₀ᵘ, S₀ᵘ, 0, leos_vec[1:Int(Nz / 2)])
-linear_σ₀ˡ = total_density.(Θ₀ˡ, S₀ˡ, 0, leos_vec[Int(Nz / 2)+1:end])
-nlinear_σ₀ᵘ = gsw_rho.(S₀ᵘ, Θ₀ᵘ, 0)
-nlinear_σ₀ˡ = gsw_rho.(S₀ˡ, Θ₀ˡ, 0)
-S = erf_tracer_solution.(z, Sₗ, ΔS, κₛ, t, interface_depth)
-T = erf_tracer_solution.(z, Θₗ, ΔΘ, κₜ, t, interface_depth)
-τ = κₛ / κₜ
-linear_σ₀ = total_density.(T, S, 0, leos_vec)
-linear_σ₀_midpt = 0.5*(linear_σ₀[1] + linear_σ₀[end])
-linear_σ₀′ = linear_σ₀ .- mean(vcat(linear_σ₀ᵘ, linear_σ₀ˡ))
-max_linear_σ₀′, max_linear_idx = findmax(linear_σ₀′)
-min_linear_σ₀′, min_linear_idx = findmin(linear_σ₀′)
-# linear_σ₀′_norm = 2 * (linear_σ₀′ .- min_linear_σ₀′) ./ (max_linear_σ₀′ - min_linear_σ₀′) .- 1
-linear_σ₀ᵘ′ = linear_σ₀ᵘ .- mean(vcat(linear_σ₀ᵘ, linear_σ₀ˡ))
-linear_σ₀ˡ′ = linear_σ₀ˡ .- mean(vcat(linear_σ₀ᵘ, linear_σ₀ˡ))
-# nlinear_σ₀ = total_density.(T, S, 0, nleos_vec)
-nlinear_σ₀ = gsw_rho.(S, T, 0)
-nlinear_σ₀_midpt = 0.5*(nlinear_σ₀[1] +nlinear_σ₀[end])
-nlinear_σ₀′ = nlinear_σ₀ .- mean(vcat(nlinear_σ₀ᵘ, nlinear_σ₀ˡ))
-max_nlinear_σ₀′, max_nlinear_idx = findmax(nlinear_σ₀′)
-min_nlinear_σ₀′, min_nlinear_idx = findmin(nlinear_σ₀′)
-nlinear_σ₀ᵘ′ = nlinear_σ₀ᵘ .- mean(vcat(nlinear_σ₀ᵘ, nlinear_σ₀ˡ))
-nlinear_σ₀ˡ′ = nlinear_σ₀ˡ .- mean(vcat(nlinear_σ₀ᵘ, nlinear_σ₀ˡ))
-# nlinear_σ₀′_norm = 2 * (nlinear_σ₀′ .- min_nlinear_σ₀′) ./ (max_nlinear_σ₀′ .- min_nlinear_σ₀′) .- 1
-
-# Salinity and temperature panel
-fig = Figure(size = (800, 600))
-ax = [Axis(fig[1, i]) for i ∈ 1:2]
-lines!(ax[1], S₀ˡ, z[1:Int(Nz/2)]; color = (:blue, 0.5), label = "Initial salinity")
-lines!(ax[1], S₀ᵘ, z[Int(Nz/2)+1:end]; color = (:blue, 0.5))
-lines!(ax[1], S, z; color = :blue, linestyle = :dash, label = L"Salinity, $t = t^{*}$")
-xlims!(ax[1], 34.54, 34.72)
-ax[1].xlabel = "Salinity (gkg⁻¹)"
-ax[1].xlabelcolor = :blue
-ax[1].xticklabelcolor = :blue
-ax[1].ylabel = "z (m)"
-axT = Axis(fig[1, 1];
-            xaxisposition = :top,
-            xticklabelcolor = :red,
-            xlabel = "Θ (°C)",
-            xlabelcolor = :red,
-            title = "(a) Temperature and salinity profiles")
-lines!(axT, Θ₀ˡ, z[1:Int(Nz/2)]; color = (:red, 0.5), label = "Initial temperature")
-lines!(axT, Θ₀ᵘ, z[Int(Nz/2)+1:end]; color = (:red, 0.5))
-lines!(axT, T, z; color = :red, linestyle = :dash, label = L"Temperature, $t = t^{*}$")
-axislegend(axT)
-axislegend(ax[1], position = :lb)
-
-# density panel
-lines!(ax[2], linear_σ₀ˡ′, z[1:Int(Nz/2)]; color = (:black, 0.5), label = "Initial density")
-lines!(ax[2], linear_σ₀ᵘ′, z[Int(Nz/2)+1:end]; color = (:black, 0.5))
-lines!(ax[2], linear_σ₀′, z; linestyle = :dash, label = L"$\rho_{\mathrm{linear}}$, $t = t^{*}$")
-# lines!(ax[2], nlinear_σ₀ˡ′, z[1:Int(Nz/2)]; color = (:green, 0.5), label = L"$\rho_{\mathrm{nonlinear}}, t = 83$")
-# lines!(ax[2], nlinear_σ₀ᵘ′, z[Int(Nz/2)+1:end]; color = (:green, 0.5))
-lines!(ax[2], nlinear_σ₀′, z; linestyle = :dash, label = L"$\rho_{\mathrm{nonlinear}}$, $t = t^{*}$")
-ax[2].title = "(b) Density profiles"
-ax[2].xlabel = L"$σ_{0}'$ (kgm⁻³)"
-# scatter!(ax[2], max_linear_σ₀′, z[max_linear_idx])
-# scatter!(ax[2], min_linear_σ₀′, z[min_linear_idx])
-# scatter!(ax[2], max_nlinear_σ₀′, z[max_linear_idx])
-# scatter!(ax[2], min_nlinear_σ₀′, z[min_linear_idx])
-hideydecorations!(ax[2], grid = false)
-axislegend(ax[2])
-linkyaxes!(ax[1], ax[2])
-# colsize!(fig.layout, 1, Relative(3/5))
-fig
-
-# Old, likely delete.
-# ## Figure
-# # Density asymmetry
-# Sᵤ_range = (34.51, 34.54, 34.58)
-# ΔS_range = Sᵤ_range .- Sₗ
-# κₛ_range = range(1e-9, 8e-8, length = 100)
-# τ_range = κₛ_range ./ κₜ
-# σ₀_nonlinear_max = Array{Float64}(undef, length(κₛ_range), length(Sᵤ_range))
-# σ₀_nonlinear_min = similar(σ₀_nonlinear_max)
-# σ₀_linear_max = similar(σ₀_nonlinear_max)
-# σ₀_linear_min = similar(σ₀_nonlinear_max)
-# Rᵨ_leos = Array{Float64}(undef, length(κₛ_range))
-# Rᵨ_nleos = similar(Rᵨ_leos)
-# σ₀ˡ_nleos = similar(σ₀_nonlinear_max)
-# σ₀ᵘ_nleos = similar(σ₀_nonlinear_max)
-# σ₀ˡ_leos = similar(σ₀_nonlinear_max)
-# σ₀ᵘ_leos = similar(σ₀_nonlinear_max)
-# t = 10000 # seconds, this value is not stricly important as maximum density does not increase
-# for (j, _Sᵤ) ∈ enumerate(Sᵤ_range)
-#     Rᵨ_leos[j] = compute_R_ρ([_Sᵤ, Sₗ], [Θᵤ, Θₗ], interface_depth, leos)
-#     Rᵨ_nleos[j] = compute_R_ρ([_Sᵤ, Sₗ], [Θᵤ, Θₗ], interface_depth, nleos)
-#     for i ∈ eachindex(κₛ_range)
-#         S = erf_tracer_solution.(z, Sₗ, ΔS_range[j], κₛ_range[i], t, interface_depth)
-#         T = erf_tracer_solution.(z, Θₗ, ΔΘ, κₜ, t, interface_depth)
-#         σ₀_nonlinear = gsw_rho.(S, T, 0)
-#         σ₀_nonlinear_max[i, j] = maximum(σ₀_nonlinear)
-#         σ₀_nonlinear_min[i, j] = minimum(σ₀_nonlinear)
-
-#         σ₀_linear = total_density.(T, S, 0, leos_vec)
-#         σ₀_linear_max[i, j] = maximum(σ₀_linear)
-#         σ₀_linear_min[i, j] = minimum(σ₀_linear)
-#         σ₀ˡ_nleos[i, j] = gsw_rho(Sₗ, Θₗ, 0)
-#         σ₀ᵘ_nleos[i, j] = gsw_rho(_Sᵤ, Θᵤ, 0)
-#         σ₀ˡ_leos[i, j] = total_density(Θₗ, Sₗ, 0, leos)
-#         σ₀ᵘ_leos[i, j] = total_density(Θᵤ, _Sᵤ, 0, leos)
-#     end
-# end
-# Δσ_lower_nonlinear = abs.(σ₀_nonlinear_max .- σ₀ˡ_nleos)
-# Δσ_upper_nonlinear = abs.(σ₀_nonlinear_min .- σ₀ᵘ_nleos)
-# Δσ_nonlinear = Δσ_upper_nonlinear ./ Δσ_lower_nonlinear
-
-# Δσ_lower_linear = abs.(σ₀_linear_max .- σ₀ˡ_leos)
-# Δσ_upper_linear = abs.(σ₀_linear_min .- σ₀ᵘ_leos)
-# Δσ_linear = Δσ_upper_linear ./ Δσ_lower_linear
-
-# # Rᵨ_leos = compute_R_ρ([Sᵤ, Sₗ], temperature, interface_depth, leos)
-# # Rᵨ_nleos = compute_R_ρ([Sᵤ, Sₗ], temperature, interface_depth, nleos)
-# fig = Figure(size = (1200, 600))
-# linestyle = [:solid, :dash, :dot, :dashdot]
-# ax1 = Axis(fig[1, 1], title = L"(a) Asymmetry due to $\tau$", titlefont = :bold, xlabel = L"τ", ylabel = L"R_{\Delta\rho}")
-# for i ∈ eachindex(Sᵤ_range)
-#     lines!(ax1, τ_range, Δσ_linear[:, i], linestyle = linestyle[i], color = Makie.wong_colors()[1],
-#            label = L"$ρ_{\mathrm{linear}}\text{, }R_{\rho} =$ %$(round(Rᵨ_leos[i], digits = 2))")
-# end
-# for i ∈ eachindex(Sᵤ_range)
-#     lines!(ax1, τ_range, Δσ_nonlinear[:, i], linestyle = linestyle[i], color = Makie.wong_colors()[2],
-#            label = L"$ρ_{\mathrm{nonlinear}}\text{, }R_{\rho}$ = %$(round(Rᵨ_nleos[i], digits = 2))")
-# end
-# # axislegend(ax1, position = :rc)
-# Legend(fig[2, 1], ax1, orientation = :horizontal, nbanks = 3)
-# fig
-
-# # Figure
-# # density ratio vs Δρ in each layer for different τ
-# τ = (0.01, 0.05, 0.1)
-# Sᵤ_range = range(33.52, 34.58, length = 100)
-# temperature = [Θᵤ, Θₗ]
-# Rᵨ_leos = Array{Float64}(undef, length(Sᵤ_range), length(τ))
-# Rᵨ_nleos = similar(Rᵨ_leos)
-# σ₀_nonlinear_max = similar(Rᵨ_leos)
-# σ₀_nonlinear_min = similar(Rᵨ_leos)
-# σ₀_linear_max = similar(Rᵨ_leos)
-# σ₀_linear_min = similar(Rᵨ_leos)
-# σ₀ᵘ_leos = similar(Rᵨ_leos)
-# σ₀ᵘ_nleos = similar(Rᵨ_leos)
-# σ₀ˡ_nleos = gsw_rho(Sₗ, Θₗ, 0)
-# σ₀ˡ_leos = total_density(Θₗ, Sₗ, 0, leos)
-# for j ∈ eachindex(τ)
-
-#     _κₛ = τ[j] * κₜ
-#     for (i, _Sᵤ) ∈ enumerate(Sᵤ_range)
-
-#         salinity = [_Sᵤ, Sₗ]
-#         _ΔS = _Sᵤ - Sₗ
-
-#         Rᵨ_leos[i, j] = compute_R_ρ(salinity, temperature, interface_depth, leos)
-#         Rᵨ_nleos[i, j] = compute_R_ρ(salinity, temperature, interface_depth, nleos)
-
-#         S = erf_tracer_solution.(z, Sₗ, _ΔS, _κₛ, t, interface_depth)
-#         T = erf_tracer_solution.(z, Θₗ, ΔΘ, κₜ, t, interface_depth)
-#         σ₀_nonlinear = gsw_rho.(S, T, 0)
-#         σ₀_nonlinear_max[i, j] = maximum(σ₀_nonlinear)
-#         σ₀_nonlinear_min[i, j] = minimum(σ₀_nonlinear)
-
-#         σ₀_linear = total_density.(T, S, 0, leos_vec)
-#         σ₀_linear_max[i, j] = maximum(σ₀_linear)
-#         σ₀_linear_min[i, j] = minimum(σ₀_linear)
-
-#         σ₀ᵘ_nleos[i, j] = gsw_rho(_Sᵤ, Θᵤ, 0)
-#         σ₀ᵘ_leos[i, j] = total_density(Θᵤ, _Sᵤ, 0, leos)
-#     end
-
-# end
-# Δσ_lower_nonlinear = abs.(σ₀_nonlinear_max .- σ₀ˡ_nleos)
-# Δσ_upper_nonlinear = abs.(σ₀_nonlinear_min .- σ₀ᵘ_nleos)
-# Δσ_nonlinear = Δσ_upper_nonlinear ./ Δσ_lower_nonlinear
-
-# Δσ_lower_linear = abs.(σ₀_linear_max .- σ₀ˡ_leos)
-# Δσ_upper_linear = abs.(σ₀_linear_min .- σ₀ᵘ_leos)
-# Δσ_linear = Δσ_upper_linear ./ Δσ_lower_linear
-
-# Rᵨ_cab = compute_R_ρ([34.551, Sₗ], temperature, interface_depth, nleos)
-# # fig = Figure(size = (500, 500))
-# ax2 = Axis(fig[1, 2],
-#             xlabel = L"R_{\rho}", ylabel =  L"R_{\Delta\rho}")
-# linestyle = [:solid, :dash, :dot, :dashdot]
-# for i ∈ eachindex(τ)
-#     lines!(ax2, Rᵨ_nleos[:, i], Δσ_linear[:, i]; color = Makie.wong_colors()[1], linestyle = linestyle[i], label = L"$ρ_{\mathrm{linear}}\text{, }\tau =$ %$(round((τ[i]), digits = 2))")
-# end
-# for i ∈ eachindex(τ)
-#     lines!(ax2, Rᵨ_nleos[:, i], Δσ_nonlinear[:, i]; color = Makie.wong_colors()[2], linestyle = linestyle[i], label = L"$ρ_{\mathrm{nonlinear}}\text{, }\tau =$ %$(round((τ[i]), digits = 2))")
-# end
-# linkyaxes!(ax1, ax2)
-# hideydecorations!(ax2, grid = false, ticks = false)
-# axΔS = Axis(fig[1,2], title = L"(c) Asymmetry due to $\Delta S$",
-#             xaxisposition = :top, xticklabelcolor = :green, xtickcolor = :green,
-#             xlabelcolor = :green, topspinecolor = :green,
-#             xlabel = L"$ΔS$ (gkg$^{-1}$)")
-# text!(ax2, 1, 0.1, text =  L"$\Delta \Theta = $-2$^{\circ}$C")
-# lines!(axΔS, Sᵤ_range .- Sₗ, ones(length(Sᵤ_range)))
-# linkyaxes!(ax2, axΔS)
-# hideydecorations!(axΔS, grid = false, ticks = false)
-# # Legend(fig[2, 2], ax3, orientation = :horizontal, nbanks = 3)
-# # axislegend(ax2, position = :rb, orientation = :horizontal, nbanks = 3)
-# τ = (0.01, 0.05, 0.1)
-# Θᵤ_range = range(-1.5, 0.34, length = 100)
-# Sᵤ = 34.58
-# salinity = [Sᵤ, Sₗ]
-# Rᵨ_leos = Array{Float64}(undef, length(Θᵤ_range), length(τ))
-# Rᵨ_nleos = similar(Rᵨ_leos)
-# σ₀_nonlinear_max = similar(Rᵨ_leos)
-# σ₀_nonlinear_min = similar(Rᵨ_leos)
-# σ₀_linear_max = similar(Rᵨ_leos)
-# σ₀_linear_min = similar(Rᵨ_leos)
-# σ₀ᵘ_leos = similar(Rᵨ_leos)
-# σ₀ᵘ_nleos = similar(Rᵨ_leos)
-# σ₀ˡ_nleos = gsw_rho(Sₗ, Θₗ, 0)
-# σ₀ˡ_leos = total_density(Θₗ, Sₗ, 0, leos)
-# for j ∈ eachindex(τ)
-
-#     _κₛ = τ[j] * κₜ
-#     for (i, _Θᵤ) ∈ enumerate(Θᵤ_range)
-
-#         temperature = [_Θᵤ, Θₗ]
-#         _ΔΘ = _Θᵤ - Θₗ
-
-#         Rᵨ_leos[i, j] = compute_R_ρ(salinity, temperature, interface_depth, leos)
-#         Rᵨ_nleos[i, j] = compute_R_ρ(salinity, temperature, interface_depth, nleos)
-
-#         S = erf_tracer_solution.(z, Sₗ, ΔS, _κₛ, t, interface_depth)
-#         T = erf_tracer_solution.(z, Θₗ, _ΔΘ, κₜ, t, interface_depth)
-#         σ₀_nonlinear = gsw_rho.(S, T, 0)
-#         σ₀_nonlinear_max[i, j] = maximum(σ₀_nonlinear)
-#         σ₀_nonlinear_min[i, j] = minimum(σ₀_nonlinear)
-
-#         σ₀_linear = total_density.(T, S, 0, leos_vec)
-#         σ₀_linear_max[i, j] = maximum(σ₀_linear)
-#         σ₀_linear_min[i, j] = minimum(σ₀_linear)
-
-#         σ₀ᵘ_nleos[i, j] = gsw_rho(Sᵤ, _Θᵤ, 0)
-#         σ₀ᵘ_leos[i, j] = total_density(_Θᵤ, Sᵤ, 0, leos)
-#     end
-
-# end
-# Δσ_lower_nonlinear = abs.(σ₀_nonlinear_max .- σ₀ˡ_nleos)
-# Δσ_upper_nonlinear = abs.(σ₀_nonlinear_min .- σ₀ᵘ_nleos)
-# Δσ_nonlinear = Δσ_upper_nonlinear ./ Δσ_lower_nonlinear
-
-# Δσ_lower_linear = abs.(σ₀_linear_max .- σ₀ˡ_leos)
-# Δσ_upper_linear = abs.(σ₀_linear_min .- σ₀ᵘ_leos)
-# Δσ_linear = Δσ_upper_linear ./ Δσ_lower_linear
-
-# Rᵨ_cab = compute_R_ρ([34.551, Sₗ], temperature, interface_depth, nleos)
-# # fig = Figure(size = (500, 500))
-# ax3 = Axis(fig[1, 3],
-#             xlabel = L"R_{\rho}", ylabel =  L"R_{\Delta\rho}")
-# linestyle = [:solid, :dash, :dot, :dashdot]
-# for i ∈ eachindex(τ)
-#     lines!(ax3, Rᵨ_nleos[:, i], Δσ_linear[:, i]; color = Makie.wong_colors()[1], linestyle = linestyle[i], label = L"$ρ_{\mathrm{linear}}\text{, }\tau =$ %$(round((τ[i]), digits = 2))")
-# end
-# for i ∈ eachindex(τ)
-#     lines!(ax3, Rᵨ_nleos[:, i], Δσ_nonlinear[:, i]; color = Makie.wong_colors()[2], linestyle = linestyle[i], label = L"$ρ_{\mathrm{nonlinear}}\text{, }\tau =$ %$(round((τ[i]), digits = 2))")
-# end
-# axΔΘ = Axis(fig[1, 3], title = L"(c) Asymmetry due to $\Delta\Theta$",
-#             xaxisposition = :top, xticklabelcolor = :green, xtickcolor = :green,
-#             xlabelcolor = :green, topspinecolor = :green,
-#             xlabel = L"$ΔΘ$ ($^{\circ}$C)")
-# lines!(axΔΘ, Θᵤ_range .- Θₗ, ones(length(Θᵤ_range)))
-# linkyaxes!(ax3, axΔΘ)
-# linkyaxes!(ax2, ax3)
-# text!(ax3, 1, 0.1, text =  L"$\Delta S = $-0.12gkg$^{-1}$")
-# hideydecorations!(ax3, grid = false, ticks = false)
-# hideydecorations!(axΔΘ, grid = false, ticks = false)
-# Legend(fig[2, 2:3], ax3, orientation = :horizontal, nbanks = 3)
-# fig
-# ##
-# save("density_asymmetry.png", fig)
+# Linear eos
+δᵢ_leos = Vector{Float64}(undef, 3)
+# ΔΘ = -2
+S = [34.58, 34.7]
+ΔS = diff(S)
+Θ = [-1.5, 0.5]
+ΔΘ = diff(Θ)
+S_mix = range(S..., length = 1000)
+T_mix = Θ[2] .+ (ΔΘ / ΔS) .* (S_mix .- S[2])
+ρ = total_density.(Θ, S, fill(0, length(2)), fill(leos, length(S)))
+Δρ = diff(ρ)
+Δρ′ = maximum(total_density.(T_mix, S_mix, fill(0, length(S_mix)), fill(leos, length(S_mix))) .-
+                total_density(Θ[2], S[2], 0, leos))
+δᵢ_leos[1] = δ(Δρ′/Δρ[1])
+# ΔΘ = -1
+S = [34.631, 34.7]
+ΔS = diff(S)
+Θ = [-0.5, 0.5]
+ΔΘ = diff(Θ)
+S_mix = range(S..., length = 1000)
+T_mix = Θ[2] .+ (ΔΘ / ΔS) .* (S_mix .- S[2])
+ρ = total_density.(Θ, S, fill(0, length(2)), fill(leos, length(S)))
+Δρ = diff(ρ)
+Δρ′ = maximum(total_density.(T_mix, S_mix, fill(0, length(S_mix)), fill(leos, length(S_mix))) .-
+                total_density(Θ[2], S[2], 0, leos))
+δᵢ_leos[2] = δ(Δρ′/Δρ[1])
+# ΔΘ = -0.5
+S = [34.663, 34.7]
+ΔS = diff(S)
+Θ = [0.0, 0.5]
+ΔΘ = diff(Θ)
+S_mix = range(S..., length = 1000)
+T_mix = Θ[2] .+ (ΔΘ / ΔS) .* (S_mix .- S[2])
+ρ = total_density.(Θ, S, fill(0, length(2)), fill(leos, length(S)))
+Δρ = diff(ρ)
+Δρ′ = maximum(total_density.(T_mix, S_mix, fill(0, length(S_mix)), fill(leos, length(S_mix))) .-
+                total_density(Θ[2], S[2], 0, leos))
+δᵢ_leos[3] = δ(Δρ′/Δρ[1])
+for i ∈ eachindex(δᵢ_leos)
+    println("$(linear_expt_labels[i]) = $(round(δᵢ_leos[i], digits = 2))")
+end

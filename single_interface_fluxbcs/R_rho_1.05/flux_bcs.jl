@@ -243,8 +243,11 @@ end
 begin
 	fig_interface = Figure(size = (500, 500))
 	ax_interface = Axis(fig_interface[1, 1], xlabel = "Rᵨ", ylabel = "z✶")
-	lines!(ax_interface, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["S_interface_idx"]], label = "salinity")
+	# lines!(ax_interface, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["S_interface_idx"]], label = "salinity")
 	# lines!(ax_interface, expt_data["R_ρ"][2:end], dims["z✶"][expt_data["T_interface_idx"]], label = "temperature")
+
+	lines!(ax_interface, dims["time"][2:end]./60, dims["z✶"][expt_data["S_interface_idx"]], label = "salinity")
+	# lines!(ax_interface, dims["time"][2:end]./60, dims["z✶"][expt_data["T_interface_idx"]], label = "temperature")
 
 	id = expt_data["attrib/interface_depth"]
 	S_mid = 0.5 * (expt_data["S_ha"][1, 1] + expt_data["S_ha"][end, 1])
@@ -533,7 +536,7 @@ let
 	ε = 0.5 * (expt_data["∫ε"][1:end-1] .+ expt_data["∫ε"][2:end])
 	∫wb = 0.5 * (expt_data["∫wb"][1:end-1] .+ expt_data["∫wb"][2:end])
 	∫gρw = 0.5 * (expt_data["∫gρw"][1:end-1] .+ expt_data["∫gρw"][2:end])
-	RHS = ∫wb .- ε
+	RHS = ∫wb .- ε #.+ 2.5e-13
 	RHS_per = RHS ./ -ε
 	fig, ax = lines(eachindex(Δt)[1:end], dₜek[1:end], label = "dₜek")
 	lines!(ax, eachindex(Δt)[1:end], RHS[1:end], label = "∫wb - ε")
