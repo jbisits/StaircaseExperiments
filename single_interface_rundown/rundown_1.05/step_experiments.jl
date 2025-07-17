@@ -87,6 +87,9 @@ begin
 	@info "$is initial condition with $(eos) eos output loaded"
 end
 
+# ╔═╡ 700b8f65-83af-4e13-96b4-7192cbff4e86
+0.05^2
+
 # ╔═╡ b3fd9c9c-24d0-4ed8-a952-aaed2581045d
 expt_data["attrib/RaS"], expt_data["attrib/RaT"]
 
@@ -565,6 +568,31 @@ I would say it looks like spikes in ``\varepsilon`` except that this is smooth.
 I have also computed the buoyancy flux in two ways and they are equal.
 """
 
+# ╔═╡ 34f7166e-99a5-45fa-8b9b-963758e0d9f1
+begin
+	κₛ, κₜ = expt_data["attrib/κₛ (m²s⁻¹)"], expt_data["attrib/κₜ (m²s⁻¹)"]
+	Θ, Sₐ = expt_data["T_ha"], expt_data["S_ha"]
+	
+	α = thermal_expansion.(Θ, Sₐ, zeros(Float32, size(Θ)),  fill(eos_type, size(Θ)))
+	α_interp = α_sign(0.5*(α[1:end-1, :] .+ α[2:end, :]))
+	
+	β = haline_contraction.(Θ, Sₐ, zeros(Float32, size(Θ)),  fill(eos_type, size(Θ)))
+	β_interp = 0.5*(β[1:end-1, :] .+ β[2:end, :])
+	
+	dz = diff(dims["z_aac"])
+	
+	 ∂_zΘ = diff(Θ, dims = 1) ./ dz 
+	∂_zSₐ = diff(Sₐ, dims = 1) ./ dz
+
+	A = 0.05^2
+	g = 9.81
+
+	Θ_mol = A * g * κₜ * sum(α_interp .* ∂_zΘ .* dz, dims = 1)
+	S_mol = A * g * κₛ * sum(β_interp .* ∂_zSₐ.* dz, dims = 1)
+	diff_offset = vec(Θ_mol .+ S_mol)
+	diff_offset_interp = 0.5*(diff_offset[1:end-1] .+ diff_offset[2:end])
+end
+
 # ╔═╡ c576c4cd-1101-46e2-b6fa-b574f0b13dfe
 let
 	Δt = diff(dims["time"])
@@ -573,10 +601,12 @@ let
 	ε = 0.5 * (expt_data["∫ε"][1:end-1] .+ expt_data["∫ε"][2:end])
 	∫wb = 0.5 * (expt_data["∫wb"][1:end-1] .+ expt_data["∫wb"][2:end])
 	∫gρw = - 0.5 * (expt_data["∫gρw"][1:end-1] .+ expt_data["∫gρw"][2:end])
-	RHS = ∫wb .- ε
-	RHS_per = RHS ./ -ε
-	fig, ax = lines(eachindex(Δt)[1:end], dₜek[1:end], label = "dₜek")
-	lines!(ax, eachindex(Δt)[1:end], RHS[1:end], label = "∫wb - ε")
+	RHS = 1.04∫wb .- 0.96ε #.- diff_offset_interp/2
+	# RHS = ∫wb .- ε
+	# RHS = ∫gρw .- ε #.- diff_offset_interp
+	RHS_per = abs.(RHS) ./ abs.(ε)
+	fig, ax = lines(eachindex(Δt)[3:end], dₜek[3:end], label = "dₜek")
+	lines!(ax, eachindex(Δt)[3:end], RHS[3:end], label = "∫wb - ε")
 	ax.title = "Energy  budget"
 	ax.xlabel = "time (minutes)"
 	ax.ylabel = "Watts / ρ₀"
@@ -586,21 +616,35 @@ let
 	ax2 = Axis(fig[2, 1], title = "Absolute error, MAE = $(mean(abs_err))")
 	lines!(ax2, abs_err)
 	fig
-	# RHS_per
+	# mean(RHS_per)
 end
 
 # ╔═╡ f200b8e0-2b14-4270-963b-6bb1b154d550
 let
-	fig, ax = lines(log10.(abs.((expt_data["∫wb"][3:end]))), label = "wb")
-	lines!(ax,  log10.(abs.(-expt_data["∫gρw"][3:end])), label = "∫gρw (post processing)", linestyle = :dash)
-	lines!(ax, log10.(expt_data["∫ε"][3:end]), label = "∫ε", linestyle = :dot)
+	fig, ax = lines(log10.(abs.((expt_data["∫wb"][2:end]))), label = "wb")
+	# lines!(ax,  log10.(abs.(-expt_data["∫gρw"][2:end])), label = "∫gρw (post processing)", linestyle = :dash)
+	lines!(ax, log10.(expt_data["∫ε"][2:end]), label = "∫ε", linestyle = :dot)
 	ax.title = "Buoyancy flux and TKE dissipation (log10)"
 	axislegend(ax)
 	fig
 end
 
-# ╔═╡ 08af2ba8-9c4b-4d89-8c6b-d2becce818e0
-expt_data["S_ha"]
+# ╔═╡ 2f79adc0-2b5d-455d-beb8-5907c38d6e8e
+let
+	Δt = diff(dims["time"])
+	Ep, Eb = expt_data["Ep"], expt_data["Eb"]
+	Ea = Ep .- Eb
+	dₜEp = diff(Ep) ./ Δt
+	dₜEb = diff(Eb) ./ Δt
+	dₜEa = diff(Ea) ./ Δt
+	∫gρw = - 0.5 * (expt_data["∫gρw"][1:end-1] .+ expt_data["∫gρw"][2:end])
+	fig, ax = lines(dₜEa, label = "dₜEa")
+	RHS_APE = -(dₜEb .+ ∫gρw)
+	lines!(ax, RHS_APE, label = "dₜEb .+ ∫gρw")
+	abs_err = mean(abs.(dₜEa .- RHS_APE))
+	ax.title = "APE budget, MAE = $(round(abs_err, digits = 14))"
+	fig
+end
 
 # ╔═╡ 50e87efc-a49c-4ffd-bfbd-cd5dfad40639
 md"""
@@ -950,7 +994,8 @@ TableOfContents()
 # ╟─010ecdc3-51d6-41a6-9bc5-6efbba0723a6
 # ╟─68d31cca-3f29-4402-ac79-8deaef98ef50
 # ╟─087d2583-ee90-437a-97ec-0ab607337e30
-# ╟─b3fd9c9c-24d0-4ed8-a952-aaed2581045d
+# ╠═700b8f65-83af-4e13-96b4-7192cbff4e86
+# ╠═b3fd9c9c-24d0-4ed8-a952-aaed2581045d
 # ╟─e177c879-b7d0-4328-b5ad-776f8c64e050
 # ╟─07089057-5b2f-40e5-a485-0eeac1e9b348
 # ╟─c2dce901-8578-448c-8c6e-ec7bb3e6d71b
@@ -982,14 +1027,15 @@ TableOfContents()
 # ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013
 # ╟─3c0e1dfd-e4ba-448f-8475-ada056c8b5fe
+# ╠═34f7166e-99a5-45fa-8b9b-963758e0d9f1
 # ╟─c576c4cd-1101-46e2-b6fa-b574f0b13dfe
 # ╟─f200b8e0-2b14-4270-963b-6bb1b154d550
-# ╠═08af2ba8-9c4b-4d89-8c6b-d2becce818e0
+# ╟─2f79adc0-2b5d-455d-beb8-5907c38d6e8e
 # ╟─50e87efc-a49c-4ffd-bfbd-cd5dfad40639
 # ╟─ee9c0edb-477b-4cc0-8c57-36845a90bbaf
 # ╟─68a0a47e-e919-4d9d-b1a5-090d69bf633e
 # ╟─9e6998c4-6cca-49d5-9fff-2c697296849b
-# ╟─31bed7ce-49d4-4009-be36-efd6531c979d
+# ╠═31bed7ce-49d4-4009-be36-efd6531c979d
 # ╟─72353d1c-855b-463d-9bdb-b33bafc426d2
 # ╟─b5102aaf-5c42-4c91-8016-2e9bae2073d8
 # ╟─e70a5e3c-99de-44e0-b302-857ae75de3bf

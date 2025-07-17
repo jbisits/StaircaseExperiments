@@ -528,16 +528,46 @@ I would say it looks like spikes in ``\varepsilon`` except that this is smooth.
 I have also computed the buoyancy flux in two ways and they are equal.
 """
 
+# ╔═╡ 420d2314-15de-4ba3-bc41-11c0911964dd
+begin
+	κₛ, κₜ = expt_data["attrib/κₛ (m²s⁻¹)"], expt_data["attrib/κₜ (m²s⁻¹)"]
+	Θ, Sₐ = expt_data["T_ha"], expt_data["S_ha"]
+	
+	α = thermal_expansion.(Θ, Sₐ, zeros(size(Θ)),  fill(eos_type, size(Θ)))
+	α_interp = 0.5*(α[1:end-1, :] .+ α[2:end, :])
+	
+	β = haline_contraction.(Θ, Sₐ, zeros(size(Θ)),  fill(eos_type, size(Θ)))
+	β_interp = 0.5*(β[1:end-1, :] .+ β[2:end, :])
+	
+	dz = diff(dims["z_aac"])
+	
+	 ∂_zΘ = diff(Θ, dims = 1) ./ dz 
+	∂_zSₐ = diff(Sₐ, dims = 1) ./ dz
+
+	A = 0.05^2
+	g = 9.81
+
+	Θ_mol = A * g * κₜ * sum(α_interp .* ∂_zΘ .* dz, dims = 1)
+	S_mol = A * g * κₛ * sum(β_interp .* ∂_zSₐ.* dz, dims = 1)
+	
+	diff_offset = vec(Θ_mol .+ S_mol)
+	diff_offset_interp = 0.5*(diff_offset[1:end-1] .+ diff_offset[2:end])
+end
+
 # ╔═╡ c576c4cd-1101-46e2-b6fa-b574f0b13dfe
 let
+	
 	Δt = diff(dims["time"])
 	ek = expt_data["∫Eₖ"]
 	dₜek = diff(ek) ./ Δt
 	ε = 0.5 * (expt_data["∫ε"][1:end-1] .+ expt_data["∫ε"][2:end])
 	∫wb = 0.5 * (expt_data["∫wb"][1:end-1] .+ expt_data["∫wb"][2:end])
-	∫gρw = 0.5 * (expt_data["∫gρw"][1:end-1] .+ expt_data["∫gρw"][2:end])
-	RHS = ∫wb .- ε #.+ 2.5e-13
-	RHS_per = RHS ./ -ε
+	∫gρw = -0.5 * (expt_data["∫gρw"][1:end-1] .+ expt_data["∫gρw"][2:end])
+	RHS = ∫wb .- ε
+	# RHS = ∫wb .- ε #.+ 2.26e-13
+	# RHS = ∫wb .- ε #.+ diff_offset_interp# factor of 2 out for nleos and 2.5 for leos
+	# RHS = ∫gρw .- ε #.+ diff_offset_interp
+	RHS_per = abs.(RHS) ./ abs.(ε)
 	fig, ax = lines(eachindex(Δt)[1:end], dₜek[1:end], label = "dₜek")
 	lines!(ax, eachindex(Δt)[1:end], RHS[1:end], label = "∫wb - ε")
 	ax.title = "Energy  budget"
@@ -549,6 +579,7 @@ let
 	ax2 = Axis(fig[2, 1], title = "Absolute error, MAE = $(mean(abs_err))")
 	lines!(ax2, abs_err[3:end])
 	fig
+	mean(RHS_per), mean(dₜek)
 end
 
 # ╔═╡ f200b8e0-2b14-4270-963b-6bb1b154d550
@@ -750,8 +781,9 @@ TableOfContents()
 # ╟─4538f159-01d9-45fd-9fa5-d7463c506a77
 # ╟─d9422085-e838-44a1-91be-b81458dc3013
 # ╟─3c0e1dfd-e4ba-448f-8475-ada056c8b5fe
-# ╟─c576c4cd-1101-46e2-b6fa-b574f0b13dfe
-# ╟─f200b8e0-2b14-4270-963b-6bb1b154d550
+# ╠═420d2314-15de-4ba3-bc41-11c0911964dd
+# ╠═c576c4cd-1101-46e2-b6fa-b574f0b13dfe
+# ╠═f200b8e0-2b14-4270-963b-6bb1b154d550
 # ╠═08af2ba8-9c4b-4d89-8c6b-d2becce818e0
 # ╟─9e6998c4-6cca-49d5-9fff-2c697296849b
 # ╟─31bed7ce-49d4-4009-be36-efd6531c979d

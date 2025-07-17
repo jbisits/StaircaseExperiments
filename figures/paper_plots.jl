@@ -12,8 +12,10 @@ cd("figures")
 leos = CustomLinearEquationOfState(-0.5, 34.64, reference_density = ρ₀)
 leos_func(S, Θ) = CustomLinearEquationOfState(Θ, S, reference_density = ρ₀)
 nleos = TEOS10EquationOfState(reference_density = ρ₀)
+cab_eos = RoquetEquationOfState(:Cabbeling, reference_density = ρ₀)
 erf_tracer_solution(z, Cₗ::Number, ΔC::Number, κ::Number, t, interface_depth) =
     Cₗ + 0.5 * ΔC * (1 + erf((z - interface_depth) / sqrt(4 * κ * t)))
+δ(C) = 1 + 2*C + 2*sqrt(C^2 + C)
 
 Sᵤ, Θᵤ = 34.58, -1.5 # cabbeling expt from project two
 Sₗ, Θₗ = 34.7, 0.5
@@ -38,8 +40,10 @@ nl_R_ρ_105_dT05_diagnostics = joinpath(rundown_path, "dns_res_dT05_nonlineareos
 l_R_ρ_105_dT05_diagnostics  = joinpath(rundown_path, "dns_res_dT05_lineareos/step_diagnostics.jld2")
 # flux bc experiments
 fluxbc_path = joinpath(@__DIR__, "../single_interface_fluxbcs/R_rho_1.05/deltatheta_1/")
-l_fbc_diagnostics  = joinpath(fluxbc_path, "alt_lineareos/step_diagnostics.jld2")
-nl_fbc_diagnostics = joinpath(fluxbc_path, "longer_nonlineareos/step_diagnostics.jld2")
+# l_fbc_diagnostics  = joinpath(fluxbc_path, "alt_lineareos/step_diagnostics.jld2")
+# nl_fbc_diagnostics = joinpath(fluxbc_path, "longer_nonlineareos/step_diagnostics.jld2")
+l_fbc_diagnostics  = joinpath(fluxbc_path, "dns_res_lineareos/step_diagnostics.jld2")
+nl_fbc_diagnostics = joinpath(fluxbc_path, "dns_res_nonlineareos/step_diagnostics.jld2")
 ## Figure theme
 markersize = 10
 publication_theme = Theme(font="CMU Serif", fontsize = 20,
@@ -362,7 +366,7 @@ find_τ_01 = findfirst(τ_range .> 0.1)
 
 fig = Figure(size = (800, 400))
 linestyle = [:solid, :dash, :dot, :dashdot]
-ax1 = Axis(fig[1, 1], title = L"Asymmetry due to $\tau$", titlefont = :bold, xlabel = L"τ", ylabel = L"R_{\Delta\rho}")
+ax1 = Axis(fig[1, 1], title = "Asymmetry", titlefont = :bold, xlabel = L"τ", ylabel = L"\delta_{\mathrm{mol}}")
 for i ∈ eachindex(Sᵤ_range)
     lines!(ax1, τ_range, Δσ_linear[:, i], linestyle = linestyle[i], color = Makie.wong_colors()[1],
            label = L"$ρ_{\mathrm{linear}}\text{, }R_{\rho} =$ %$(round(Rᵨ_leos[i], digits = 2))")
@@ -374,6 +378,7 @@ end
 # axislegend(ax1, position = :rc)
 Legend(fig[2, 1], ax1, orientation = :horizontal, nbanks = 3)
 fig
+##
 save("fig4_tau_asymmetry.png", fig)
 
 ## Figure
@@ -479,55 +484,55 @@ nlinear_colour = linear_colour
 fig = Figure(size = (800, 1000))
 ax_lRᵨ = Axis(fig[1, 1], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)", title = "Linear eos")
 hm = heatmap!(ax_lRᵨ, ΔΘ, ΔS, Rᵨ_leos, colormap = :amp)
-scatter!(ax_lRᵨ, arctic_obs...; color = :red, markersize)
+scatter!(ax_lRᵨ, arctic_obs...; color = :blue, markersize)
 scatter!(ax_lRᵨ, ΔΘ_expts, ΔS_expts_linear;
          color = linear_colour, markersize, marker = linear_expt_markers)
 ax_nlRᵨ = Axis(fig[1, 2], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)", title = "Nonlinear eos")
 hm_nlRᵨ = heatmap!(ax_nlRᵨ, ΔΘ, ΔS, Rᵨ_nleos, colormap = :amp)
-scatter!(ax_nlRᵨ, arctic_obs...; markersize, color = :red)
+scatter!(ax_nlRᵨ, arctic_obs...; markersize, color = :blue)
 scatter!(ax_nlRᵨ, ΔΘ_expts, ΔS_expts_nlinear;
          color = nlinear_colour, markersize, marker = nlinear_expt_markers)
 hideydecorations!(ax_nlRᵨ, grid = false, ticks = false)
 hidexdecorations!(ax_nlRᵨ, grid = false, ticks = false)
 hidexdecorations!(ax_lRᵨ, grid = false, ticks = false)
-Colorbar(fig[1, 3], hm_nlRᵨ, label = "Rᵨ")
+Colorbar(fig[1, 3], hm_nlRᵨ, label = L"R_{\rho}")
 
 colorrange = (minimum(Δσ_nonlinear[.!isnan.(Δσ_nonlinear)]), 1)
 ax_lR_Δρ = Axis(fig[2, 1], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
 hm = heatmap!(ax_lR_Δρ, ΔΘ, ΔS, Δσ_linear; colorrange, colormap = :batlow)
-scatter!(ax_lR_Δρ, arctic_obs...; color = :red, markersize)
+scatter!(ax_lR_Δρ, arctic_obs...; color = :blue, markersize)
 scatter!(ax_lR_Δρ, ΔΘ_expts, ΔS_expts_linear;
          color = linear_colour, markersize, marker = linear_expt_markers)
 ax_nlR_Δρ = Axis(fig[2, 2], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
 hideydecorations!(ax_nlR_Δρ, grid = false, ticks = false)
 hm_nlR_Δρ = heatmap!(ax_nlR_Δρ, ΔΘ, ΔS, Δσ_nonlinear; colorrange, colormap = :batlow)
-scatter!(ax_nlR_Δρ, arctic_obs...; markersize, color = :red)
+scatter!(ax_nlR_Δρ, arctic_obs...; markersize, color = :blue)
 scatter!(ax_nlR_Δρ, ΔΘ_expts, ΔS_expts_nlinear;
          color = nlinear_colour, markersize, marker = nlinear_expt_markers)
 hidexdecorations!(ax_lR_Δρ, grid = false, ticks = false)
 hidexdecorations!(ax_nlR_Δρ, grid = false, ticks = false)
-Colorbar(fig[2, 3], hm_nlR_Δρ, label = "R_Δρ")
+Colorbar(fig[2, 3], hm_nlR_Δρ, label = L"\delta_{\mathrm{mol}}")
 
 # colorrange = (0, maximum(δ_nleos[.!isnan.(δ_nleos)]))
 colorrange = (1, 10)
 ax_δ_linear = Axis(fig[3, 1], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
 hm_δ_linear = heatmap!(ax_δ_linear, ΔΘ, ΔS, δ_leos; colorrange, colormap = :turbid, highclip = :red, lowclip = :orange)
-scatter!(ax_δ_linear, arctic_obs...; markersize, color = :red)
+scatter!(ax_δ_linear, arctic_obs...; markersize, color = :blue)
 scatter!(ax_δ_linear, ΔΘ_expts, ΔS_expts_linear; color = linear_colour,
          label = linear_expt_labels, markersize, marker = linear_expt_markers)
 ax_δ_nlinear = Axis(fig[3, 2], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
 hm_δ_nlinear = heatmap!(ax_δ_nlinear, ΔΘ, ΔS, δ_nleos; colorrange, colormap = :turbid, highclip = :red, lowclip = :orange)
-scatter!(ax_δ_nlinear, arctic_obs...; markersize, color = :red, label = "Arctic interfaces")
+scatter!(ax_δ_nlinear, arctic_obs...; markersize, color = :blue, label = "Arctic interfaces")
 scatter!(ax_δ_nlinear, ΔΘ_expts, ΔS_expts_nlinear; color = nlinear_colour,
          label = nlinear_expt_labels, markersize, marker = nlinear_expt_markers)
 hideydecorations!(ax_δ_nlinear, grid = false, ticks = false)
-Colorbar(fig[3, 3], hm_δ_nlinear, label = "Δρ′")
+Colorbar(fig[3, 3], hm_δ_nlinear, label = L"\delta_{\mathrm{turb}}")
 legend_markers = [MarkerElement(color = :black, marker = m; markersize)
                   for m ∈ vcat(linear_expt_markers, nlinear_expt_markers)]
 legend_expts = vcat(linear_expt_labels, nlinear_expt_labels)
 Legend(fig[4, 1], legend_markers, legend_expts, "DNS Experiments",
        orientation = :horizontal, nbanks = 2)
-lmarker_2 = [MarkerElement(color = :red, marker = :circle; markersize)]
+lmarker_2 = [MarkerElement(color = :blue, marker = :circle; markersize)]
 lobs = ["Timmermans et al. (2008)"]
 Legend(fig[4, 2], lmarker_2, lobs, "Observations",
        orientation = :horizontal)
@@ -607,8 +612,8 @@ for (j, files) ∈ enumerate(merged_files)
         lines!(ax[i], S_model, Θ_model, label = "1D model", linewidth = 3)
         lines!(ax[i], S, Θ; label = "Simulation output", color = Makie.wong_colors()[2],
                 linestyle = :dash, linewidth = 3)
-        text!(ax[i], 34.7, -1.2, text = L"1D model $R_{\Delta\rho} =$ %$(R_Δρ_model)", align = (:right, :top))
-        text!(ax[i], 34.7, -1.4, text = L"Simulation $R_{\Delta\rho} =$ %$(R_Δρ_sim)", align = (:right, :top))
+        text!(ax[i], 34.7, -1.2, text = L"1D model $\delta_{\mathrm{mol}} =$ %$(R_Δρ_model)", align = (:right, :top))
+        text!(ax[i], 34.7, -1.4, text = L"Simulation $\delta_{\mathrm{mol}} =$ %$(R_Δρ_sim)", align = (:right, :top))
         ax[i].subtitle = L"$t~=$ %$(round(t[2+i]/60, digits = 1)) min"
         if i > 1
                 hideydecorations!(ax[i], grid = false, ticks = false)
@@ -757,18 +762,18 @@ save("fig9_ape.png", fig)
 # Flux boundary conditions
 fig = Figure(size = (800, 800))
 files = (l_fbc_diagnostics, nl_fbc_diagnostics)
-labels = ("II with flux boundary conditions","V with flux boundary conditions")
-titles = ("Experiment II with flux boundary conditions",
-          "Experiment V with flux boundary conditions")
+labels = ("II′","V′")
+titles = ("Experiment II′",
+          "Experiment V′")
 ax = [Axis(fig[i, 1]) for i ∈ 1:3]
-ts_range = 1:360
+ts_range = 1:420
 for (i, file) ∈ enumerate(files)
 
     f = jldopen(file)
     ΔS = f["ΔS"][ts_range]
     ΔT = f["ΔT"][ts_range]
     Rᵨ = f["R_ρ"][ts_range]
-    t = f["dims"]["time"][ts_range] ./ 60
+     t = f["dims"]["time"][ts_range] ./ 60
     z✶ = f["dims"]["z✶"][f["S_interface_idx"][ts_range]]
     close(f)
 
@@ -782,7 +787,7 @@ for (i, file) ∈ enumerate(files)
 			    rightspinecolor = :dodgerblue,
 				ylabelcolor = :dodgerblue,
 			    ytickcolor = :dodgerblue,
-				ylabel = "Rᵨ")
+				ylabel = L"R_{\rho}")
 	lines!(ax2, t, Rᵨ, color = :dodgerblue, label = L"R_{\rho}")
     linkxaxes!(ax2, ax[i])
     hidexdecorations!(ax2)
@@ -790,42 +795,119 @@ for (i, file) ∈ enumerate(files)
     lines!(ax[3], t[1:end], z✶, label = labels[i])
     ax[3].xlabel = "time (min)"
     ax[3].ylabel = L"$z*$ (m)"
-    ax[3].title = "Salinity interface"
+    ax[3].title = "Salinity interface height"
 end
 
 files = (l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics)
-ts_range = 1:240
 labels_nf = ("II", "V")
 for (i, file) ∈ enumerate(files)
     jldopen(file) do f
-        t = f["dims"]["time"][ts_range]
-        z✶ = f["dims"]["z✶"][f["S_interface_idx"]][ts_range]
-        Rᵨ = f["R_ρ"][ts_range]
-        lines!(ax[3], t ./ 60, z✶, label = labels_nf[i],
+        t = f["dims"]["time"]
+        z✶ = f["dims"]["z✶"][f["S_interface_idx"]]
+        Rᵨ = f["R_ρ"]
+        lines!(ax[3], t[2:end] ./ 60, z✶, label = labels_nf[i],
                 linestyle = :dash, color = Makie.wong_colors()[i])
     end
 end
 
-Legend(fig[4, :], ax[3], orientation = :horizontal, nbanks = 2)
 hidexdecorations!(ax[1], grid = false, ticks = false)
 hidexdecorations!(ax[2], grid = false, ticks = false)
 fig
-##
+# linear fit
+linfit_range = 250:420
+Rᵨ_mean_l = jldopen(l_fbc_diagnostics) do f
+    mean(f["R_ρ"][linfit_range])
+end
 f = jldopen(nl_fbc_diagnostics)
-linfit_range = 100:360
 z✶ = f["dims"]["z✶"][f["S_interface_idx"][linfit_range]]
 t = f["dims"]["time"][linfit_range]
+Rᵨ_mean_nl = mean(f["R_ρ"][linfit_range])
 A = [ones(length(t)) t]
 a, b = A \ z✶
-lines!(ax[3], t./60, a .+ t .* b)
+lines!(ax[3], t./60, a .+ t .* b, label = "Linear fit", linestyle = :dot, linewidth = 3)
+Legend(fig[4, :], ax[3], orientation = :horizontal, nbanks = 2)
 fig
+##
+save("fig10_fluxbcs.png", fig)
+##
 uₑ = b
 ΔS = abs(mean(f["ΔS"][linfit_range]))
 ΔT = abs(mean(f["ΔT"][linfit_range]))
 Jₛ = f["FluxBCs/Jˢ"] * f["FluxBCs/top_salinity_scale"]
 Jₜ = f["FluxBCs/Jᵀ"]
-Ẽ = (uₑ * ΔS) / (2 * 0.25 * Jₛ + uₑ * ΔS)
-Ẽ = (uₑ * ΔT) / (2 * 0.25 * Jₜ + uₑ * ΔT)
+z✶ = f["dims"]["z✶"][f["S_interface_idx"]]
+z = f["dims"]["z_aac"]
+Δz = diff(z)[1]
+Hᵤ = vcat(0.25, 0.5 .- z✶)
+Θᵤ = similar(Hᵤ)
+for i ∈ eachindex(Θᵤ)
+    upper = findfirst(z .> -Hᵤ[i])
+    Θᵤ[i] = sum(f["T_ha"][upper+1:end, i] * Δz)
+end
+Δt = diff(f["dims"]["time"])
+dₜΘᵤ = diff(Θᵤ) ./ Δt
+# Ẽ_S = (uₑ * ΔS) / (2 * Hᵤ * Jₛ + uₑ * ΔS)
+Ẽ_T = (uₑ * ΔT) / (2 * Hᵤ[1] * Jₜ + uₑ * ΔT)
+Ẽ_T = (uₑ * ΔT) ./ (Hᵤ .* Jₜ)
+Ẽ_T = (uₑ * ΔT) ./ (Hᵤ * mean(dₜΘᵤ))
+# I think the one below here is correct.
+Ẽ_T = (uₑ * ΔT) ./ (Jₜ)
+z = f["dims"]["z_aac"]
+z_upper = findall(-0.2 .< z .< -0.1)
+z_lower = findall(-0.4 .< z .< -0.3)
+Tᵤ_mean = mean(f["T_ha"][z_upper, linfit_range])
+
+Tₗ_mean = mean(f["T_ha"][z_lower, linfit_range])
+T_mean = [Tᵤ_mean, Tₗ_mean]
+Sᵤ_mean = mean(f["S_ha"][z_upper, linfit_range])
+Sₗ_mean = mean(f["S_ha"][z_lower, linfit_range])
+S_mean = [Sᵤ_mean, Sₗ_mean]
+σᵤ_mean = mean(f["σ_ha"][z_upper, linfit_range])
+σₗ_mean = mean(f["σ_ha"][z_lower, linfit_range])
+σ_mean = [σᵤ_mean, σₗ_mean]
+
+# alternate E
+ΔT_mean = vec(mean(f["T_ha"][z_lower, :], dims = 1)) - vec(mean(f["T_ha"][z_upper, :], dims = 1))
+ΔTᵤ_mean = vec(diff(mean(f["T_ha"][z_upper, :], dims = 1), dims = 2)) .* Hᵤ[2:end]
+E = (uₑ .* ΔT_mean[2:end]) ./ ΔTᵤ_mean
+lines(E)
+close(f)
+Δρ = total_density(Tₗ_mean, Sₗ_mean, 0, nleos) - total_density(Tᵤ_mean, Sᵤ_mean, 0, nleos)
+S_mix = range(S_mean..., length = 1000)
+T_mix = T_mean[2] .+ (ΔT / ΔS) .* (S_mix .- S_mean[2])
+
+Δρ′ = maximum(total_density.(T_mix, S_mix, fill(0, length(S_mix)), fill(nleos, length(S_mix)))) .-
+                total_density(T_mean[2], S_mean[2], 0, nleos)
+
+δ_mean = δ(Δρ′/Δρ)
+## Comparison to entrainment model
+_A(δ, Rᵨ✶, Rᵨ) = (δ * (Rᵨ - 0.15) * (Rᵨ✶ - 1)) / 0.85
+_B(δ, Rᵨ✶, Rᵨ) = Rᵨ✶ - 0.15
+_C(δ, Rᵨ✶, Rᵨ) = δ * (Rᵨ✶ - Rᵨ)
+function Ẽ_model(δ, Rᵨ✶, Rᵨ)
+
+    A = _A(δ, Rᵨ✶, Rᵨ)
+    B = _B(δ, Rᵨ✶, Rᵨ)
+    C = _C(δ, Rᵨ✶, Rᵨ)
+
+    Ẽ = (-B + sqrt(B^2 + 4*A*C)) / (2 * A)
+    return Ẽ
+end
+Ẽ_model(δ_mean, 1.6, 1.33)
+Rᵨ_range = range(1, 1.6, length = 100)
+δ_vals = (1.0, δ_mean, 1.5)
+Ẽ_ = Array{Float64}(undef, length(Rᵨ_range), length(δ_vals))
+for (i, d) ∈ enumerate(δ_vals)
+    Ẽ_[:, i] = Ẽ_model.(d, 1.6, Rᵨ_range)
+end
+fig, ax = series(Rᵨ_range, Ẽ_', labels = ["δ = $(d)" for d ∈ δ_vals])
+ax.xlabel = "Rᵨ"
+ax.ylabel = "Ẽ"
+scatter!(ax, [Rᵨ_mean_nl], [Ẽ_S], label = "Nonlinear fluxbc expt, S")
+scatter!(ax, [Rᵨ_mean_nl], [Ẽ_T], label = "Nonlinear fluxbc expt, T")
+
+axislegend(ax)
+fig
 ##
 save("flux_bcs.png", fig)
 
@@ -860,7 +942,7 @@ files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
          l_R_ρ_105_dT05_diagnostics, nl_R_ρ_105_dT05_diagnostics)
 fig = Figure(size = (800, 800))
 ax = [Axis(fig[i, 1],
-          title = "Batchelor lengths and resolution",
+          title = "Batchelor lengths and grid resolution",
           xlabel = "time (mins)",
           ylabel = "Length (log10(mm))") for i ∈ 1:3]
 ts_length = 3:240
@@ -878,26 +960,41 @@ for (i, file) ∈ enumerate(files)
         j < 3 ? hidexdecorations!(ax[j], grid = false, ticks = false) : nothing
     end
 
+        jldopen(file) do f
+            Ba = 1e3 * f["Ba"][ts_length]
+            spcaings = vcat(diff(f["dims"]["x_caa"]),
+                            diff(f["dims"]["y_aca"]),
+                            diff(f["dims"]["z_aac"]))
+            Δ = minimum(spcaings) * 1e3
+            println(Δ)
+            j = i ≤ 2 ? 1 : i > 4 ? 3 : 2
+            i % 2 == 0 ? lines!(ax[j], log10.(fill(Δ, length(Ba))), color = :red, linestyle = :dot,
+                                label = "Δ") : nothing
+        end
+
+end
+files = (l_fbc_diagnostics, nl_fbc_diagnostics)
+fbc_labels = ("II′", "V′")
+fbc_colors = (Makie.wong_colors()[7], RGBAf(0.5, 0.2, 0.8, 0.5))
+for (i, file) ∈ enumerate(files)
+
     jldopen(file) do f
         Ba = 1e3 * f["Ba"][ts_length]
-        spcaings = vcat(diff(f["dims"]["x_caa"]),
-                        diff(f["dims"]["y_aca"]),
-                        diff(f["dims"]["z_aac"]))
-        Δ = minimum(spcaings) * 1e3
-        println(Δ)
-        j = i ≤ 2 ? 1 : i > 4 ? 3 : 2
-        i % 2 == 0 ? lines!(ax[j], log10.(fill(Δ, length(Ba))), color = :red, linestyle = :dot,
-                            label = "Grid resolution") : nothing
-
-        i % 2 == 0 ? axislegend(ax[j], position = :rt) : nothing
+        ls = i % 2 == 0 ? linestyles[2] : linestyles[1]
+        lines!(ax[2], log10.(Ba), label = fbc_labels[i], linestyle = ls, color = fbc_colors[i])
     end
 
 end
+for i ∈ 1:3
+    axislegend(ax[i], position = :rt, nbanks = 3)
+end
+linkyaxes!(ax[2], ax[1])
+linkyaxes!(ax[3], ax[1])
 fig
 ##
 save("fig11_Batchelor_lengths.png", fig)
 ## Figure
-# Energy budgets
+# Energy budgets, rundown simulations
 files = (l_R_ρ_105_dT2_diagnostics, l_R_ρ_105_dT1_diagnostics, l_R_ρ_105_dT05_diagnostics,
          nl_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT05_diagnostics)
 expt_labels_ordered = ("I", "II", "III", "IV", "V", "VI")
@@ -906,6 +1003,8 @@ ax = [Axis(fig[i, j],
           title = "Batchelor lengths and resolution",
           xlabel = "time (mins)") for i ∈ 1:3, j ∈ 1:2]
 ts_length = 1:240
+RHS_per_error = Vector{Float64}(undef, length(files))
+ek_mean = Vector{Float64}(undef, length(files))
 for (i, file) ∈ enumerate(files)
 
     ls = i % 2 == 0 ? linestyles[2] : linestyles[1]
@@ -916,6 +1015,9 @@ for (i, file) ∈ enumerate(files)
         ε = 0.5 * (f["∫ε"][1:ts_length[end-1]] .+ f["∫ε"][2:ts_length[end]])
         ∫wb = 0.5 * (f["∫wb"][1:ts_length[end-1]] .+ f["∫wb"][2:ts_length[end]])
         RHS = ∫wb .- ε
+        RHS_per_error[i] = 100 * mean(abs.(∫wb .- ε)) / mean(ε)
+        ek_mean[i] = mean(dₜek)
+        # RHS = (1+RHS_per_error[i]/100)*∫wb .- ε
 
         mean_abs_err = round(mean(abs.(dₜek .- RHS)), digits = 15)
         lines!(ax[i], dₜek, label = L"\rho_{0}^{-1}\frac{\mathrm{d}}{\mathrm{d}t}\int E_{k}~\mathrm{d}V")
@@ -933,12 +1035,33 @@ Legend(fig[4, :], ax[1], orientation = :horizontal)
 fig
 ##
 save("fig12_energy_budgets.png", fig)
+##
+# # Energy budgets, flux bc simulations
+files = (l_fbc_diagnostics, nl_fbc_diagnostics)
+RHS_per_error = Vector{Float64}(undef, length(files))
+ek_mean = Vector{Float64}(undef, length(files))
+for (i, file) ∈ enumerate(files)
 
+    jldopen(file) do f
+
+        Δt = diff(f["dims"]["time"][ts_length])
+        dₜek = diff(f["∫Eₖ"][ts_length]) ./ Δt
+        ε = 0.5 * (f["∫ε"][1:ts_length[end-1]] .+ f["∫ε"][2:ts_length[end]])
+        ∫wb = 0.5 * (f["∫wb"][1:ts_length[end-1]] .+ f["∫wb"][2:ts_length[end]])
+        RHS = ∫wb .- ε
+        RHS_per_error[i] = 100 * mean(abs.(∫wb .- ε)) / mean(ε)
+        ek_mean[i] = mean(dₜek)
+    end
+end
+round.(RHS_per_error, digits = 1)
+ek_mean
 ##
 # δ parameter
 # McDougall expt 25th Oct check
 S = [0.04, 6.01]
 Θ = [15.5, 30.39]
+S = [0.04, 6.04]
+Θ = [16.87, 31.6]
 ΔS = diff(S)
 Θ = gsw_ct_from_t.(S, Θ, 0)
 ΔΘ = diff(Θ)
