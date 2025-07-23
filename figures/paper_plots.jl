@@ -818,7 +818,7 @@ linfit_range = 250:420
 Rᵨ_mean_l = jldopen(l_fbc_diagnostics) do f
     mean(f["R_ρ"][linfit_range])
 end
-f = jldopen(nl_fbc_diagnostics)
+f = jldopen(l_fbc_diagnostics)
 z✶ = f["dims"]["z✶"][f["S_interface_idx"][linfit_range]]
 t = f["dims"]["time"][linfit_range]
 Rᵨ_mean_nl = mean(f["R_ρ"][linfit_range])
@@ -833,7 +833,7 @@ save("fig10_fluxbcs.png", fig)
 uₑ = b
 ΔS = abs(mean(f["ΔS"][linfit_range]))
 ΔT = abs(mean(f["ΔT"][linfit_range]))
-Jₛ = f["FluxBCs/Jˢ"] * f["FluxBCs/top_salinity_scale"]
+# Jₛ = f["FluxBCs/Jˢ"] * f["FluxBCs/top_salinity_scale"]
 Jₜ = f["FluxBCs/Jᵀ"]
 z✶ = f["dims"]["z✶"][f["S_interface_idx"]]
 z = f["dims"]["z_aac"]
@@ -852,6 +852,7 @@ Ẽ_T = (uₑ * ΔT) ./ (Hᵤ .* Jₜ)
 Ẽ_T = (uₑ * ΔT) ./ (Hᵤ * mean(dₜΘᵤ))
 # I think the one below here is correct.
 Ẽ_T = (uₑ * ΔT) ./ (Jₜ)
+Ẽ_T = (uₑ * ΔT) ./ (2*Jₜ + uₑ * ΔT)
 z = f["dims"]["z_aac"]
 z_upper = findall(-0.2 .< z .< -0.1)
 z_lower = findall(-0.4 .< z .< -0.3)
