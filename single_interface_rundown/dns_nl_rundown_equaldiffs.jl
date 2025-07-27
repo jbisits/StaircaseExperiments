@@ -5,7 +5,7 @@ restart = true
 architecture = GPU()
 Pr = 7   # Prandtl
 τ = 1 # diff ratio
-ν = 2.5e-6 # set this get the others
+ν = 1e-6 # set this get the others
 diffusivities = diffusivities_from_ν(ν; τ, Pr)
 domain_extent = (Lx=0.05, Ly=0.05, Lz=-0.5)
 domain_topology = (x = Periodic, y = Periodic, z = Bounded)
@@ -29,7 +29,7 @@ initial_noise = TracerNoise(1e-4, 1e-2)
 sdns = StaircaseDNS(dns_model, interface_ics; initial_noise)
 
 ## Build simulation
-stop_time = Int(2 * 60 * 60) # seconds
+stop_time = Int(1 * 60 * 60) # seconds
 initial_state = interface_ics.interface_smoothing isa TanhInterfaceThickness ?  "tanh" : "step"
 output_path = joinpath(@__DIR__, "dns_rundown_$(round(interface_ics.R_ρ, digits = 2))_dT_$(ΔT)_equaldiff", initial_state)
 save_schedule = 60

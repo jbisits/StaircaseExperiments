@@ -58,6 +58,7 @@ begin
 								   "dns_res_dT05_nonlinear", 
 								   "dns_res_dT05_linear",
 								   "dns_res_dT05_j110_nonlinear",
+								   "equaldiffs_nonlinear",
 								   "R_rho_1.03_deltatheta_0.5_nonlinear", 
 								   "R_rho_1.05_deltatheta_1.0_nonlinear", 
 								   "R_rho_1.05_deltatheta_0.5_linear", 
@@ -601,9 +602,9 @@ let
 	ε = 0.5 * (expt_data["∫ε"][1:end-1] .+ expt_data["∫ε"][2:end])
 	∫wb = 0.5 * (expt_data["∫wb"][1:end-1] .+ expt_data["∫wb"][2:end])
 	∫gρw = - 0.5 * (expt_data["∫gρw"][1:end-1] .+ expt_data["∫gρw"][2:end])
-	RHS = 1.04∫wb .- 0.96ε #.- diff_offset_interp/2
+	RHS = ∫wb .- ε #.- diff_offset_interp/2
 	# RHS = ∫wb .- ε
-	# RHS = ∫gρw .- ε #.- diff_offset_interp
+	RHS = ∫gρw .- ε #.- diff_offset_interp
 	RHS_per = abs.(RHS) ./ abs.(ε)
 	fig, ax = lines(eachindex(Δt)[3:end], dₜek[3:end], label = "dₜek")
 	lines!(ax, eachindex(Δt)[3:end], RHS[3:end], label = "∫wb - ε")
