@@ -59,6 +59,7 @@ begin
 								   "dns_res_dT05_linear",
 								   "dns_res_dT05_j110_nonlinear",
 								   "equaldiffs_nonlinear",
+								   "equaldiffs_nu1_nonlinear",
 								   "R_rho_1.03_deltatheta_0.5_nonlinear", 
 								   "R_rho_1.05_deltatheta_1.0_nonlinear", 
 								   "R_rho_1.05_deltatheta_0.5_linear", 
@@ -604,7 +605,7 @@ let
 	∫gρw = - 0.5 * (expt_data["∫gρw"][1:end-1] .+ expt_data["∫gρw"][2:end])
 	RHS = ∫wb .- ε #.- diff_offset_interp/2
 	# RHS = ∫wb .- ε
-	RHS = ∫gρw .- ε #.- diff_offset_interp
+	# RHS = ∫gρw .- ε #.- diff_offset_interp
 	RHS_per = abs.(RHS) ./ abs.(ε)
 	fig, ax = lines(eachindex(Δt)[3:end], dₜek[3:end], label = "dₜek")
 	lines!(ax, eachindex(Δt)[3:end], RHS[3:end], label = "∫wb - ε")
@@ -1029,7 +1030,7 @@ TableOfContents()
 # ╟─d9422085-e838-44a1-91be-b81458dc3013
 # ╟─3c0e1dfd-e4ba-448f-8475-ada056c8b5fe
 # ╠═34f7166e-99a5-45fa-8b9b-963758e0d9f1
-# ╟─c576c4cd-1101-46e2-b6fa-b574f0b13dfe
+# ╠═c576c4cd-1101-46e2-b6fa-b574f0b13dfe
 # ╟─f200b8e0-2b14-4270-963b-6bb1b154d550
 # ╟─2f79adc0-2b5d-455d-beb8-5907c38d6e8e
 # ╟─50e87efc-a49c-4ffd-bfbd-cd5dfad40639
