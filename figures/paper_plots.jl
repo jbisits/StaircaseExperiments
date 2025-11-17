@@ -9,7 +9,7 @@ using CairoMakie # GLMakie better for surface plots
 cd("figures")
 ## EOS's and other constants for the paper
 ρ₀ = gsw_rho(34.7, 0.5, 0)
-leos = CustomLinearEquationOfState(-0.5, 34.64, reference_density = ρ₀)
+leos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
 leos_func(S, Θ) = CustomLinearEquationOfState(Θ, S, reference_density = ρ₀)
 nleos = TEOS10EquationOfState(reference_density = ρ₀)
 cab_eos = RoquetEquationOfState(:Cabbeling, reference_density = ρ₀)
@@ -477,6 +477,10 @@ arctic_obs = [[-0.04], [-0.014]]
 ΔS_expts_linear = [-0.12, -0.06, -0.03]
 ΔS_expts_nlinear = [-0.12, -0.069, -0.037]
 
+# 0.95 asymmetry
+find_dmol = findall(Δσ_nonlinear .> 0.95)
+ΔΘ_asym = [ΔΘ[find_dmol[i][2]] for i ∈ eachindex(find_dmol)]
+
 ##
 markersize = 15
 linear_colour = :black
@@ -579,9 +583,9 @@ for (j, files) ∈ enumerate(merged_files)
     close(file)
     for (i, f) ∈ enumerate(files)
         file = jldopen(f)
-        S = file["S_ha"][:, 2+i]
-        Θ = file["T_ha"][:, 2+i]
-        σ = file["σ_ha"][:, 2+i]
+        S = file["S_ha"][:, 4]
+        Θ = file["T_ha"][:, 4]
+        σ = file["σ_ha"][:, 4]
         z = file["dims/z_aac"]
         t = file["dims/time"]
         κₛ = file["attrib/κₛ (m²s⁻¹)"]
@@ -614,7 +618,7 @@ for (j, files) ∈ enumerate(merged_files)
                 linestyle = :dash, linewidth = 3)
         text!(ax[i], 34.7, -1.2, text = L"1D model $\delta_{\mathrm{mol}} =$ %$(R_Δρ_model)", align = (:right, :top))
         text!(ax[i], 34.7, -1.4, text = L"Simulation $\delta_{\mathrm{mol}} =$ %$(R_Δρ_sim)", align = (:right, :top))
-        ax[i].subtitle = L"$t~=$ %$(round(t[2+i]/60, digits = 1)) min"
+        ax[i].subtitle = L"$t~=$ %$(round(t[4]/60, digits = 1)) min"
         if i > 1
                 hideydecorations!(ax[i], grid = false, ticks = false)
                 linkyaxes!(ax[i], ax[1])
@@ -636,7 +640,8 @@ files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
          l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics,
          l_R_ρ_105_dT05_diagnostics, nl_R_ρ_105_dT05_diagnostics)
 fig = Figure(size = (800, 1000))
-axσ = [Axis(fig[j, i], xlabel = "time (min)", ylabel = "z (m)") for i ∈ 1:2, j ∈ 1:3]
+axprofile = [Axis(fig[j, 1], xlabel = L"$σ_{0}′$ (kgm$^{-3}$)", ylabel = "z (m)") for j ∈ 1:3]
+axσ = [Axis(fig[j, i], xlabel = "time (min)", ylabel = "z (m)") for i ∈ 2:3, j ∈ 1:3]
 σ_colorrange_dT2 = jldopen(files[1]) do ds
         extrema(ds["σ_ha"][:, 3] .- mean(ds["σ_ha"][:, 1]))
 end
@@ -647,10 +652,7 @@ end
         extrema(ds["σ_ha"][:, 3] .- mean(ds["σ_ha"][:, 1]))
 end
 colorranges = (σ_colorrange_dT2, σ_colorrange_dT1, σ_colorrange_dT05)
-# axwT = [Axis(fig[2, i], xlabel = "time (min)", ylabel = "z (m)") for i ∈ eachindex(files)]
-# wT_colorrange = jldopen(files[1]) do ds
-#         extrema(ds["ha_wT"])
-# end
+linestyles = (:solid, :dash)
 ts_length = 240
 for (i, f) ∈ enumerate(files)
 
@@ -662,18 +664,54 @@ for (i, f) ∈ enumerate(files)
                 elseif i ∈ 5:6
                     colorranges[3]
                 end
+        _z = ds["dims/z_aac"]
         σ_ha′ = ds["σ_ha"][:, 1:ts_length ]' .- mean(ds["σ_ha"][:, 1])'
-        hm = heatmap!(axσ[i], 1:ts_length, z, σ_ha′; colorrange = crange, colormap = :diff)
+        # if i == 5
+        #     σ_ha′ .+= 0.001
+        # end
+        hm = heatmap!(axσ[i], 1:ts_length, _z, σ_ha′; colorrange = crange, colormap = :diff)
         axσ[i].title = "Experiment " * all_labels[i]
+        hideydecorations!(axσ[i], ticks = false)
         if i % 2 == 0
-            Colorbar(fig[Int(i / 2), 3], hm, label = L"$σ_{0}′$ (kgm$^{-3}$)")
-            hideydecorations!(axσ[i], ticks = false)
+            Colorbar(fig[Int(i / 2), 4], hm, label = L"$σ_{0}′$ (kgm$^{-3}$)")
         end
         if i < 5
             hidexdecorations!(axσ[i], ticks = false)
         end
-    end
 
+        # profile
+        t = ds["dims/time"]
+        profile_time = 4
+        ls = i % 2 == 0 ? linestyles[2] : linestyles[1]
+        if i ∈ (1, 2)
+            lines!(axprofile[1], σ_ha′[profile_time, :], _z, color = Makie.wong_colors()[i],
+                    linestyle = ls, label = all_labels[i])
+            if i % 2 == 0
+                axprofile[1].title = "t = $(round(Int, t[profile_time]/60))min"
+            end
+            hidexdecorations!(axprofile[1], ticks = false, grid = false)
+        elseif i ∈ (3, 4)
+            lines!(axprofile[2], σ_ha′[profile_time, :], _z, color = Makie.wong_colors()[i],
+                    linestyle = ls, label = all_labels[i])
+            if i % 2 == 0
+                axprofile[2].title = "t = $(round(Int, t[profile_time]/60))min"
+            end
+            hidexdecorations!(axprofile[2], ticks = false, grid = false)
+        elseif i ∈ (5, 6)
+            lines!(axprofile[3], σ_ha′[profile_time, :], _z, color = Makie.wong_colors()[i],
+                    linestyle = ls, label = all_labels[i])
+            if i % 2 == 0
+                # xlims!(axprofile[3], (-0.02, 0.02))
+                axprofile[3].title = "t = $(round(Int, t[profile_time]/60))min"
+                # axprofile[3].xticklabelrotation = π / 4
+            end
+        end
+    end
+end
+linkxaxes!(axprofile[2], axprofile[1])
+linkxaxes!(axprofile[3], axprofile[1])
+for i ∈ 1:3
+    axislegend(axprofile[i])
 end
 fig
 ##
