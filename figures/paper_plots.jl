@@ -6,7 +6,7 @@ using Printf
 using SpecialFunctions: erf
 using CairoMakie # GLMakie better for surface plots
 
-cd("figures")
+# cd("figures")
 ## EOS's and other constants for the paper
 ρ₀ = gsw_rho(34.7, 0.5, 0)
 leos = CustomLinearEquationOfState(-0.5, 34.6, reference_density = ρ₀)
@@ -17,7 +17,7 @@ erf_tracer_solution(z, Cₗ::Number, ΔC::Number, κ::Number, t, interface_depth
     Cₗ + 0.5 * ΔC * (1 + erf((z - interface_depth) / sqrt(4 * κ * t)))
 δ(C) = 1 + 2*C + 2*sqrt(C^2 + C)
 
-Sᵤ, Θᵤ = 34.58, -1.5 # cabbeling expt from project two
+Sᵤ, Θᵤ = 34.58, -1.5
 Sₗ, Θₗ = 34.7, 0.5
 ΔS = Sᵤ - Sₗ
 ΔΘ = Θᵤ - Θₗ
@@ -103,11 +103,16 @@ ax[1].xlabel = "Salinity (gkg⁻¹)"
 ax[1].xlabelcolor = :blue
 ax[1].xticklabelcolor = :blue
 ax[1].ylabel = "z (m)"
+xticks_positions = range(34.567, 34.713, length = 5)
+xticks_vals = string.(round.(range(34.567, 34.713, length = 5), digits = 3))
+ax[1].xticks = (xticks_positions, xticks_vals)
+ax[1].xgridvisible = false
 axT = Axis(fig[1, 1];
             xaxisposition = :top,
             xticklabelcolor = :red,
             xlabel = "Θ (°C)",
             xlabelcolor = :red,
+            ygridvisible = false,
             title = "(a) Temperature and salinity profiles")
 lines!(axT, Θ₀ˡ, z[1:Int(Nz/2)]; color = (:red, 0.5), label = "Initial temperature")
 lines!(axT, Θ₀ᵘ, z[Int(Nz/2)+1:end]; color = (:red, 0.5))
@@ -1193,3 +1198,38 @@ T_mix = Θ[2] .+ (ΔΘ / ΔS) .* (S_mix .- S[2])
 for i ∈ eachindex(δᵢ_leos)
     println("$(linear_expt_labels[i]) = $(round(δᵢ_leos[i], digits = 2))")
 end
+## Graphical abstract
+files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics)
+         # l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics,
+         # l_R_ρ_105_dT05_diagnostics, nl_R_ρ_105_dT05_diagnostics)
+fig = Figure(size = (800, 400))
+axprofile = Axis(fig[1, 1], xlabel = L"$σ_{0}′$ (kgm$^{-3}$)", ylabel = "z (m)")
+hidedecorations!(axprofile)
+axσ = [Axis(fig[1, j], xlabel = "time (min)", ylabel = "z (m)") for j ∈ 2:3]
+σ_colorrange_dT2 = jldopen(files[1]) do ds
+        extrema(ds["σ_ha"][:, 3] .- mean(ds["σ_ha"][:, 1]))
+end
+colorrange = σ_colorrange_dT2
+linestyles = (:solid, :dash)
+ts_length = 240
+for (i, f) ∈ enumerate(files)
+
+    jldopen(f) do ds
+        _z = ds["dims/z_aac"]
+        σ_ha′ = ds["σ_ha"][:, 1:ts_length ]' .- mean(ds["σ_ha"][:, 1])'
+        hm = heatmap!(axσ[i], 1:ts_length, _z, σ_ha′; colorrange, colormap = :diff)
+        hidedecorations!(axσ[i])
+
+        # profile
+        t = ds["dims/time"]
+        profile_time = 4
+        ls = i % 2 == 0 ? linestyles[2] : linestyles[1]
+        if i ∈ (1, 2)
+            lines!(axprofile, σ_ha′[profile_time, :], _z, color = Makie.wong_colors()[i],
+                    linestyle = ls, label = all_labels[i])
+        end
+    end
+end
+fig
+##
+save("graphical_abstract.png", fig)
