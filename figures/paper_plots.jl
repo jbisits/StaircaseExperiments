@@ -67,7 +67,7 @@ all_labels = collect(Iterators.flatten(zip(linear_expt_labels, nlinear_expt_labe
 linear_expt_markers = [:utriangle, :dtriangle, :rtriangle]
 nlinear_expt_markers = [:cross, :xcross, :star5]
 
-## Figure
+## Figure one
 # Asymmetric effects of non-linear eos
 
 S₀ᵘ, S₀ˡ = fill(Sᵤ, Int(Nz / 2)), fill(Sₗ, Int(Nz / 2))
@@ -134,7 +134,7 @@ fig
 ##
 save("fig1_S_T_sigma_profiles.png", fig)
 
-## Figure
+## Figure two
 # Profiles in salinity-temperature space
 # σ_grad = get(ColorSchemes.dense, range(0.2, 1, length = 4))
 σ_grad = get(ColorSchemes.diff, [0.2, 0.3, 0.6, 1])
@@ -220,7 +220,7 @@ fig
 ##
 save("fig2_S_T_sigma_ST_space_2panel.png", fig)
 
-## Figure
+## Figure five
 # DNS flow evolution
 # file = jldopen(nl_R_ρ_105)
 files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics)
@@ -322,7 +322,7 @@ fig
 ##
 save("fig3_S_and_T_dns_evolution.png", fig)
 
-## Figure
+## Figure three
 # τ impact on asymmetry
 Sᵤ_range = (34.51, 34.54, 34.58)
 ΔS_range = Sᵤ_range .- Sₗ
@@ -386,7 +386,7 @@ fig
 ##
 save("fig4_tau_asymmetry.png", fig)
 
-## Figure
+## Figure four
 # Density asymmetry heatmap
 Sᵤ_range = range(33.54, Sₗ, length = 400)
 Θᵤ_range = range(-1.6, Θₗ, length = 400)
@@ -562,7 +562,7 @@ replace!(SO_vals, NaN => 0)
 nz = findall(SO_vals .!= 0)
 extrema(SO_vals[nz])
 
-## Figure
+## Figure ten
 # initial evlotuion
 nl_files = (nl_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT05_diagnostics)
 l_files = (l_R_ρ_105_dT2_diagnostics, l_R_ρ_105_dT1_diagnostics, l_R_ρ_105_dT05_diagnostics)
@@ -639,7 +639,7 @@ fig
 ##
 save("fig6_ST_simluation.png", fig)
 
-## Figure
+## Figure six
 # Density hovmollers for Rρ = 1.05
 files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
          l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics,
@@ -801,7 +801,7 @@ fig
 ##
 save("fig9_ape.png", fig)
 
-## Figure
+## Figure eight
 # Flux boundary conditions
 fig = Figure(size = (800, 800))
 files = (l_fbc_diagnostics, nl_fbc_diagnostics)
@@ -979,7 +979,7 @@ S_mix = range(Sᵤ, Sₗ, length = 1000)
 ρₗ = total_density(Θₗ, Sₗ, 0, nleos)
 ρ_max - ρₗ
 
-## Figure
+## Figure nine
 # Batchelor lengths and resolution
 files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
          l_R_ρ_105_dT1_diagnostics, nl_R_ρ_105_dT1_diagnostics,

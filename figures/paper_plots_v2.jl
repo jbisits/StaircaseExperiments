@@ -1,0 +1,13 @@
+# Save all figures in this study
+include("plotting_env_and_load.jl")
+include("fig1.jl")
+include("fig2.jl")
+include("fig3.jl")
+include("fig4.jl")
+include("fig5.jl")
+include("fig6.jl")
+include("fig7.jl")
+include("fig8.jl")
+include("fig9.jl")
+include("fig10.jl")
+include("graphical_abstract.jl")
