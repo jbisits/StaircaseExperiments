@@ -1,7 +1,6 @@
 include("plotting_env_and_load.jl")
 ## Figure five
 # DNS flow evolution
-# file = jldopen(nl_R_ρ_105)
 files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics)
 file = jldopen(files[2])
 x = file["dims/x_caa"]
@@ -31,6 +30,7 @@ w_colorrnage =  (-0.0005, 0.0005)
 fig = Figure(size = (1500, 1300))
 snapshots = [[60.0 * 3, 60.0 * 6, 60 * 12, 60.0 * 24],
              [180.00000000000003, 60.0 * 6, 60 * 12, 60.0 * 24]]
+panel_labels = ["(a)" "(b)" "(c)" "(d)"; "(e)" "(f)" "(g)" "(h)"]
 for (j, path) ∈ enumerate(files)
 
     file = jldopen(path)
@@ -43,7 +43,6 @@ for (j, path) ∈ enumerate(files)
     close(file)
 
     ax = [Axis3(fig[j, i],
-                # title = i == 1 ? "Experiment I" : "Experiment IV",
                 aspect=(1/3, 1/3, 1),
                 titlefont = :regular,
                 xlabel = "x (cm)",
@@ -80,8 +79,8 @@ for (j, path) ∈ enumerate(files)
                         backlight = 5f0, shading = FastShading)
         sf_w = surface!(ax[i], x, y, z_xy_top; color = slices[i].velocity_zmean, colormap = :balance,
                         colorrange = w_colorrnage)
-        ax[i].title = j == 1 ? "I, t = $(round(snapshots[j][i] / 60)) minutes" :
-                               "IV, t = $(round(snapshots[j][i] / 60)) minutes"
+        ax[i].title = j == 1 ? panel_labels[j, i] * " I, t = $(round(snapshots[j][i] / 60)) minutes" :
+                               panel_labels[j, i] * " IV, t = $(round(snapshots[j][i] / 60)) minutes"
         if j == 2
             if i == 1
                 Colorbar(fig[j+1, 1:2], sf_S, label = "S′ (gkg⁻¹)", vertical = false, flipaxis = false)
@@ -97,6 +96,5 @@ end
 Label(fig[0, :], "Salinity and temperature evolution", fontsize = 22, font = :bold)
 rowgap!(fig.layout, 2, Relative(0.05))
 rowgap!(fig.layout, 3, Relative(0.05))
-fig
 ##
-save("fig5_S_and_T_dns_evolution.png", fig)
+save("fig5.png", fig)

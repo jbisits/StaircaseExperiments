@@ -54,6 +54,20 @@ for i ∈ 1:3
 end
 linkyaxes!(ax[2], ax[1])
 linkyaxes!(ax[3], ax[1])
-fig
+linkxaxes!(ax[2], ax[1])
+linkxaxes!(ax[3], ax[1])
+xlims!(ax[1], 2, 240)
+# panel labels
+panel_labels = ["(a)", "(b)", "(c)"]
+for (i, a) ∈ enumerate(ax)
+    text!(a, 0, 1,
+          text = panel_labels[i],
+          font = :bold,
+          align = (:left, :top),
+          offset = (35, 2),
+          space = :relative,
+          fontsize = 24
+          )
+end
 ##
-save("fig9_Batchelor_lengths.png", fig)
+save("fig9.png", fig)

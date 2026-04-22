@@ -69,4 +69,4 @@ lines!(ax[3], t./60, a .+ t .* b, label = "Linear fit", linestyle = :dot, linewi
 Legend(fig[4, :], ax[3], orientation = :horizontal, nbanks = 2)
 fig
 ##
-save("fig8_fluxbcs.png", fig)
+save("fig8.png", fig)

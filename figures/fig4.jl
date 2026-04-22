@@ -55,8 +55,6 @@ for (j, _Sᵤ) ∈ enumerate(Sᵤ_range)
         Δρ_nlinear = abs(ρ_nlinear[1] - ρ_nlinear[end])
         Δρ′_linear = ρ_l_max - ρ_linear[end]
         Δρ′_nlinear[i, j] = ρ_nl_max - ρ_nlinear[end]
-        # δ_leos[i, j] = Δρ′_linear #/ Δρ_linear
-        # δ_nleos[i, j] = Δρ′_nlinear[i, j] #/ Δρ_nlinear
         δ_leos[i, j] = δ(Δρ′_linear / Δρ_linear)
         δ_nleos[i, j] = δ(Δρ′_nlinear[i, j] / (ρ_nlinear[end] - ρ_nlinear[1]))
     end
@@ -84,8 +82,6 @@ for (i, c) ∈ enumerate(eachcol(reverse(Rᵨ_leos, dims = 1)))
         δ_leos[i, j] = isnan(Rᵨ_leos[i, j]) ? NaN : δ_leos[i, j]
     end
 end
-
-# δ_nleos = δ_nleos ./ maximum(δ_nleos[.!isnan.(δ_nleos)]) # normalise
 
 ΔΘ = Θᵤ_range .- Θₗ
 ΔS = Sᵤ_range .- Sₗ
@@ -135,7 +131,6 @@ hidexdecorations!(ax_lR_Δρ, grid = false, ticks = false)
 hidexdecorations!(ax_nlR_Δρ, grid = false, ticks = false)
 Colorbar(fig[2, 3], hm_nlR_Δρ, label = L"\delta_{\mathrm{mol}}")
 
-# colorrange = (0, maximum(δ_nleos[.!isnan.(δ_nleos)]))
 colorrange = (1, 10)
 ax_δ_linear = Axis(fig[3, 1], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
 hm_δ_linear = heatmap!(ax_δ_linear, ΔΘ, ΔS, δ_leos; colorrange, colormap = :turbid, highclip = :red, lowclip = :orange)
@@ -149,6 +144,21 @@ scatter!(ax_δ_nlinear, ΔΘ_expts, ΔS_expts_nlinear; color = nlinear_colour,
          label = nlinear_expt_labels, markersize, marker = nlinear_expt_markers)
 hideydecorations!(ax_δ_nlinear, grid = false, ticks = false)
 Colorbar(fig[3, 3], hm_δ_nlinear, label = L"\delta_{\mathrm{turb}}")
+
+# panel labels
+panel_labels = ["(a)", "(b)", "(c)", "(d)", "(e)", "(f)"]
+axs = [ax_lRᵨ, ax_lR_Δρ, ax_δ_linear, ax_nlRᵨ, ax_nlR_Δρ, ax_δ_nlinear]
+for (i, a) ∈ enumerate(axs)
+    text!(a, 1, 0,
+          text = panel_labels[i],
+          font = :bold,
+          align = (:right, :bottom),
+          offset = (-4, 2),
+          space = :relative,
+          fontsize = 24
+          )
+end
+# Legend
 legend_markers = [MarkerElement(color = :black, marker = m; markersize)
                   for m ∈ vcat(linear_expt_markers, nlinear_expt_markers)]
 legend_expts = vcat(linear_expt_labels, nlinear_expt_labels)
@@ -158,6 +168,5 @@ lmarker_2 = [MarkerElement(color = :blue, marker = :circle; markersize)]
 lobs = ["Timmermans et al. (2008)"]
 Legend(fig[4, 2], lmarker_2, lobs, "Observations",
        orientation = :horizontal)
-fig
 ##
-save("fig4_density_asymmetry.png", fig)
+save("fig4.png", fig)

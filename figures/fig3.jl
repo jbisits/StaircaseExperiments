@@ -57,8 +57,6 @@ for i ∈ eachindex(Sᵤ_range)
     lines!(ax1, τ_range, Δσ_nonlinear[:, i], linestyle = linestyle[i], color = Makie.wong_colors()[2],
            label = L"$ρ_{\mathrm{nonlinear}}\text{, }R_{\rho}$ = %$(round(Rᵨ_nleos[i], digits = 2))")
 end
-# axislegend(ax1, position = :rc)
 Legend(fig[2, 1], ax1, orientation = :horizontal, nbanks = 3)
-fig
 ##
-save("fig3_tau_asymmetry.png", fig)
+save("fig3.png", fig)

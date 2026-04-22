@@ -6,12 +6,13 @@ l_files = (l_R_ρ_105_dT2_diagnostics, l_R_ρ_105_dT1_diagnostics, l_R_ρ_105_dT
 merged_files = (l_files, nl_files)
 eos_type = (leos, nleos)
 ordered_labels = (("I", "II", "III"), ("IV", "V", "VI"))
+panel_labels = (("(a)", "(b)", "(c)"), ("(d)", "(e)", "(f)"))
 fig = Figure(size = (900, 900))
 for (j, files) ∈ enumerate(merged_files)
     ax = [Axis(fig[j, i],
                 xlabel = L"$S$ (gkg$^{-1}$)",
                 ylabel = L"$Θ$ (°C)",
-                title = "Experiment " * ordered_labels[j][i]) for i ∈ eachindex(files)]
+                title = panel_labels[j][i] * " Experiment " * ordered_labels[j][i]) for i ∈ eachindex(files)]
     file = jldopen(files[1])
     S = file["S_ha"][:, 4]
     Θ = file["T_ha"][:, 4]
@@ -69,9 +70,10 @@ for (j, files) ∈ enumerate(merged_files)
         if j == 1
             hidexdecorations!(ax[i], grid = false, ticks = false)
         end
+        if j == 2 && i == 3
+            Legend(fig[3, :], ax[1], orientation = :horizontal)
+        end
     end
 end
-Legend(fig[3, :], ax[1], orientation = :horizontal)
-fig
 ##
-save("fig10_ST_simluation.png", fig)
+save("fig10.png", fig)

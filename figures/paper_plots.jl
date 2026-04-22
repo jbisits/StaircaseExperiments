@@ -767,7 +767,6 @@ j = 1
 linestyles = (:solid, :dash)
 for (i, f) ∈ enumerate(files)
 
-    # j = i ∈ (1, 2) ? 1 : 2
     jldopen(f) do ds
 
         t = ds["dims"]["time"][1:ts_length]

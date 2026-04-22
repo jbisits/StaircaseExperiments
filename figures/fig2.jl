@@ -1,7 +1,6 @@
 include("plotting_env_and_load.jl")
 ## Figure two
 # Profiles in salinity-temperature space
-# σ_grad = get(ColorSchemes.dense, range(0.2, 1, length = 4))
 σ_grad = get(ColorSchemes.diff, [0.2, 0.3, 0.6, 1])
 σ_grad = cgrad(σ_grad, 4, categorical = true)
 fig = Figure(size = (800, 600))
@@ -28,12 +27,7 @@ cn = contour!(ax[1], S_range, Θ_range, linear_σ₀_grid';
               levels = σ_linear_levels,
               colormap = σ_grad,
               colorrange = extrema(σ_linear_levels),
-            #   color = σ_grad,
-            #   labelformatter = my_contour_label_formatter,
-            #   labels = true,
-            #   labelsize = 14,
               linewidth = 0.75,
-            #   linestyle = :dot,
               label = "Isopycnals")
 Colorbar(fig[1, 2], colorrange = extrema(σ_linear_levels),
         colormap = cgrad(σ_grad, 4, categorical = true),
@@ -64,12 +58,7 @@ cn = contour!(ax[2], S_range, Θ_range, nlinear_σ₀_grid';
               levels = σ_nl_levels,
               colormap = σ_grad,
               colorrange = (-maximum(σ_nl_levels), maximum(σ_nl_levels)),
-            #   labelformatter = my_contour_label_formatter,
-            #   labels = true,
-            #   color = σ_grad,
-                # labelsize = 14,
               linewidth = 0.75,
-            #   linestyle = :dot,
               label = "Isopycnals")
 Colorbar(fig[2, 2], colorrange = extrema(σ_nl_levels),
         colormap = σ_grad,
@@ -81,6 +70,5 @@ scatter!(ax[2], S[1], T[1]; markersize, label = "Initial lower density", color =
 scatter!(ax[2], S_minmax[2], T_minmax[2]; markersize, label = "Maximum density", color = σ_grad[end])
 
 Legend(fig[3, :], ax[2], orientation = :horizontal, nbanks = 2)
-fig
 ##
-save("fig2_S_T_sigma_ST_space_2panel.png", fig)
+save("fig2.png", fig)

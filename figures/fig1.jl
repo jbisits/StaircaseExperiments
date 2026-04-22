@@ -62,6 +62,5 @@ ax[2].xlabel = L"$σ_{0}'$ (kgm⁻³)"
 hideydecorations!(ax[2], grid = false)
 axislegend(ax[2])
 linkyaxes!(ax[1], ax[2])
-fig
 ##
-save("fig1_S_T_sigma_profiles.png", fig)
+save("fig1.png", fig)
