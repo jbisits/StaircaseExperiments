@@ -56,10 +56,10 @@ hidexdecorations!(ax[2], grid = false, ticks = false)
 fig
 # linear fit
 linfit_range = 250:420
-Rᵨ_mean_l = jldopen(l_fbc_diagnostics) do f
+Rᵨ_mean_l = jldopen(nl_fbc_diagnostics) do f
     mean(f["R_ρ"][linfit_range])
 end
-f = jldopen(l_fbc_diagnostics)
+f = jldopen(nl_fbc_diagnostics)
 z✶ = f["dims"]["z✶"][f["S_interface_idx"][linfit_range]]
 t = f["dims"]["time"][linfit_range]
 Rᵨ_mean_nl = mean(f["R_ρ"][linfit_range])
