@@ -5,9 +5,9 @@ files = (l_R_ρ_105_dT2_diagnostics, nl_R_ρ_105_dT2_diagnostics,
          l_R_ρ_105_dT05_diagnostics, nl_R_ρ_105_dT05_diagnostics)
 # energetics
 fig = Figure(size = (800, 1000))
-ax = [Axis(fig[i, 1], xlabel = "time (min)", ylabel = "Non-dimensional\n APE") for i ∈ 1:2]
+ax = [Axis(fig[i, 1], xlabel = "time (min)", ylabel = L"\mathcal{APE}") for i ∈ 1:2]
 ax[1].title = "(a) Available potential energy"
-ax[2].title = "(b) Time derivateive of APE, I and IV"
+ax[2].title = "(b) Time derivateive of APE, experiments I and IV"
 ts_length = 240
 j = 1
 linestyles = (:solid, :dash)
@@ -28,7 +28,7 @@ for (i, f) ∈ enumerate(files)
         lines!(ax[1], 1:ts_length, ape, linestyle = ls, label = all_labels[i])
         if i < 3
             lines!(ax[2], 2:ts_length, dₜape, linestyle = ls)
-            ax[2].ylabel = "Non-dimensional\n APE rate (s)"
+            ax[2].ylabel = L"d$\mathcal{APE}$/dt (s)"
         end
 
     end
