@@ -131,19 +131,26 @@ hidexdecorations!(ax_lR_Δρ, grid = false, ticks = false)
 hidexdecorations!(ax_nlR_Δρ, grid = false, ticks = false)
 Colorbar(fig[2, 3], hm_nlR_Δρ, label = L"\delta_{\mathrm{mol}}")
 
-colorrange = (1, 10)
+colorrange = (0, 1)
+custom_colors = [:grey75, :tomato]
+cat_cmap = cgrad(custom_colors, 2, categorical=true)
+δ_leos_cat = ifelse.(δ_leos .== 1, 0, δ_leos)
+δ_nleos_cat = ifelse.(δ_nleos .== 1, 0, δ_nleos)
 ax_δ_linear = Axis(fig[3, 1], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
-hm_δ_linear = heatmap!(ax_δ_linear, ΔΘ, ΔS, δ_leos; colorrange, colormap = :turbid, highclip = :red, lowclip = :orange)
+# hm_δ_linear = heatmap!(ax_δ_linear, ΔΘ, ΔS, δ_leos; colorrange, colormap = :turbid, highclip = :red, lowclip = :orange)
+hm_δ_linear = heatmap!(ax_δ_linear, ΔΘ, ΔS, δ_leos_cat; colorrange, colormap = cat_cmap)
 scatter!(ax_δ_linear, arctic_obs...; markersize, color = :blue)
 scatter!(ax_δ_linear, ΔΘ_expts, ΔS_expts_linear; color = linear_colour,
          label = linear_expt_labels, markersize, marker = linear_expt_markers)
 ax_δ_nlinear = Axis(fig[3, 2], xlabel = "ΔΘ (°C)", ylabel = "ΔS (gkg⁻¹)")
-hm_δ_nlinear = heatmap!(ax_δ_nlinear, ΔΘ, ΔS, δ_nleos; colorrange, colormap = :turbid, highclip = :red, lowclip = :orange)
+# hm_δ_nlinear = heatmap!(ax_δ_nlinear, ΔΘ, ΔS, δ_nleos; colorrange, colormap = :turbid, highclip = :red, lowclip = :orange)
+hm_δ_nlinear = heatmap!(ax_δ_nlinear, ΔΘ, ΔS, δ_nleos_cat; colorrange, colormap = cat_cmap)
 scatter!(ax_δ_nlinear, arctic_obs...; markersize, color = :blue, label = "Arctic interfaces")
 scatter!(ax_δ_nlinear, ΔΘ_expts, ΔS_expts_nlinear; color = nlinear_colour,
          label = nlinear_expt_labels, markersize, marker = nlinear_expt_markers)
 hideydecorations!(ax_δ_nlinear, grid = false, ticks = false)
-Colorbar(fig[3, 3], hm_δ_nlinear, label = L"\delta_{\mathrm{turb}}")
+Colorbar(fig[3, 3], hm_δ_nlinear, ticks=([0.25, 0.75], [L"\delta_{\mathrm{turb}} = 1",L"\delta_{\mathrm{turb}} > 1"]), ticklabelrotation = π/2,
+         ticksvisible = false)
 
 # panel labels
 panel_labels = ["(a)", "(b)", "(c)", "(d)", "(e)", "(f)"]
