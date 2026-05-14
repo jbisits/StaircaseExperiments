@@ -29,91 +29,10 @@ st_horizontal_ticks = string.(round.(Int64, horizontal_ticks .* 100))
 T_colorrange = (-1.5, 1.5)
 S_colorrange = (-0.09, 0.09)
 w_colorrnage = (-0.0005, 0.0005)
-# fig = Figure(size=(800, 1800))
-# snapshots = [[60.0 * 3, 60.0 * 6, 60 * 12, 60.0 * 24],
-#     [180.00000000000003, 60.0 * 6, 60 * 12, 60.0 * 24]]
-# panel_labels = ["(a)" "(b)" "(c)" "(d)"; "(e)" "(f)" "(g)" "(h)"]
-# for j ∈ eachindex(files)
-#
-#     file = jldopen(files[j])
-#
-#     initial_S = file["S"]["xzslice_0.0"]
-#     initial_T = file["T"]["yzslice_0.0"]
-#     slices = [(S_xz=file["S"]["xzslice_$(snapshot)"],
-#         T_yz=file["T"]["yzslice_$(snapshot)"],
-#         velocity_zmean=file["w"]["w_zmean_$(snapshot)"][:, :, 1]) for snapshot ∈ snapshots[j]]
-#     close(file)
-#
-#     ax = [Axis3(fig[k+(j-1)*3, i],
-#         aspect=(1 / 3, 1 / 3, 1),
-#         titlefont=:regular,
-#         xlabel="x (cm)",
-#         ylabel="y (cm)",
-#         zlabel="z (m)",
-#         xticks=(horizontal_ticks, string.(horizontal_ticks .* 100)),
-#         yticks=(horizontal_ticks, string.(horizontal_ticks .* 100)),
-#         xlabeloffset=40,
-#         ylabeloffset=40,
-#         zlabeloffset=60,
-#         xlabelsize=18,
-#         ylabelsize=18,
-#         zlabelsize=18,
-#         xticklabelsize=14,
-#         yticklabelsize=14,
-#         zticklabelsize=18,
-#         zlabelrotation=π / 2,
-#         limits=((x[1], x[end]), (y[1], y[end]), (z[1], z[end])),
-#         elevation=π / 6.5,
-#         azimuth=1.25π,
-#         xspinesvisible=false,
-#         yspinesvisible=false,
-#         zspinesvisible=false,
-#         zgridvisible=false,
-#         protrusions=(0, 0, 7, 7)
-#     ) for i ∈ 1:2, k ∈ 1:2]
-#
-#     if j == 2
-#         for i ∈ 3:4
-#             ax[i].protrusions = (0, 0, 40, 7)
-#         end
-#     end
-#     for i ∈ eachindex(snapshots[j])
-#         sf_S = surface!(ax[i], x_xz, y_xz_density, z_xz; color=slices[i].S_xz .- initial_S,
-#             colormap=:curl,
-#             colorrange=S_colorrange)
-#         sf_T = surface!(ax[i], x_xz_velocity, y_xz, z_yz; color=slices[i].T_yz .- initial_T,
-#             colormap=:delta, colorrange=T_colorrange,
-#             backlight=5f0, shading=FastShading)
-#         sf_w = surface!(ax[i], x, y, z_xy_top; color=slices[i].velocity_zmean, colormap=:balance,
-#             colorrange=w_colorrnage)
-#         ax[i].title = j == 1 ? panel_labels[j, i] * " t = $(round(snapshots[j][i] / 60)) minutes" :
-#                       panel_labels[j, i] * " t = $(round(snapshots[j][i] / 60)) minutes"
-#         if j == 2
-#             if i == 1
-#                 Colorbar(fig[0:1, 3], sf_T, label="Θ′ (°C)")
-#                 Colorbar(fig[2:3, 3], sf_S, label="S′ (gkg⁻¹)")
-#                 Colorbar(fig[4, 3], sf_w, label="w (ms⁻¹)")
-#             end
-#         end
-#         if j == 1
-#             hidexdecorations!(ax[i], ticks=false)
-#             hideydecorations!(ax[i], ticks=false)
-#         end
-#         if j == 2 && i < 3
-#             hidexdecorations!(ax[i], ticks=false)
-#             hideydecorations!(ax[i], ticks=false)
-#         end
-#         if i % 2 == 0
-#             hidezdecorations!(ax[i], ticks=false)
-#         end
-#     end
-# end
-# Label(fig[0, :], "Linear equation of state", fontsize=22, font=:bold)
-# Label(fig[3, :], "Non-linear equation of state", fontsize=22, font=:bold)
-# colgap!(fig.layout, 0)
 fig = Figure(size=(1100, 1000))
 snapshots = [[60.0 * 3, 60.0 * 6, 60 * 12, 60.0 * 24],
     [180.00000000000003, 60.0 * 6, 60 * 12, 60.0 * 24]]
+panel_labels = ["(a)" "(b)" "(c)" "(d)"; "(e)" "(f)" "(g)" "(h)"]
 for (j, path) ∈ enumerate(files)
 
     file = jldopen(path)
@@ -160,9 +79,12 @@ for (j, path) ∈ enumerate(files)
             colormap=:curl,
             colorrange=S_colorrange)
         sf_T = surface!(ax[i], x_xz_velocity, y_xz, z_yz; color=slices[i].T_yz .- initial_T,
-            colormap=:delta, colorrange=T_colorrange,
-            backlight=5f0, shading=FastShading)
-        sf_w = surface!(ax[i], x, y, z_xy_top; color=slices[i].velocity_zmean, colormap=:balance,
+            colormap=:delta,
+            colorrange=T_colorrange,
+            backlight=5f0,
+            shading=FastShading)
+        sf_w = surface!(ax[i], x, y, z_xy_top; color=slices[i].velocity_zmean,
+            colormap=:balance,
             colorrange=w_colorrnage)
         ax[i].title = panel_labels[j, i] * " t = $(round(snapshots[j][i] / 60)) minutes"
         if i == 1
