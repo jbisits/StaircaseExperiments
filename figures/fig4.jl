@@ -157,9 +157,12 @@ panel_labels = ["(a)", "(b)", "(c)", "(d)", "(e)", "(f)"]
 axs = [ax_lRᵨ, ax_lR_Δρ, ax_δ_linear, ax_nlRᵨ, ax_nlR_Δρ, ax_δ_nlinear]
 ΔΘ_Baltic = -1.5
 ΔΘ_Banyoles = -1.0
+ΔΘ_Robertson = -0.8
+obs_line_color = :black
 for (i, a) ∈ enumerate(axs)
-    vlines!(a, ΔΘ_Baltic, color=Makie.wong_colors()[2], linestyle=:dash)
-    vlines!(a, ΔΘ_Banyoles, color=Makie.wong_colors()[3], linestyle=:dash)
+    vlines!(a, ΔΘ_Baltic, color=obs_line_color, linestyle=:dash)
+    vlines!(a, ΔΘ_Banyoles, color=obs_line_color, linestyle=:dot)
+    vlines!(a, ΔΘ_Robertson, color=obs_line_color, linestyle=:dashdot)
     text!(a, 1, 0,
         text=panel_labels[i],
         font=:bold,
@@ -174,11 +177,13 @@ legend_markers = [MarkerElement(color=:black, marker=m; markersize)
                   for m ∈ vcat(linear_expt_markers, nlinear_expt_markers)]
 legend_expts = vcat(linear_expt_labels, nlinear_expt_labels)
 obs_marker = [MarkerElement(color=:blue, marker=:circle; markersize),
-    LineElement(color=Makie.wong_colors()[2], linestyle=:dash),
-    LineElement(color=Makie.wong_colors()[3], linestyle=:dash)]
+    LineElement(color=obs_line_color, linestyle=:dash),
+    LineElement(color=obs_line_color, linestyle=:dot),
+    LineElement(color=obs_line_color, linestyle=:dashdot)]
 lobs = ["Timmermans et al. (2008)",
     "ΔΘ max\nUmlauf et al. (2018)",
-    "ΔΘ max\nSanchez & Roget (2007)"]
+    "ΔΘ max\nSanchez & Roget (2007)",
+    "ΔΘ max\nRobertson et al. (1995)"]
 # Legend(fig[4, 1], legend_markers, legend_expts, "DNS Experiments",
 # orientation=:horizontal, nbanks=2)
 # Legend(fig[4, 2], obs_marker, lobs, "Observations",
