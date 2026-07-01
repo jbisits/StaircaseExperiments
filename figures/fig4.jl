@@ -181,9 +181,9 @@ obs_marker = [MarkerElement(color=:blue, marker=:circle; markersize),
     LineElement(color=obs_line_color, linestyle=:dot),
     LineElement(color=obs_line_color, linestyle=:dashdot)]
 lobs = ["Timmermans et al. (2008)",
-    "ΔΘ max\nUmlauf et al. (2018)",
-    "ΔΘ max\nSanchez & Roget (2007)",
-    "ΔΘ max\nRobertson et al. (1995)"]
+    "ΔΘ maximum\nUmlauf et al. (2018)",
+    "ΔΘ maximum\nSanchez & Roget (2007)",
+    "ΔΘ maximum\nRobertson et al. (1995)"]
 # Legend(fig[4, 1], legend_markers, legend_expts, "DNS Experiments",
 # orientation=:horizontal, nbanks=2)
 # Legend(fig[4, 2], obs_marker, lobs, "Observations",
